@@ -2,8 +2,16 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { SectionCards } from "@/components/section-cards";
 import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { auth } from "@/lib/auth";
+import { redirect } from "next/navigation";
 
-export default function Page() {
+export default async function Page() {
+  const session = await auth();
+
+  if (!session) {
+    redirect("/");
+  }
+
   return (
     <SidebarProvider
       style={
