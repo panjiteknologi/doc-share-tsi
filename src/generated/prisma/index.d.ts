@@ -5603,8 +5603,6 @@ export namespace Prisma {
     emailVerified: Date | null
     image: string | null
     roleId: string | null
-    createdAt: Date | null
-    updatedAt: Date | null
   }
 
   export type UserMaxAggregateOutputType = {
@@ -5615,8 +5613,6 @@ export namespace Prisma {
     emailVerified: Date | null
     image: string | null
     roleId: string | null
-    createdAt: Date | null
-    updatedAt: Date | null
   }
 
   export type UserCountAggregateOutputType = {
@@ -5627,8 +5623,6 @@ export namespace Prisma {
     emailVerified: number
     image: number
     roleId: number
-    createdAt: number
-    updatedAt: number
     _all: number
   }
 
@@ -5641,8 +5635,6 @@ export namespace Prisma {
     emailVerified?: true
     image?: true
     roleId?: true
-    createdAt?: true
-    updatedAt?: true
   }
 
   export type UserMaxAggregateInputType = {
@@ -5653,8 +5645,6 @@ export namespace Prisma {
     emailVerified?: true
     image?: true
     roleId?: true
-    createdAt?: true
-    updatedAt?: true
   }
 
   export type UserCountAggregateInputType = {
@@ -5665,8 +5655,6 @@ export namespace Prisma {
     emailVerified?: true
     image?: true
     roleId?: true
-    createdAt?: true
-    updatedAt?: true
     _all?: true
   }
 
@@ -5750,8 +5738,6 @@ export namespace Prisma {
     emailVerified: Date | null
     image: string | null
     roleId: string
-    createdAt: Date
-    updatedAt: Date
     _count: UserCountAggregateOutputType | null
     _min: UserMinAggregateOutputType | null
     _max: UserMaxAggregateOutputType | null
@@ -5779,8 +5765,6 @@ export namespace Prisma {
     emailVerified?: boolean
     image?: boolean
     roleId?: boolean
-    createdAt?: boolean
-    updatedAt?: boolean
     role?: boolean | RoleDefaultArgs<ExtArgs>
     folders?: boolean | User$foldersArgs<ExtArgs>
     documents?: boolean | User$documentsArgs<ExtArgs>
@@ -5801,11 +5785,9 @@ export namespace Prisma {
     emailVerified?: boolean
     image?: boolean
     roleId?: boolean
-    createdAt?: boolean
-    updatedAt?: boolean
   }
 
-  export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "hashedPassword" | "email" | "emailVerified" | "image" | "roleId" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
+  export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "hashedPassword" | "email" | "emailVerified" | "image" | "roleId", ExtArgs["result"]["user"]>
   export type UserInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     role?: boolean | RoleDefaultArgs<ExtArgs>
     folders?: boolean | User$foldersArgs<ExtArgs>
@@ -5836,8 +5818,6 @@ export namespace Prisma {
       emailVerified: Date | null
       image: string | null
       roleId: string
-      createdAt: Date
-      updatedAt: Date
     }, ExtArgs["result"]["user"]>
     composites: {}
   }
@@ -6221,8 +6201,6 @@ export namespace Prisma {
     readonly emailVerified: FieldRef<"User", 'DateTime'>
     readonly image: FieldRef<"User", 'String'>
     readonly roleId: FieldRef<"User", 'String'>
-    readonly createdAt: FieldRef<"User", 'DateTime'>
-    readonly updatedAt: FieldRef<"User", 'DateTime'>
   }
     
 
@@ -10601,9 +10579,7 @@ export namespace Prisma {
     email: 'email',
     emailVerified: 'emailVerified',
     image: 'image',
-    roleId: 'roleId',
-    createdAt: 'createdAt',
-    updatedAt: 'updatedAt'
+    roleId: 'roleId'
   };
 
   export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
@@ -11102,8 +11078,6 @@ export namespace Prisma {
     emailVerified?: DateTimeNullableFilter<"User"> | Date | string | null
     image?: StringNullableFilter<"User"> | string | null
     roleId?: StringFilter<"User"> | string
-    createdAt?: DateTimeFilter<"User"> | Date | string
-    updatedAt?: DateTimeFilter<"User"> | Date | string
     role?: XOR<RoleScalarRelationFilter, RoleWhereInput>
     folders?: FolderListRelationFilter
     documents?: DocumentListRelationFilter
@@ -11121,8 +11095,6 @@ export namespace Prisma {
     emailVerified?: SortOrderInput | SortOrder
     image?: SortOrderInput | SortOrder
     roleId?: SortOrder
-    createdAt?: SortOrder
-    updatedAt?: SortOrder
     role?: RoleOrderByWithRelationInput
     folders?: FolderOrderByRelationAggregateInput
     documents?: DocumentOrderByRelationAggregateInput
@@ -11144,8 +11116,6 @@ export namespace Prisma {
     emailVerified?: DateTimeNullableFilter<"User"> | Date | string | null
     image?: StringNullableFilter<"User"> | string | null
     roleId?: StringFilter<"User"> | string
-    createdAt?: DateTimeFilter<"User"> | Date | string
-    updatedAt?: DateTimeFilter<"User"> | Date | string
     role?: XOR<RoleScalarRelationFilter, RoleWhereInput>
     folders?: FolderListRelationFilter
     documents?: DocumentListRelationFilter
@@ -11163,8 +11133,6 @@ export namespace Prisma {
     emailVerified?: SortOrderInput | SortOrder
     image?: SortOrderInput | SortOrder
     roleId?: SortOrder
-    createdAt?: SortOrder
-    updatedAt?: SortOrder
     _count?: UserCountOrderByAggregateInput
     _max?: UserMaxOrderByAggregateInput
     _min?: UserMinOrderByAggregateInput
@@ -11181,8 +11149,6 @@ export namespace Prisma {
     emailVerified?: DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
     image?: StringNullableWithAggregatesFilter<"User"> | string | null
     roleId?: StringWithAggregatesFilter<"User"> | string
-    createdAt?: DateTimeWithAggregatesFilter<"User"> | Date | string
-    updatedAt?: DateTimeWithAggregatesFilter<"User"> | Date | string
   }
 
   export type RoleWhereInput = {
@@ -11718,8 +11684,6 @@ export namespace Prisma {
     email?: string | null
     emailVerified?: Date | string | null
     image?: string | null
-    createdAt?: Date | string
-    updatedAt?: Date | string
     role?: RoleCreateNestedOneWithoutUsersInput
     folders?: FolderCreateNestedManyWithoutUserInput
     documents?: DocumentCreateNestedManyWithoutUserInput
@@ -11737,8 +11701,6 @@ export namespace Prisma {
     emailVerified?: Date | string | null
     image?: string | null
     roleId?: string
-    createdAt?: Date | string
-    updatedAt?: Date | string
     folders?: FolderUncheckedCreateNestedManyWithoutUserInput
     documents?: DocumentUncheckedCreateNestedManyWithoutUserInput
     projects?: ProjectUncheckedCreateNestedManyWithoutAuditorsInput
@@ -11754,8 +11716,6 @@ export namespace Prisma {
     email?: NullableStringFieldUpdateOperationsInput | string | null
     emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     role?: RoleUpdateOneRequiredWithoutUsersNestedInput
     folders?: FolderUpdateManyWithoutUserNestedInput
     documents?: DocumentUpdateManyWithoutUserNestedInput
@@ -11773,8 +11733,6 @@ export namespace Prisma {
     emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
     roleId?: StringFieldUpdateOperationsInput | string
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     folders?: FolderUncheckedUpdateManyWithoutUserNestedInput
     documents?: DocumentUncheckedUpdateManyWithoutUserNestedInput
     projects?: ProjectUncheckedUpdateManyWithoutAuditorsNestedInput
@@ -11791,8 +11749,6 @@ export namespace Prisma {
     emailVerified?: Date | string | null
     image?: string | null
     roleId?: string
-    createdAt?: Date | string
-    updatedAt?: Date | string
   }
 
   export type UserUpdateManyMutationInput = {
@@ -11802,8 +11758,6 @@ export namespace Prisma {
     email?: NullableStringFieldUpdateOperationsInput | string | null
     emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type UserUncheckedUpdateManyInput = {
@@ -11814,8 +11768,6 @@ export namespace Prisma {
     emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
     roleId?: StringFieldUpdateOperationsInput | string
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type RoleCreateInput = {
@@ -12485,8 +12437,6 @@ export namespace Prisma {
     emailVerified?: SortOrder
     image?: SortOrder
     roleId?: SortOrder
-    createdAt?: SortOrder
-    updatedAt?: SortOrder
   }
 
   export type UserMaxOrderByAggregateInput = {
@@ -12497,8 +12447,6 @@ export namespace Prisma {
     emailVerified?: SortOrder
     image?: SortOrder
     roleId?: SortOrder
-    createdAt?: SortOrder
-    updatedAt?: SortOrder
   }
 
   export type UserMinOrderByAggregateInput = {
@@ -12509,8 +12457,6 @@ export namespace Prisma {
     emailVerified?: SortOrder
     image?: SortOrder
     roleId?: SortOrder
-    createdAt?: SortOrder
-    updatedAt?: SortOrder
   }
 
   export type DateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
@@ -13422,8 +13368,6 @@ export namespace Prisma {
     email?: string | null
     emailVerified?: Date | string | null
     image?: string | null
-    createdAt?: Date | string
-    updatedAt?: Date | string
     role?: RoleCreateNestedOneWithoutUsersInput
     folders?: FolderCreateNestedManyWithoutUserInput
     documents?: DocumentCreateNestedManyWithoutUserInput
@@ -13440,8 +13384,6 @@ export namespace Prisma {
     emailVerified?: Date | string | null
     image?: string | null
     roleId?: string
-    createdAt?: Date | string
-    updatedAt?: Date | string
     folders?: FolderUncheckedCreateNestedManyWithoutUserInput
     documents?: DocumentUncheckedCreateNestedManyWithoutUserInput
     projects?: ProjectUncheckedCreateNestedManyWithoutAuditorsInput
@@ -13472,8 +13414,6 @@ export namespace Prisma {
     email?: NullableStringFieldUpdateOperationsInput | string | null
     emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     role?: RoleUpdateOneRequiredWithoutUsersNestedInput
     folders?: FolderUpdateManyWithoutUserNestedInput
     documents?: DocumentUpdateManyWithoutUserNestedInput
@@ -13490,8 +13430,6 @@ export namespace Prisma {
     emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
     roleId?: StringFieldUpdateOperationsInput | string
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     folders?: FolderUncheckedUpdateManyWithoutUserNestedInput
     documents?: DocumentUncheckedUpdateManyWithoutUserNestedInput
     projects?: ProjectUncheckedUpdateManyWithoutAuditorsNestedInput
@@ -13506,8 +13444,6 @@ export namespace Prisma {
     email?: string | null
     emailVerified?: Date | string | null
     image?: string | null
-    createdAt?: Date | string
-    updatedAt?: Date | string
     role?: RoleCreateNestedOneWithoutUsersInput
     folders?: FolderCreateNestedManyWithoutUserInput
     documents?: DocumentCreateNestedManyWithoutUserInput
@@ -13524,8 +13460,6 @@ export namespace Prisma {
     emailVerified?: Date | string | null
     image?: string | null
     roleId?: string
-    createdAt?: Date | string
-    updatedAt?: Date | string
     folders?: FolderUncheckedCreateNestedManyWithoutUserInput
     documents?: DocumentUncheckedCreateNestedManyWithoutUserInput
     projects?: ProjectUncheckedCreateNestedManyWithoutAuditorsInput
@@ -13556,8 +13490,6 @@ export namespace Prisma {
     email?: NullableStringFieldUpdateOperationsInput | string | null
     emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     role?: RoleUpdateOneRequiredWithoutUsersNestedInput
     folders?: FolderUpdateManyWithoutUserNestedInput
     documents?: DocumentUpdateManyWithoutUserNestedInput
@@ -13574,8 +13506,6 @@ export namespace Prisma {
     emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
     roleId?: StringFieldUpdateOperationsInput | string
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     folders?: FolderUncheckedUpdateManyWithoutUserNestedInput
     documents?: DocumentUncheckedUpdateManyWithoutUserNestedInput
     projects?: ProjectUncheckedUpdateManyWithoutAuditorsNestedInput
@@ -13590,8 +13520,6 @@ export namespace Prisma {
     email?: string | null
     emailVerified?: Date | string | null
     image?: string | null
-    createdAt?: Date | string
-    updatedAt?: Date | string
     role?: RoleCreateNestedOneWithoutUsersInput
     folders?: FolderCreateNestedManyWithoutUserInput
     documents?: DocumentCreateNestedManyWithoutUserInput
@@ -13608,8 +13536,6 @@ export namespace Prisma {
     emailVerified?: Date | string | null
     image?: string | null
     roleId?: string
-    createdAt?: Date | string
-    updatedAt?: Date | string
     folders?: FolderUncheckedCreateNestedManyWithoutUserInput
     documents?: DocumentUncheckedCreateNestedManyWithoutUserInput
     projects?: ProjectUncheckedCreateNestedManyWithoutAuditorsInput
@@ -13640,8 +13566,6 @@ export namespace Prisma {
     email?: NullableStringFieldUpdateOperationsInput | string | null
     emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     role?: RoleUpdateOneRequiredWithoutUsersNestedInput
     folders?: FolderUpdateManyWithoutUserNestedInput
     documents?: DocumentUpdateManyWithoutUserNestedInput
@@ -13658,8 +13582,6 @@ export namespace Prisma {
     emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
     roleId?: StringFieldUpdateOperationsInput | string
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     folders?: FolderUncheckedUpdateManyWithoutUserNestedInput
     documents?: DocumentUncheckedUpdateManyWithoutUserNestedInput
     projects?: ProjectUncheckedUpdateManyWithoutAuditorsNestedInput
@@ -14060,8 +13982,6 @@ export namespace Prisma {
     email?: string | null
     emailVerified?: Date | string | null
     image?: string | null
-    createdAt?: Date | string
-    updatedAt?: Date | string
     folders?: FolderCreateNestedManyWithoutUserInput
     documents?: DocumentCreateNestedManyWithoutUserInput
     projects?: ProjectCreateNestedManyWithoutAuditorsInput
@@ -14077,8 +13997,6 @@ export namespace Prisma {
     email?: string | null
     emailVerified?: Date | string | null
     image?: string | null
-    createdAt?: Date | string
-    updatedAt?: Date | string
     folders?: FolderUncheckedCreateNestedManyWithoutUserInput
     documents?: DocumentUncheckedCreateNestedManyWithoutUserInput
     projects?: ProjectUncheckedCreateNestedManyWithoutAuditorsInput
@@ -14124,8 +14042,6 @@ export namespace Prisma {
     emailVerified?: DateTimeNullableFilter<"User"> | Date | string | null
     image?: StringNullableFilter<"User"> | string | null
     roleId?: StringFilter<"User"> | string
-    createdAt?: DateTimeFilter<"User"> | Date | string
-    updatedAt?: DateTimeFilter<"User"> | Date | string
   }
 
   export type UserCreateWithoutFoldersInput = {
@@ -14135,8 +14051,6 @@ export namespace Prisma {
     email?: string | null
     emailVerified?: Date | string | null
     image?: string | null
-    createdAt?: Date | string
-    updatedAt?: Date | string
     role?: RoleCreateNestedOneWithoutUsersInput
     documents?: DocumentCreateNestedManyWithoutUserInput
     projects?: ProjectCreateNestedManyWithoutAuditorsInput
@@ -14153,8 +14067,6 @@ export namespace Prisma {
     emailVerified?: Date | string | null
     image?: string | null
     roleId?: string
-    createdAt?: Date | string
-    updatedAt?: Date | string
     documents?: DocumentUncheckedCreateNestedManyWithoutUserInput
     projects?: ProjectUncheckedCreateNestedManyWithoutAuditorsInput
     sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
@@ -14224,8 +14136,6 @@ export namespace Prisma {
     email?: NullableStringFieldUpdateOperationsInput | string | null
     emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     role?: RoleUpdateOneRequiredWithoutUsersNestedInput
     documents?: DocumentUpdateManyWithoutUserNestedInput
     projects?: ProjectUpdateManyWithoutAuditorsNestedInput
@@ -14242,8 +14152,6 @@ export namespace Prisma {
     emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
     roleId?: StringFieldUpdateOperationsInput | string
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     documents?: DocumentUncheckedUpdateManyWithoutUserNestedInput
     projects?: ProjectUncheckedUpdateManyWithoutAuditorsNestedInput
     sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -14322,8 +14230,6 @@ export namespace Prisma {
     email?: string | null
     emailVerified?: Date | string | null
     image?: string | null
-    createdAt?: Date | string
-    updatedAt?: Date | string
     role?: RoleCreateNestedOneWithoutUsersInput
     folders?: FolderCreateNestedManyWithoutUserInput
     projects?: ProjectCreateNestedManyWithoutAuditorsInput
@@ -14340,8 +14246,6 @@ export namespace Prisma {
     emailVerified?: Date | string | null
     image?: string | null
     roleId?: string
-    createdAt?: Date | string
-    updatedAt?: Date | string
     folders?: FolderUncheckedCreateNestedManyWithoutUserInput
     projects?: ProjectUncheckedCreateNestedManyWithoutAuditorsInput
     sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
@@ -14405,8 +14309,6 @@ export namespace Prisma {
     email?: NullableStringFieldUpdateOperationsInput | string | null
     emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     role?: RoleUpdateOneRequiredWithoutUsersNestedInput
     folders?: FolderUpdateManyWithoutUserNestedInput
     projects?: ProjectUpdateManyWithoutAuditorsNestedInput
@@ -14423,8 +14325,6 @@ export namespace Prisma {
     emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
     roleId?: StringFieldUpdateOperationsInput | string
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     folders?: FolderUncheckedUpdateManyWithoutUserNestedInput
     projects?: ProjectUncheckedUpdateManyWithoutAuditorsNestedInput
     sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -14466,8 +14366,6 @@ export namespace Prisma {
     email?: string | null
     emailVerified?: Date | string | null
     image?: string | null
-    createdAt?: Date | string
-    updatedAt?: Date | string
     role?: RoleCreateNestedOneWithoutUsersInput
     folders?: FolderCreateNestedManyWithoutUserInput
     documents?: DocumentCreateNestedManyWithoutUserInput
@@ -14484,8 +14382,6 @@ export namespace Prisma {
     emailVerified?: Date | string | null
     image?: string | null
     roleId?: string
-    createdAt?: Date | string
-    updatedAt?: Date | string
     folders?: FolderUncheckedCreateNestedManyWithoutUserInput
     documents?: DocumentUncheckedCreateNestedManyWithoutUserInput
     sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
@@ -14777,8 +14673,6 @@ export namespace Prisma {
     email?: string | null
     emailVerified?: Date | string | null
     image?: string | null
-    createdAt?: Date | string
-    updatedAt?: Date | string
   }
 
   export type UserUpdateWithoutRoleInput = {
@@ -14788,8 +14682,6 @@ export namespace Prisma {
     email?: NullableStringFieldUpdateOperationsInput | string | null
     emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     folders?: FolderUpdateManyWithoutUserNestedInput
     documents?: DocumentUpdateManyWithoutUserNestedInput
     projects?: ProjectUpdateManyWithoutAuditorsNestedInput
@@ -14805,8 +14697,6 @@ export namespace Prisma {
     email?: NullableStringFieldUpdateOperationsInput | string | null
     emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     folders?: FolderUncheckedUpdateManyWithoutUserNestedInput
     documents?: DocumentUncheckedUpdateManyWithoutUserNestedInput
     projects?: ProjectUncheckedUpdateManyWithoutAuditorsNestedInput
@@ -14822,8 +14712,6 @@ export namespace Prisma {
     email?: NullableStringFieldUpdateOperationsInput | string | null
     emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type DocumentCreateManyFolderInput = {
@@ -14861,8 +14749,6 @@ export namespace Prisma {
     email?: NullableStringFieldUpdateOperationsInput | string | null
     emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     role?: RoleUpdateOneRequiredWithoutUsersNestedInput
     folders?: FolderUpdateManyWithoutUserNestedInput
     documents?: DocumentUpdateManyWithoutUserNestedInput
@@ -14879,8 +14765,6 @@ export namespace Prisma {
     emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
     roleId?: StringFieldUpdateOperationsInput | string
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     folders?: FolderUncheckedUpdateManyWithoutUserNestedInput
     documents?: DocumentUncheckedUpdateManyWithoutUserNestedInput
     sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -14896,8 +14780,6 @@ export namespace Prisma {
     emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
     roleId?: StringFieldUpdateOperationsInput | string
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
 
