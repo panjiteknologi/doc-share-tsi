@@ -25,8 +25,6 @@ export function NavUser() {
   const { data: session, status } = useSession();
   const [initials, setInitials] = useState("--");
 
-  console.log("session : ", session);
-
   useEffect(() => {
     if (session?.user?.name) {
       const nameParts = session.user.name.split(" ");
