@@ -20,6 +20,7 @@ import { useRouter } from "next/navigation";
 import { AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import Link from "next/link";
+import { createUser } from "@/action/user";
 
 // Form validation schema using Zod
 const formSchema = z.object({
@@ -66,6 +67,33 @@ export function RegisterAdminForm({
     try {
       setIsLoading(true);
       setError(null);
+
+      // Create the user using the server action
+      const result = await createUser({
+        name: data.name,
+        email: data.email,
+        password: data.password,
+      });
+
+      if (!result.success) {
+        setError(result.error || "Failed to create user account");
+        return;
+      }
+
+      // Sign in the newly created user
+      const signInResult = await signIn("credentials", {
+        email: data.email,
+        password: data.password,
+        redirect: false,
+      });
+
+      if (!signInResult?.ok) {
+        setError(
+          signInResult?.error ||
+            "Failed to sign in. Please try logging in manually."
+        );
+        return;
+      }
 
       // Redirect to admin dashboard
       router.push("/dashboard");
