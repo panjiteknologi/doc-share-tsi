@@ -53,10 +53,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               asChild
               className="data-[slot=sidebar-menu-button]:!p-1.5"
             >
-              <a href="#">
-                <IconInnerShadowTop className="!size-5" />
-                <span className="text-base font-semibold">Acme Inc.</span>
-              </a>
+              <div className="flex items-center gap-2">
+                <img
+                  src="/images/tsi-logo.png"
+                  alt="TSI Logo"
+                  className="h-8 w-auto"
+                />
+                <span className="text-base font-semibold">
+                  Audit Document Share
+                </span>
+              </div>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

@@ -78,6 +78,17 @@ export function LoginForm({
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
+      <div className="flex flex-col items-center justify-center text-center mb-4">
+        <img
+          src="/images/tsi-logo.png"
+          alt="TSI Logo"
+          className="h-16 w-auto mb-2"
+        />
+        <h1 className="text-2xl font-bold text-primary">
+          TSI Audit Document Share
+        </h1>
+      </div>
+
       <Card>
         <CardHeader>
           <CardTitle>Login to your account</CardTitle>
