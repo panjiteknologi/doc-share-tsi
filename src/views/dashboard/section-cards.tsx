@@ -17,10 +17,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { DialogType, useAddUserDialog } from "@/store/store-add-user-dialog";
+import { DialogType, useDashboardDialog } from "@/store/store-dashboard-dialog";
 
 export function SectionCards() {
-  const { openDialog } = useAddUserDialog();
+  const { openDialog } = useDashboardDialog();
 
   const sections: {
     id: DialogType;

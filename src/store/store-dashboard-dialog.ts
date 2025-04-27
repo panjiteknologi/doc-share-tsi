@@ -12,7 +12,7 @@ interface DialogState {
   setLoading: (loading: boolean) => void;
 }
 
-export const useAddUserDialog = create<DialogState>((set) => ({
+export const useDashboardDialog = create<DialogState>((set) => ({
   isOpen: false,
   dialogType: null,
   isLoading: false,

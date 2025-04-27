@@ -4,7 +4,7 @@ import React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useAddUserDialog } from "@/store/store-add-user-dialog";
+import { useDashboardDialog } from "@/store/store-dashboard-dialog";
 import { addClient, UserFormData } from "@/action/user";
 import { toast } from "sonner";
 import { IconBuildingStore } from "@tabler/icons-react";
@@ -39,7 +39,7 @@ const formSchema = z.object({
 
 export function DialogAddClient() {
   const { isOpen, dialogType, closeDialog, isLoading, setLoading } =
-    useAddUserDialog();
+    useDashboardDialog();
   const isDialogOpen = isOpen && dialogType === "client";
 
   const {

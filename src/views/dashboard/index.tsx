@@ -3,6 +3,7 @@
 import { SectionCards } from "@/views/dashboard/section-cards";
 import { DialogAddClient } from "./dialog-add-client";
 import { DialogAddAuditor } from "./dialog-add-auditor";
+import { DialogAddFolder } from "./dialog-add-folder";
 
 const DashboardView = () => {
   return (
@@ -12,6 +13,7 @@ const DashboardView = () => {
       {/* Dialogs */}
       <DialogAddClient />
       <DialogAddAuditor />
+      <DialogAddFolder />
     </div>
   );
 };
