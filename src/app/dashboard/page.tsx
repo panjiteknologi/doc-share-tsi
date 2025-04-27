@@ -1,8 +1,8 @@
 import { auth } from "@/lib/auth";
-import { SectionCards } from "@/components/section-cards";
 import { redirect } from "next/navigation";
 
 import LayoutDashboard from "@/layout/LayoutDashboard";
+import DashboardView from "@/views/dashboard";
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -13,7 +13,7 @@ export default async function DashboardPage() {
 
   return (
     <LayoutDashboard>
-      <SectionCards />
+      <DashboardView />
     </LayoutDashboard>
   );
 }
