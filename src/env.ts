@@ -17,6 +17,8 @@ export const env = createEnv({
     NEXT_PUBLIC_S3_ACCESS_KEY_ID: z.string().min(1),
     NEXT_PUBLIC_S3_SECRET_ACCESS_KEY: z.string().min(1),
     NEXT_PUBLIC_S3_BUCKET_NAME: z.string().min(1),
+    NEXT_PUBLIC_S3_COMPANY: z.string().min(1),
+
     NEXT_PUBLIC_API_URL: z.string().url(),
   },
 
@@ -34,6 +36,7 @@ export const env = createEnv({
     NEXT_PUBLIC_S3_SECRET_ACCESS_KEY:
       process.env.NEXT_PUBLIC_S3_SECRET_ACCESS_KEY,
     NEXT_PUBLIC_S3_BUCKET_NAME: process.env.NEXT_PUBLIC_S3_BUCKET_NAME,
+    NEXT_PUBLIC_S3_COMPANY: process.env.NEXT_PUBLIC_S3_COMPANY,
 
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
   },
