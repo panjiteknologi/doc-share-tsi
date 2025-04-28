@@ -11,6 +11,7 @@ import {
   FolderOpen,
   Trash2,
   FolderIcon,
+  Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -36,8 +37,10 @@ import { Badge } from "@/components/ui/badge";
 import { useDocuments } from "@/hooks/use-documents";
 import DialogEditDocument from "../dialogs/dialog-edit-document";
 import DialogDeleteDocument from "../dialogs/dialog-delete-document";
+import DialogViewDocument from "../dialogs/dialog-view-document";
+import { getDocumentDownloadUrl } from "@/action/s3-document";
 
-interface TableDocumentsUpdatedProps {
+interface TableDocumentsProps {
   folderId?: string;
   showFolderColumn?: boolean;
 }
@@ -45,13 +48,17 @@ interface TableDocumentsUpdatedProps {
 export function TableDocuments({
   folderId,
   showFolderColumn = true,
-}: TableDocumentsUpdatedProps) {
+}: TableDocumentsProps) {
   const { data: session } = useSession();
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [selectedDocument, setSelectedDocument] = useState<any>(null);
+  const [isLoadingActions, setIsLoadingActions] = useState<{
+    [key: string]: { view?: boolean; download?: boolean };
+  }>({});
 
   const userId = session?.user?.id;
   const itemsPerPage = 10;
@@ -85,21 +92,67 @@ export function TableDocuments({
     setDeleteDialogOpen(true);
   };
 
-  // Handle download document
-  const handleDownloadDocument = (document: any) => {
-    toast.info(`Downloading ${document.fileName}...`);
+  // Handle view document in viewer dialog
+  const handleViewDocument = async (document: any) => {
+    try {
+      // Set loading state for this specific document's view action
+      setIsLoadingActions((prev) => ({
+        ...prev,
+        [document.id]: { ...prev[document.id], view: true },
+      }));
 
-    const link = document.createElement("a");
-    link.href = document.url;
-    link.download = document.fileName;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+      // Set the selected document and open the viewer dialog
+      setSelectedDocument(document);
+      setViewDialogOpen(true);
+    } catch (error) {
+      console.error("Error opening document viewer:", error);
+      toast.error("An error occurred while preparing the document viewer");
+    } finally {
+      // Clear loading state
+      setIsLoadingActions((prev) => ({
+        ...prev,
+        [document.id]: { ...prev[document.id], view: false },
+      }));
+    }
   };
 
-  // Handle view document
-  const handleViewDocument = (document: any) => {
-    window.open(document.url, "_blank");
+  const handleDownloadDocument = async (document: any) => {
+    try {
+      setIsLoadingActions((prev) => ({
+        ...prev,
+        [document.id]: { ...prev[document.id], download: true },
+      }));
+
+      toast.info(`Preparing download for ${document.fileName}...`);
+
+      const response = await getDocumentDownloadUrl(document.id);
+
+      if (response.success && response.url) {
+        const link = window.document.createElement("a");
+        link.href = response.url;
+        link.download = response.fileName || document.fileName;
+        window.document.body.appendChild(link);
+        link.click();
+        window.document.body.removeChild(link);
+
+        toast.success(`Download started for ${document.fileName}`);
+      } else {
+        toast.error(
+          response.error || "Failed to generate download URL for document"
+        );
+      }
+    } catch (error) {
+      console.error("Error downloading document:", error);
+      toast.error(
+        "An error occurred while preparing the document for download"
+      );
+    } finally {
+      // Clear loading state
+      setIsLoadingActions((prev) => ({
+        ...prev,
+        [document.id]: { ...prev[document.id], download: false },
+      }));
+    }
   };
 
   // Handle refresh after successful operation
@@ -218,15 +271,35 @@ export function TableDocuments({
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem
                           onClick={() => handleViewDocument(document)}
+                          disabled={isLoadingActions[document.id]?.view}
                         >
-                          <Eye className="h-4 w-4 mr-2" />
-                          View
+                          {isLoadingActions[document.id]?.view ? (
+                            <>
+                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                              Preparing...
+                            </>
+                          ) : (
+                            <>
+                              <Eye className="h-4 w-4 mr-2" />
+                              View
+                            </>
+                          )}
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => handleDownloadDocument(document)}
+                          disabled={isLoadingActions[document.id]?.download}
                         >
-                          <Download className="h-4 w-4 mr-2" />
-                          Download
+                          {isLoadingActions[document.id]?.download ? (
+                            <>
+                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                              Preparing...
+                            </>
+                          ) : (
+                            <>
+                              <Download className="h-4 w-4 mr-2" />
+                              Download
+                            </>
+                          )}
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => handleOpenEditDialog(document)}
@@ -282,6 +355,13 @@ export function TableDocuments({
         onClose={() => setDeleteDialogOpen(false)}
         document={selectedDocument}
         onSuccess={handleSuccess}
+      />
+
+      {/* View Document Dialog */}
+      <DialogViewDocument
+        isOpen={viewDialogOpen}
+        onClose={() => setViewDialogOpen(false)}
+        document={selectedDocument}
       />
     </div>
   );
