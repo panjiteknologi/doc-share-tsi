@@ -1,10 +1,10 @@
 "use client";
 
 import { SectionCards } from "@/views/dashboard/section-cards";
-import { DialogAddClient } from "./dialog-add-client";
-import { DialogAddAuditor } from "./dialog-add-auditor";
-import { DialogAddFolder } from "./dialog-add-folder";
-import { DialogAddDocument } from "./dialog-add-document";
+import { DialogAddClient } from "./dialogs/dialog-add-client";
+import { DialogAddAuditor } from "./dialogs/dialog-add-auditor";
+import { DialogAddFolder } from "./dialogs/dialog-add-folder";
+import { DialogAddDocument } from "./dialogs/dialog-add-document";
 import { DashboardTabs } from "./dashboard-tabs";
 import { useSession } from "next-auth/react";
 
