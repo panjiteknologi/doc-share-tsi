@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useRef } from "react";
 import { Search, MoreHorizontal } from "lucide-react";
 import { toast } from "sonner";
 
@@ -22,58 +22,86 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { DataPagination } from "./data-pagination";
 import { Skeleton } from "@/components/ui/skeleton";
-
-interface Client {
-  id: string;
-  name: string;
-  email: string;
-  createdAt: string;
-}
+import { useClients } from "@/hooks/use-clients";
+import { deleteClient, updateClient } from "@/action/client";
+import DialogEditClient from "../dialogs/dialog-edit-client";
+import DialogDeleteClient from "../dialogs/dialog-delete-client";
 
 export function TableClients() {
-  const [clients, setClients] = useState<Client[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState<boolean>(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false);
+  const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
+
+  const editFormRef = useRef<HTMLFormElement>(null);
+  const deleteFormRef = useRef<HTMLFormElement>(null);
 
   const itemsPerPage = 10;
 
-  // Mock data - in a real app, this would be fetched from an API
-  useEffect(() => {
-    const mockClients = Array.from({ length: 25 }, (_, i) => ({
-      id: `client-${i + 1}`,
-      name: `Client Company ${i + 1}`,
-      email: `contact${i + 1}@clientcompany${i + 1}.com`,
-      createdAt: new Date(
-        Date.now() - Math.random() * 10000000000
-      ).toISOString(),
-    }));
+  // Fetch clients using SWR
+  const { clients, pagination, isLoading, mutate } = useClients({
+    page: currentPage,
+    limit: itemsPerPage,
+    search: searchQuery,
+  });
 
-    setTimeout(() => {
-      setClients(mockClients);
-      setLoading(false);
-    }, 1000);
-  }, []);
-
-  // Filter clients based on search query
-  const filteredClients = clients.filter(
-    (client) =>
-      client.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      client.email.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  // Pagination logic
-  const totalPages = Math.ceil(filteredClients.length / itemsPerPage);
-  const paginatedClients = filteredClients.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
-
-  // Delete client (mock)
-  const handleDeleteClient = (id: string) => {
-    setClients(clients.filter((client) => client.id !== id));
-    toast.success("Client deleted successfully");
+  // Handle search with debounce
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+    setCurrentPage(1);
   };
+
+  // Handle edit client form submission
+  const handleEditClient = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!editFormRef.current) return;
+
+    const formData = new FormData(editFormRef.current);
+
+    try {
+      const result = await updateClient(formData);
+
+      if (result.success) {
+        toast.success("Client updated successfully");
+        setIsEditDialogOpen(false);
+        mutate(); // Refresh clients data
+      } else {
+        toast.error(result.error || "Failed to update client");
+      }
+    } catch (error) {
+      toast.error("An error occurred while updating client");
+    }
+  };
+
+  // Handle delete client
+  const handleDeleteClient = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!deleteFormRef.current || !selectedClientId) return;
+
+    const formData = new FormData(deleteFormRef.current);
+
+    try {
+      const result = await deleteClient(formData);
+
+      if (result.success) {
+        toast.success("Client deleted successfully");
+        setIsDeleteDialogOpen(false);
+        mutate(); // Refresh clients data
+      } else {
+        toast.error(result.error || "Failed to delete client");
+      }
+    } catch (error) {
+      toast.error("An error occurred while deleting client");
+    }
+  };
+
+  // Selected client for editing
+  const selectedClient = selectedClientId
+    ? clients.find((client) => client.id === selectedClientId)
+    : null;
 
   return (
     <div className="space-y-4">
@@ -85,10 +113,7 @@ export function TableClients() {
             placeholder="Search clients..."
             className="pl-8"
             value={searchQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value);
-              setCurrentPage(1);
-            }}
+            onChange={handleSearch}
           />
         </div>
       </div>
@@ -99,12 +124,11 @@ export function TableClients() {
             <TableRow>
               <TableHead>Name</TableHead>
               <TableHead>Email</TableHead>
-              <TableHead>Created</TableHead>
               <TableHead className="w-[100px]">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {loading ? (
+            {isLoading ? (
               Array.from({ length: 5 }).map((_, index) => (
                 <TableRow key={index}>
                   <TableCell>
@@ -121,14 +145,11 @@ export function TableClients() {
                   </TableCell>
                 </TableRow>
               ))
-            ) : paginatedClients.length > 0 ? (
-              paginatedClients.map((client) => (
+            ) : clients.length > 0 ? (
+              clients.map((client) => (
                 <TableRow key={client.id}>
                   <TableCell className="font-medium">{client.name}</TableCell>
                   <TableCell>{client.email}</TableCell>
-                  <TableCell>
-                    {new Date(client.createdAt).toLocaleDateString()}
-                  </TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -139,12 +160,18 @@ export function TableClients() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem
-                          onClick={() => toast.info("Edit feature coming soon")}
+                          onClick={() => {
+                            setSelectedClientId(client.id);
+                            setIsEditDialogOpen(true);
+                          }}
                         >
                           Edit
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          onClick={() => handleDeleteClient(client.id)}
+                          onClick={() => {
+                            setSelectedClientId(client.id);
+                            setIsDeleteDialogOpen(true);
+                          }}
                           className="text-destructive"
                         >
                           Delete
@@ -165,10 +192,28 @@ export function TableClients() {
         </Table>
       </div>
 
-      <DataPagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        onPageChange={setCurrentPage}
+      {pagination && pagination.totalPages > 0 && (
+        <DataPagination
+          currentPage={currentPage}
+          totalPages={pagination.totalPages}
+          onPageChange={setCurrentPage}
+        />
+      )}
+
+      <DialogEditClient
+        isEditDialogOpen={isEditDialogOpen}
+        setIsEditDialogOpen={setIsEditDialogOpen}
+        selectedClient={selectedClient}
+        editFormRef={editFormRef}
+        handleEditClient={handleEditClient}
+      />
+
+      <DialogDeleteClient
+        isDeleteDialogOpen={isDeleteDialogOpen}
+        setIsDeleteDialogOpen={setIsDeleteDialogOpen}
+        selectedClientId={selectedClientId}
+        deleteFormRef={deleteFormRef}
+        handleDeleteClient={handleDeleteClient}
       />
     </div>
   );
