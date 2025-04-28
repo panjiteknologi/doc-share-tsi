@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useSession } from "next-auth/react";
 import { Search, FolderOpen, MoreHorizontal, Calendar } from "lucide-react";
-import { toast } from "sonner";
 
 import {
   Table,
@@ -23,68 +23,52 @@ import {
 import { DataPagination } from "./data-pagination";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-
-interface Folder {
-  id: string;
-  name: string;
-  isRoot: boolean;
-  documentCount: number;
-  createdBy: string;
-  startDate: string;
-  endDate: string;
-  createdAt: string;
-}
+import { useFolders } from "@/hooks/use-folders";
+import DialogEditFolder from "../dialogs/dialog-edit-folder";
+import DialogDeleteFolder from "../dialogs/dialog-delete-folder";
 
 export function TableFolders() {
-  const [folders, setFolders] = useState<Folder[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: session } = useSession();
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedFolder, setSelectedFolder] = useState<any>(null);
 
+  const userId = session?.user?.id;
   const itemsPerPage = 10;
 
-  // Mock data - in a real app, this would be fetched from an API
-  useEffect(() => {
-    const mockFolders = Array.from({ length: 22 }, (_, i) => {
-      const startDate = new Date(Date.now() - Math.random() * 10000000000);
-      const endDate = new Date(
-        startDate.getTime() + Math.random() * 60 * 24 * 60 * 60 * 1000
-      );
+  // Use the SWR hook to fetch folders
+  const { folders, pagination, isLoading, mutate } = useFolders({
+    userId,
+    page: currentPage,
+    limit: itemsPerPage,
+    search: searchQuery,
+    sortBy: "createdAt",
+    sortOrder: "desc",
+  });
 
-      return {
-        id: `folder-${i + 1}`,
-        name: `Project Folder ${i + 1}`,
-        isRoot: i < 3, // First few are root folders
-        documentCount: Math.floor(Math.random() * 15),
-        createdBy: "Admin User",
-        startDate: startDate.toISOString(),
-        endDate: endDate.toISOString(),
-        createdAt: startDate.toISOString(),
-      };
-    });
+  // Handle search
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+    setCurrentPage(1);
+  };
 
-    setTimeout(() => {
-      setFolders(mockFolders);
-      setLoading(false);
-    }, 1000);
-  }, []);
+  // Open edit dialog
+  const handleOpenEditDialog = (folder: any) => {
+    setSelectedFolder(folder);
+    setEditDialogOpen(true);
+  };
 
-  // Filter folders based on search query
-  const filteredFolders = folders.filter((folder) =>
-    folder.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Open delete dialog
+  const handleOpenDeleteDialog = (folder: any) => {
+    setSelectedFolder(folder);
+    setDeleteDialogOpen(true);
+  };
 
-  // Pagination logic
-  const totalPages = Math.ceil(filteredFolders.length / itemsPerPage);
-  const paginatedFolders = filteredFolders.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
-
-  // Delete folder (mock)
-  const handleDeleteFolder = (id: string) => {
-    setFolders(folders.filter((folder) => folder.id !== id));
-    toast.success("Folder deleted successfully");
+  // Handle refresh after successful operation
+  const handleSuccess = () => {
+    mutate(); // Refresh the folders data
   };
 
   return (
@@ -97,10 +81,7 @@ export function TableFolders() {
             placeholder="Search folders..."
             className="pl-8"
             value={searchQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value);
-              setCurrentPage(1);
-            }}
+            onChange={handleSearch}
           />
         </div>
       </div>
@@ -118,7 +99,7 @@ export function TableFolders() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {loading ? (
+            {isLoading ? (
               Array.from({ length: 5 }).map((_, index) => (
                 <TableRow key={index}>
                   <TableCell>
@@ -141,8 +122,8 @@ export function TableFolders() {
                   </TableCell>
                 </TableRow>
               ))
-            ) : paginatedFolders.length > 0 ? (
-              paginatedFolders.map((folder) => (
+            ) : folders.length > 0 ? (
+              folders.map((folder) => (
                 <TableRow key={folder.id}>
                   <TableCell className="font-medium flex items-center">
                     <FolderOpen className="h-4 w-4 text-muted-foreground mr-2" />
@@ -150,7 +131,11 @@ export function TableFolders() {
                   </TableCell>
                   <TableCell>
                     <Badge variant={folder.isRoot ? "default" : "secondary"}>
-                      {folder.isRoot ? "Root" : "Project"}
+                      {folder.isRoot
+                        ? "Root"
+                        : folder.hasProject
+                        ? "Project"
+                        : "Standard"}
                     </Badge>
                   </TableCell>
                   <TableCell>{folder.documentCount}</TableCell>
@@ -163,7 +148,7 @@ export function TableFolders() {
                       </span>
                     </div>
                   </TableCell>
-                  <TableCell>{folder.createdBy}</TableCell>
+                  <TableCell>{folder.createdByName}</TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -174,19 +159,12 @@ export function TableFolders() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem
-                          onClick={() =>
-                            toast.info("View folder feature coming soon")
-                          }
-                        >
-                          View
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => toast.info("Edit feature coming soon")}
+                          onClick={() => handleOpenEditDialog(folder)}
                         >
                           Edit
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          onClick={() => handleDeleteFolder(folder.id)}
+                          onClick={() => handleOpenDeleteDialog(folder)}
                           className="text-destructive"
                         >
                           Delete
@@ -207,10 +185,30 @@ export function TableFolders() {
         </Table>
       </div>
 
-      <DataPagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        onPageChange={setCurrentPage}
+      {pagination && pagination.totalPages > 0 && (
+        <DataPagination
+          currentPage={currentPage}
+          totalPages={pagination.totalPages}
+          onPageChange={setCurrentPage}
+        />
+      )}
+
+      {/* Edit Folder Dialog */}
+      <DialogEditFolder
+        isOpen={editDialogOpen}
+        onClose={() => setEditDialogOpen(false)}
+        folder={selectedFolder}
+        onSuccess={handleSuccess}
+      />
+
+      {/* Delete Folder Dialog */}
+      <DialogDeleteFolder
+        isOpen={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+        folderId={selectedFolder?.id || null}
+        folderName={selectedFolder?.name}
+        documentCount={selectedFolder?.documentCount || 0}
+        onSuccess={handleSuccess}
       />
     </div>
   );
