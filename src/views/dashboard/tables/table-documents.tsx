@@ -6,7 +6,6 @@ import {
   Search,
   FileText,
   MoreHorizontal,
-  Download,
   Eye,
   FolderOpen,
   Trash2,
@@ -38,7 +37,6 @@ import { useDocuments } from "@/hooks/use-documents";
 import DialogEditDocument from "../dialogs/dialog-edit-document";
 import DialogDeleteDocument from "../dialogs/dialog-delete-document";
 import DialogViewDocument from "../dialogs/dialog-view-document";
-import { getDocumentDownloadUrl } from "@/action/s3-document";
 
 interface TableDocumentsProps {
   folderId?: string;
@@ -63,7 +61,6 @@ export function TableDocuments({
   const userId = session?.user?.id;
   const itemsPerPage = 10;
 
-  // Use the SWR hook to fetch documents
   const { documents, pagination, isLoading, mutate } = useDocuments({
     userId,
     folderId,
@@ -74,41 +71,34 @@ export function TableDocuments({
     sortOrder: "desc",
   });
 
-  // Handle search
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
     setCurrentPage(1);
   };
 
-  // Open edit dialog
   const handleOpenEditDialog = (document: any) => {
     setSelectedDocument(document);
     setEditDialogOpen(true);
   };
 
-  // Open delete dialog
   const handleOpenDeleteDialog = (document: any) => {
     setSelectedDocument(document);
     setDeleteDialogOpen(true);
   };
 
-  // Handle view document in viewer dialog
   const handleViewDocument = async (document: any) => {
     try {
-      // Set loading state for this specific document's view action
       setIsLoadingActions((prev) => ({
         ...prev,
         [document.id]: { ...prev[document.id], view: true },
       }));
 
-      // Set the selected document and open the viewer dialog
       setSelectedDocument(document);
       setViewDialogOpen(true);
     } catch (error) {
       console.error("Error opening document viewer:", error);
       toast.error("An error occurred while preparing the document viewer");
     } finally {
-      // Clear loading state
       setIsLoadingActions((prev) => ({
         ...prev,
         [document.id]: { ...prev[document.id], view: false },
@@ -116,48 +106,8 @@ export function TableDocuments({
     }
   };
 
-  const handleDownloadDocument = async (document: any) => {
-    try {
-      setIsLoadingActions((prev) => ({
-        ...prev,
-        [document.id]: { ...prev[document.id], download: true },
-      }));
-
-      toast.info(`Preparing download for ${document.fileName}...`);
-
-      const response = await getDocumentDownloadUrl(document.id);
-
-      if (response.success && response.url) {
-        const link = window.document.createElement("a");
-        link.href = response.url;
-        link.download = response.fileName || document.fileName;
-        window.document.body.appendChild(link);
-        link.click();
-        window.document.body.removeChild(link);
-
-        toast.success(`Download started for ${document.fileName}`);
-      } else {
-        toast.error(
-          response.error || "Failed to generate download URL for document"
-        );
-      }
-    } catch (error) {
-      console.error("Error downloading document:", error);
-      toast.error(
-        "An error occurred while preparing the document for download"
-      );
-    } finally {
-      // Clear loading state
-      setIsLoadingActions((prev) => ({
-        ...prev,
-        [document.id]: { ...prev[document.id], download: false },
-      }));
-    }
-  };
-
-  // Handle refresh after successful operation
   const handleSuccess = () => {
-    mutate(); // Refresh the documents data
+    mutate();
   };
 
   // Get document icon based on file type
@@ -282,22 +232,6 @@ export function TableDocuments({
                             <>
                               <Eye className="h-4 w-4 mr-2" />
                               View
-                            </>
-                          )}
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => handleDownloadDocument(document)}
-                          disabled={isLoadingActions[document.id]?.download}
-                        >
-                          {isLoadingActions[document.id]?.download ? (
-                            <>
-                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                              Preparing...
-                            </>
-                          ) : (
-                            <>
-                              <Download className="h-4 w-4 mr-2" />
-                              Download
                             </>
                           )}
                         </DropdownMenuItem>

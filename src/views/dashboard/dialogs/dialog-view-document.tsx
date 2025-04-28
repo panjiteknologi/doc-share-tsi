@@ -8,10 +8,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { DocumentViewer } from "@/components/document-viewer";
-import { Download, X, Maximize2, Minimize2 } from "lucide-react";
+import { X, Maximize2, Minimize2 } from "lucide-react";
 import { useState } from "react";
-import { getDocumentDownloadUrl } from "@/action/s3-document";
-import { toast } from "sonner";
 import { Document } from "@/hooks/use-documents";
 
 interface DialogViewDocumentProps {
@@ -26,41 +24,6 @@ export default function DialogViewDocument({
   document,
 }: DialogViewDocumentProps) {
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [isDownloading, setIsDownloading] = useState(false);
-
-  const handleDownload = async () => {
-    if (!document) return;
-
-    try {
-      setIsDownloading(true);
-      toast.info(`Preparing download...`);
-
-      const response = await getDocumentDownloadUrl(document.id);
-
-      if (response.success && response.url) {
-        // Create an anchor element to trigger the download
-        const link = window.document.createElement("a");
-        link.href = response.url;
-        link.download = response.fileName || document.fileName;
-        window.document.body.appendChild(link);
-        link.click();
-        window.document.body.removeChild(link);
-
-        toast.success(`Download started for ${document.fileName}`);
-      } else {
-        toast.error(
-          response.error || "Failed to generate download URL for document"
-        );
-      }
-    } catch (error) {
-      console.error("Error downloading document:", error);
-      toast.error(
-        "An error occurred while preparing the document for download"
-      );
-    } finally {
-      setIsDownloading(false);
-    }
-  };
 
   const toggleFullscreen = () => {
     setIsFullscreen(!isFullscreen);
@@ -157,39 +120,6 @@ export default function DialogViewDocument({
               </DialogTitle>
             </div>
             <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-8 w-8"
-                onClick={handleDownload}
-                disabled={isDownloading}
-              >
-                {isDownloading ? (
-                  <svg
-                    className="h-4 w-4 animate-spin"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
-                ) : (
-                  <Download className="h-4 w-4" />
-                )}
-                <span className="sr-only">Download</span>
-              </Button>
               <Button
                 variant="outline"
                 size="icon"
