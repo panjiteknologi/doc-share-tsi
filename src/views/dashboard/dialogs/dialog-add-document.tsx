@@ -32,6 +32,7 @@ import { createDocument } from "@/action/document";
 import { useDashboardDialog } from "@/store/store-dashboard-dialog";
 import { useFolders } from "@/hooks/use-folders";
 import { IconFileUpload } from "@tabler/icons-react";
+import { useDocuments } from "@/hooks/use-documents";
 
 // Form validation schema
 const FormSchema = z.object({
@@ -54,6 +55,8 @@ export function DialogAddDocument() {
   const isDialogOpen = isOpen && dialogType === "document";
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const { data: session, status } = useSession();
+
+  const { mutate } = useDocuments({ page: 1, limit: 10 });
 
   // Safe access to userId - only pass it when session is available
   const { folders, isLoading: foldersLoading } = useFolders(
@@ -112,7 +115,7 @@ export function DialogAddDocument() {
         },
       });
 
-      setUploadProgress(100);
+      // setUploadProgress(100);
 
       const result = await createDocument({
         url: response.data.url,
@@ -123,6 +126,7 @@ export function DialogAddDocument() {
       if (result.success) {
         toast.success("Document uploaded successfully");
         reset();
+        mutate();
         closeDialog();
       } else {
         toast.error(result.error || "Failed to upload document");

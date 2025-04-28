@@ -21,6 +21,7 @@ import { Label } from "@/components/ui/label";
 import { createFolder } from "@/action/folder";
 import { useDashboardDialog } from "@/store/store-dashboard-dialog";
 import { IconFolderPlus } from "@tabler/icons-react";
+import { useFolders } from "@/hooks/use-folders";
 
 // Form validation schema
 const FormSchema = z
@@ -64,7 +65,8 @@ export function DialogAddFolder({ onSuccess }: AddFolderDialogProps) {
     useDashboardDialog();
   const isDialogOpen = isOpen && dialogType === "folder";
 
-  // Get today's date and 30 days from now formatted as YYYY-MM-DD
+  const { mutate } = useFolders({ page: 1, limit: 10 });
+
   const today = new Date().toISOString().split("T")[0];
   const thirtyDaysLater = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
     .toISOString()
@@ -104,6 +106,7 @@ export function DialogAddFolder({ onSuccess }: AddFolderDialogProps) {
       if (result.success) {
         toast.success("Folder created successfully");
         reset();
+        mutate();
         closeDialog();
         if (onSuccess) onSuccess();
       } else {

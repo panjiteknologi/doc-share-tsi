@@ -8,6 +8,7 @@ import { useDashboardDialog } from "@/store/store-dashboard-dialog";
 import { addAuditor, UserFormData } from "@/action/user";
 import { toast } from "sonner";
 import { IconUserPlus } from "@tabler/icons-react";
+import { useAuditors } from "@/hooks/use-auditors";
 
 import {
   Dialog,
@@ -42,6 +43,8 @@ export function DialogAddAuditor() {
     useDashboardDialog();
   const isDialogOpen = isOpen && dialogType === "auditor";
 
+  const { mutate } = useAuditors({ page: 1, limit: 10 });
+
   const {
     register,
     handleSubmit,
@@ -68,6 +71,7 @@ export function DialogAddAuditor() {
           duration: 4000,
         });
         reset();
+        mutate();
         closeDialog();
       } else {
         toast.error("Failed to add auditor", {

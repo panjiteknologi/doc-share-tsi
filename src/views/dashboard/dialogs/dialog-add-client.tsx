@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
+import { useClients } from "@/hooks/use-clients";
 
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -41,6 +42,8 @@ export function DialogAddClient() {
   const { isOpen, dialogType, closeDialog, isLoading, setLoading } =
     useDashboardDialog();
   const isDialogOpen = isOpen && dialogType === "client";
+
+  const { mutate } = useClients({ page: 1, limit: 10 });
 
   const {
     register,
@@ -68,6 +71,7 @@ export function DialogAddClient() {
           duration: 4000,
         });
         reset();
+        mutate();
         closeDialog();
       } else {
         toast.error("Failed to add client", {
