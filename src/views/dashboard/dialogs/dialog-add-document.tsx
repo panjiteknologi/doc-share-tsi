@@ -53,8 +53,14 @@ export function DialogAddDocument() {
     useDashboardDialog();
   const isDialogOpen = isOpen && dialogType === "document";
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
-  const { data: session } = useSession();
-  const { folders, isLoading: foldersLoading } = useFolders(session?.user?.id);
+  const { data: session, status } = useSession();
+
+  // Safe access to userId - only pass it when session is available
+  const { folders, isLoading: foldersLoading } = useFolders(
+    status === "authenticated" && session?.user?.id
+      ? { userId: session.user.id }
+      : {}
+  );
 
   const {
     handleSubmit,
@@ -175,7 +181,7 @@ export function DialogAddDocument() {
                   <SelectValue placeholder="Select a folder" />
                 </SelectTrigger>
                 <SelectContent>
-                  {foldersLoading ? (
+                  {status === "loading" || foldersLoading ? (
                     <SelectItem value="loading" disabled>
                       Loading folders...
                     </SelectItem>
@@ -207,7 +213,6 @@ export function DialogAddDocument() {
                 Document File <span className="text-destructive">*</span>
               </Label>
               <FileUpload
-                id="file"
                 onChange={handleFileChange}
                 value={fileValue}
                 accept={{
@@ -232,7 +237,10 @@ export function DialogAddDocument() {
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isLoading || foldersLoading}>
+            <Button
+              type="submit"
+              disabled={isLoading || status === "loading" || foldersLoading}
+            >
               {isLoading ? (
                 <>
                   <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"></div>

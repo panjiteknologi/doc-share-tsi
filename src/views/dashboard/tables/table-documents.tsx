@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useSession } from "next-auth/react";
 import {
   Search,
   FileText,
@@ -8,6 +9,8 @@ import {
   Download,
   Eye,
   FolderOpen,
+  Trash2,
+  FolderIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -30,89 +33,78 @@ import {
 import { DataPagination } from "./data-pagination";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { useDocuments } from "@/hooks/use-documents";
+import DialogEditDocument from "../dialogs/dialog-edit-document";
+import DialogDeleteDocument from "../dialogs/dialog-delete-document";
 
-interface Document {
-  id: string;
-  name: string;
-  type: string;
-  folder: string;
-  folderId: string;
-  size: string;
-  uploadedBy: string;
-  createdAt: string;
+interface TableDocumentsUpdatedProps {
+  folderId?: string;
+  showFolderColumn?: boolean;
 }
 
-interface Folder {
-  id: string;
-  name: string;
-}
-
-export function TableDocuments() {
-  const [documents, setDocuments] = useState<Document[]>([]);
-  const [folders, setFolders] = useState<Folder[]>([]);
-  const [loading, setLoading] = useState(true);
+export function TableDocuments({
+  folderId,
+  showFolderColumn = true,
+}: TableDocumentsUpdatedProps) {
+  const { data: session } = useSession();
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedDocument, setSelectedDocument] = useState<any>(null);
 
+  const userId = session?.user?.id;
   const itemsPerPage = 10;
 
-  // Mock data - in a real app, this would be fetched from an API
-  useEffect(() => {
-    // Mock folders
-    const mockFolders = Array.from({ length: 8 }, (_, i) => ({
-      id: `folder-${i + 1}`,
-      name: `Project Folder ${i + 1}`,
-    }));
+  // Use the SWR hook to fetch documents
+  const { documents, pagination, isLoading, mutate } = useDocuments({
+    userId,
+    folderId,
+    page: currentPage,
+    limit: itemsPerPage,
+    search: searchQuery,
+    sortBy: "createdAt",
+    sortOrder: "desc",
+  });
 
-    // Mock documents
-    const documentTypes = ["PDF", "DOCX", "XLSX", "JPG", "PNG", "CSV"];
-    const mockDocuments = Array.from({ length: 35 }, (_, i) => {
-      const folder =
-        mockFolders[Math.floor(Math.random() * mockFolders.length)];
-      const type =
-        documentTypes[Math.floor(Math.random() * documentTypes.length)];
-      const size = Math.floor(Math.random() * 10000) + 100; // Random size in KB
+  // Handle search
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+    setCurrentPage(1);
+  };
 
-      return {
-        id: `doc-${i + 1}`,
-        name: `Document-${i + 1}.${type.toLowerCase()}`,
-        type,
-        folder: folder.name,
-        folderId: folder.id,
-        size: `${(size / 1024).toFixed(2)} MB`,
-        uploadedBy: "Admin User",
-        createdAt: new Date(
-          Date.now() - Math.random() * 10000000000
-        ).toISOString(),
-      };
-    });
+  // Open edit dialog
+  const handleOpenEditDialog = (document: any) => {
+    setSelectedDocument(document);
+    setEditDialogOpen(true);
+  };
 
-    setTimeout(() => {
-      setFolders(mockFolders);
-      setDocuments(mockDocuments);
-      setLoading(false);
-    }, 1000);
-  }, []);
+  // Open delete dialog
+  const handleOpenDeleteDialog = (document: any) => {
+    setSelectedDocument(document);
+    setDeleteDialogOpen(true);
+  };
 
-  // Filter documents based on search query
-  const filteredDocuments = documents.filter(
-    (doc) =>
-      doc.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      doc.folder.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      doc.type.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Handle download document
+  const handleDownloadDocument = (document: any) => {
+    toast.info(`Downloading ${document.fileName}...`);
 
-  // Pagination logic
-  const totalPages = Math.ceil(filteredDocuments.length / itemsPerPage);
-  const paginatedDocuments = filteredDocuments.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+    const link = document.createElement("a");
+    link.href = document.url;
+    link.download = document.fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
-  // Delete document (mock)
-  const handleDeleteDocument = (id: string) => {
-    setDocuments(documents.filter((doc) => doc.id !== id));
-    toast.success("Document deleted successfully");
+  // Handle view document
+  const handleViewDocument = (document: any) => {
+    window.open(document.url, "_blank");
+  };
+
+  // Handle refresh after successful operation
+  const handleSuccess = () => {
+    mutate(); // Refresh the documents data
   };
 
   // Get document icon based on file type
@@ -120,15 +112,11 @@ export function TableDocuments() {
     switch (type.toLowerCase()) {
       case "pdf":
         return <FileText className="h-4 w-4 text-red-500" />;
-      case "docx":
-      case "doc":
+      case "word":
         return <FileText className="h-4 w-4 text-blue-500" />;
-      case "xlsx":
-      case "xls":
+      case "excel":
         return <FileText className="h-4 w-4 text-green-500" />;
-      case "jpg":
-      case "png":
-      case "jpeg":
+      case "image":
         return <FileText className="h-4 w-4 text-purple-500" />;
       default:
         return <FileText className="h-4 w-4 text-gray-500" />;
@@ -145,10 +133,7 @@ export function TableDocuments() {
             placeholder="Search documents..."
             className="pl-8"
             value={searchQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value);
-              setCurrentPage(1);
-            }}
+            onChange={handleSearch}
           />
         </div>
       </div>
@@ -159,7 +144,7 @@ export function TableDocuments() {
             <TableRow>
               <TableHead>Name</TableHead>
               <TableHead>Type</TableHead>
-              <TableHead>Folder</TableHead>
+              {showFolderColumn && <TableHead>Folder</TableHead>}
               <TableHead>Size</TableHead>
               <TableHead>Uploaded By</TableHead>
               <TableHead>Date</TableHead>
@@ -167,7 +152,7 @@ export function TableDocuments() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {loading ? (
+            {isLoading ? (
               Array.from({ length: 5 }).map((_, index) => (
                 <TableRow key={index}>
                   <TableCell>
@@ -176,9 +161,11 @@ export function TableDocuments() {
                   <TableCell>
                     <Skeleton className="h-5 w-[50px]" />
                   </TableCell>
-                  <TableCell>
-                    <Skeleton className="h-5 w-[120px]" />
-                  </TableCell>
+                  {showFolderColumn && (
+                    <TableCell>
+                      <Skeleton className="h-5 w-[120px]" />
+                    </TableCell>
+                  )}
                   <TableCell>
                     <Skeleton className="h-5 w-[60px]" />
                   </TableCell>
@@ -193,24 +180,32 @@ export function TableDocuments() {
                   </TableCell>
                 </TableRow>
               ))
-            ) : paginatedDocuments.length > 0 ? (
-              paginatedDocuments.map((doc) => (
-                <TableRow key={doc.id}>
+            ) : documents.length > 0 ? (
+              documents.map((document) => (
+                <TableRow key={document.id}>
                   <TableCell className="font-medium flex items-center">
-                    {getDocumentIcon(doc.type)}
-                    <span className="ml-2">{doc.name}</span>
+                    {getDocumentIcon(document.fileType)}
+                    <span className="ml-2 truncate max-w-[200px]">
+                      {document.fileName}
+                    </span>
                   </TableCell>
                   <TableCell>
-                    <Badge variant="outline">{doc.type}</Badge>
+                    <Badge variant="outline">{document.fileType}</Badge>
                   </TableCell>
-                  <TableCell className="flex items-center">
-                    <FolderOpen className="h-4 w-4 text-muted-foreground mr-1" />
-                    {doc.folder}
+                  {showFolderColumn && (
+                    <TableCell className="flex items-center">
+                      <FolderIcon className="h-4 w-4 text-muted-foreground mr-1" />
+                      <span className="truncate max-w-[150px]">
+                        {document.folder.name}
+                      </span>
+                    </TableCell>
+                  )}
+                  <TableCell>{document.fileSize}</TableCell>
+                  <TableCell className="truncate max-w-[150px]">
+                    {document.uploadedBy}
                   </TableCell>
-                  <TableCell>{doc.size}</TableCell>
-                  <TableCell>{doc.uploadedBy}</TableCell>
                   <TableCell>
-                    {new Date(doc.createdAt).toLocaleDateString()}
+                    {new Date(document.createdAt).toLocaleDateString()}
                   </TableCell>
                   <TableCell>
                     <DropdownMenu>
@@ -222,25 +217,28 @@ export function TableDocuments() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem
-                          onClick={() =>
-                            toast.info("View document feature coming soon")
-                          }
+                          onClick={() => handleViewDocument(document)}
                         >
                           <Eye className="h-4 w-4 mr-2" />
                           View
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          onClick={() =>
-                            toast.info("Download feature coming soon")
-                          }
+                          onClick={() => handleDownloadDocument(document)}
                         >
                           <Download className="h-4 w-4 mr-2" />
                           Download
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          onClick={() => handleDeleteDocument(doc.id)}
+                          onClick={() => handleOpenEditDialog(document)}
+                        >
+                          <FolderOpen className="h-4 w-4 mr-2" />
+                          Move
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => handleOpenDeleteDialog(document)}
                           className="text-destructive"
                         >
+                          <Trash2 className="h-4 w-4 mr-2" />
                           Delete
                         </DropdownMenuItem>
                       </DropdownMenuContent>
@@ -250,7 +248,10 @@ export function TableDocuments() {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={7} className="h-24 text-center">
+                <TableCell
+                  colSpan={showFolderColumn ? 7 : 6}
+                  className="h-24 text-center"
+                >
                   No documents found.
                 </TableCell>
               </TableRow>
@@ -259,10 +260,28 @@ export function TableDocuments() {
         </Table>
       </div>
 
-      <DataPagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        onPageChange={setCurrentPage}
+      {pagination && pagination.totalPages > 0 && (
+        <DataPagination
+          currentPage={currentPage}
+          totalPages={pagination.totalPages}
+          onPageChange={setCurrentPage}
+        />
+      )}
+
+      {/* Edit Document Dialog */}
+      <DialogEditDocument
+        isOpen={editDialogOpen}
+        onClose={() => setEditDialogOpen(false)}
+        document={selectedDocument}
+        onSuccess={handleSuccess}
+      />
+
+      {/* Delete Document Dialog */}
+      <DialogDeleteDocument
+        isOpen={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+        document={selectedDocument}
+        onSuccess={handleSuccess}
       />
     </div>
   );

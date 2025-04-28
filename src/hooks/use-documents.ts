@@ -2,54 +2,32 @@ import useSWR from "swr";
 import axios from "axios";
 import { toast } from "sonner";
 
-// Type definitions for folder data
+// Type definitions for document data
 export interface Document {
   id: string;
   url: string;
   fileName: string;
   fileType: string;
   fileExtension: string;
+  fileSize: string;
   createdAt: string;
+  folder: {
+    id: string;
+    name: string;
+  };
   uploadedBy: string;
+  uploadedById: string;
   uploadedByEmail: string;
 }
 
-export interface Folder {
-  id: string;
-  name: string;
-  isRoot: boolean;
-  startDate: string;
-  endDate: string;
-  createdAt: string;
-  documentCount: number;
-  createdByName: string;
-  userId: string;
-  hasProject: boolean;
-}
-
-export interface DetailedFolder
-  extends Omit<Folder, "documentCount" | "createdByName"> {
-  documents: Document[];
-  documentCount: number;
-  owner: {
-    id: string;
-    name: string;
-    email: string;
-  };
-  project: {
-    id: string;
-    auditors: Array<{
-      id: string;
-      name: string;
-      email: string;
-    }>;
-  } | null;
+export interface DetailedDocument extends Document {
   isOwner: boolean;
-  isAuditor: boolean;
+  canEdit: boolean;
+  canDelete: boolean;
 }
 
 export interface PaginatedResponse<T> {
-  folders: T[];
+  documents: T[];
   pagination: {
     total: number;
     page: number;
@@ -58,7 +36,7 @@ export interface PaginatedResponse<T> {
   };
 }
 
-export interface FoldersResponse extends PaginatedResponse<Folder> {}
+export interface DocumentsResponse extends PaginatedResponse<Document> {}
 
 // Axios-based fetcher for SWR
 const fetcher = async (url: string) => {
@@ -76,44 +54,46 @@ const fetcher = async (url: string) => {
   }
 };
 
-// Hook for fetching a paginated list of folders
-export function useFolders({
-  userId = undefined, // Make userId optional with default value
+// Hook for fetching a paginated list of documents
+export function useDocuments({
+  userId,
+  folderId,
   page = 1,
   limit = 10,
   search = "",
   sortBy = "createdAt",
   sortOrder = "desc",
 }: {
-  userId?: string | undefined; // Make userId parameter optional
+  userId?: string;
+  folderId?: string;
   page?: number;
   limit?: number;
   search?: string;
   sortBy?: string;
   sortOrder?: "asc" | "desc";
-} = {}) {
-  // Add default empty object
+}) {
   const searchParams = new URLSearchParams();
   if (userId) searchParams.append("userId", userId);
+  if (folderId) searchParams.append("folderId", folderId);
   searchParams.append("page", page.toString());
   searchParams.append("limit", limit.toString());
   if (search) searchParams.append("search", search);
   searchParams.append("sortBy", sortBy);
   searchParams.append("sortOrder", sortOrder);
 
-  const { data, error, isLoading, mutate } = useSWR<FoldersResponse>(
-    userId ? `/api/folders?${searchParams.toString()}` : null,
+  const { data, error, isLoading, mutate } = useSWR<DocumentsResponse>(
+    `/api/documents?${searchParams.toString()}`,
     fetcher,
     {
       onError: (err) => {
-        toast.error(err.message || "Failed to fetch folders");
+        toast.error(err.message || "Failed to fetch documents");
       },
       revalidateOnFocus: false,
     }
   );
 
   return {
-    folders: data?.folders || [],
+    documents: data?.documents || [],
     pagination: data?.pagination,
     isLoading,
     error,
@@ -121,21 +101,19 @@ export function useFolders({
   };
 }
 
-// Hook for fetching a single folder by ID
-export function useFolder(folderId: string | null) {
-  const { data, error, isLoading, mutate } = useSWR<{ folder: DetailedFolder }>(
-    folderId ? `/api/folders/${folderId}` : null,
-    fetcher,
-    {
-      onError: (err) => {
-        toast.error(err.message || "Failed to fetch folder details");
-      },
-      revalidateOnFocus: false,
-    }
-  );
+// Hook for fetching a single document by ID
+export function useDocument(documentId: string | null) {
+  const { data, error, isLoading, mutate } = useSWR<{
+    document: DetailedDocument;
+  }>(documentId ? `/api/documents/${documentId}` : null, fetcher, {
+    onError: (err) => {
+      toast.error(err.message || "Failed to fetch document details");
+    },
+    revalidateOnFocus: false,
+  });
 
   return {
-    folder: data?.folder,
+    document: data?.document,
     isLoading,
     error,
     mutate,
