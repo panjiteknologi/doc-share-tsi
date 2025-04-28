@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Search, MoreHorizontal } from "lucide-react";
-import { toast } from "sonner";
+import { useState } from "react";
+import { Search, MoreHorizontal, UserCog } from "lucide-react";
 
 import {
   Table,
@@ -23,93 +22,47 @@ import {
 import { DataPagination } from "./data-pagination";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-
-interface Auditor {
-  id: string;
-  name: string;
-  email: string;
-  status: "active" | "inactive";
-  projects: number;
-  createdAt: string;
-}
+import { useAuditors } from "@/hooks/use-auditors";
+import DialogEditAuditor from "../dialogs/dialog-edit-auditor";
+import DialogDeleteAuditor from "../dialogs/dialog-delete-auditor";
 
 export function TableAuditors() {
-  const [auditors, setAuditors] = useState<Auditor[]>([]);
-  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [newAuditor, setNewAuditor] = useState({ name: "", email: "" });
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedAuditor, setSelectedAuditor] = useState<any>(null);
 
   const itemsPerPage = 10;
 
-  // Mock data - in a real app, this would be fetched from an API
-  useEffect(() => {
-    const mockAuditors = Array.from({ length: 18 }, (_, i) => ({
-      id: `auditor-${i + 1}`,
-      name: `Auditor ${i + 1}`,
-      email: `auditor${i + 1}@example.com`,
-      status:
-        Math.random() > 0.3 ? "active" : ("inactive" as "active" | "inactive"),
-      projects: Math.floor(Math.random() * 10),
-      createdAt: new Date(
-        Date.now() - Math.random() * 10000000000
-      ).toISOString(),
-    }));
+  // Use the SWR hook to fetch auditors
+  const { auditors, pagination, isLoading, mutate } = useAuditors({
+    page: currentPage,
+    limit: itemsPerPage,
+    search: searchQuery,
+  });
 
-    setTimeout(() => {
-      setAuditors(mockAuditors);
-      setLoading(false);
-    }, 1000);
-  }, []);
-
-  // Filter auditors based on search query
-  const filteredAuditors = auditors.filter(
-    (auditor) =>
-      auditor.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      auditor.email.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  // Pagination logic
-  const totalPages = Math.ceil(filteredAuditors.length / itemsPerPage);
-  const paginatedAuditors = filteredAuditors.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
-
-  // Add new auditor (mock)
-  const handleAddAuditor = () => {
-    if (!newAuditor.name || !newAuditor.email) {
-      toast.error("Name and email are required");
-      return;
-    }
-
-    const newAuditorData = {
-      id: `auditor-${auditors.length + 1}`,
-      name: newAuditor.name,
-      email: newAuditor.email,
-      status: "active" as "active",
-      projects: 0,
-      createdAt: new Date().toISOString(),
-    };
-
-    setAuditors([newAuditorData, ...auditors]);
-    setNewAuditor({ name: "", email: "" });
-    toast.success("Auditor added successfully");
+  // Handle search
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+    setCurrentPage(1);
   };
 
-  // Toggle auditor status (mock)
-  const toggleAuditorStatus = (id: string) => {
-    setAuditors(
-      auditors.map((auditor) =>
-        auditor.id === id
-          ? {
-              ...auditor,
-              status: auditor.status === "active" ? "inactive" : "active",
-            }
-          : auditor
-      )
-    );
-    toast.success("Auditor status updated");
+  // Open edit dialog
+  const handleOpenEditDialog = (auditor: any) => {
+    setSelectedAuditor(auditor);
+    setEditDialogOpen(true);
+  };
+
+  // Open delete dialog
+  const handleOpenDeleteDialog = (auditor: any) => {
+    setSelectedAuditor(auditor);
+    setDeleteDialogOpen(true);
+  };
+
+  // Handle refresh after successful operation
+  const handleSuccess = () => {
+    mutate(); // Refresh the auditors data
   };
 
   return (
@@ -122,10 +75,7 @@ export function TableAuditors() {
             placeholder="Search auditors..."
             className="pl-8"
             value={searchQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value);
-              setCurrentPage(1);
-            }}
+            onChange={handleSearch}
           />
         </div>
       </div>
@@ -136,14 +86,12 @@ export function TableAuditors() {
             <TableRow>
               <TableHead>Name</TableHead>
               <TableHead>Email</TableHead>
-              <TableHead>Status</TableHead>
               <TableHead>Projects</TableHead>
-              <TableHead>Joined</TableHead>
               <TableHead className="w-[100px]">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {loading ? (
+            {isLoading ? (
               Array.from({ length: 5 }).map((_, index) => (
                 <TableRow key={index}>
                   <TableCell>
@@ -153,36 +101,27 @@ export function TableAuditors() {
                     <Skeleton className="h-5 w-[180px]" />
                   </TableCell>
                   <TableCell>
-                    <Skeleton className="h-5 w-[80px]" />
-                  </TableCell>
-                  <TableCell>
                     <Skeleton className="h-5 w-[40px]" />
                   </TableCell>
                   <TableCell>
                     <Skeleton className="h-5 w-[100px]" />
                   </TableCell>
-                  <TableCell>
-                    <Skeleton className="h-5 w-10" />
-                  </TableCell>
                 </TableRow>
               ))
-            ) : paginatedAuditors.length > 0 ? (
-              paginatedAuditors.map((auditor) => (
+            ) : auditors.length > 0 ? (
+              auditors.map((auditor) => (
                 <TableRow key={auditor.id}>
-                  <TableCell className="font-medium">{auditor.name}</TableCell>
+                  <TableCell className="font-medium">
+                    <div className="flex items-center gap-2">
+                      <UserCog className="h-4 w-4 text-muted-foreground" />
+                      {auditor.name}
+                    </div>
+                  </TableCell>
                   <TableCell>{auditor.email}</TableCell>
                   <TableCell>
-                    <Badge
-                      variant={
-                        auditor.status === "active" ? "default" : "secondary"
-                      }
-                    >
-                      {auditor.status}
+                    <Badge variant="secondary">
+                      {auditor.projectCount} projects
                     </Badge>
-                  </TableCell>
-                  <TableCell>{auditor.projects}</TableCell>
-                  <TableCell>
-                    {new Date(auditor.createdAt).toLocaleDateString()}
                   </TableCell>
                   <TableCell>
                     <DropdownMenu>
@@ -194,23 +133,15 @@ export function TableAuditors() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem
-                          onClick={() => toast.info("Edit feature coming soon")}
+                          onClick={() => handleOpenEditDialog(auditor)}
                         >
                           Edit
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          onClick={() => toggleAuditorStatus(auditor.id)}
+                          onClick={() => handleOpenDeleteDialog(auditor)}
+                          className="text-destructive"
                         >
-                          {auditor.status === "active"
-                            ? "Deactivate"
-                            : "Activate"}
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() =>
-                            toast.info("Assign to project feature coming soon")
-                          }
-                        >
-                          Assign to project
+                          Delete
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -219,7 +150,7 @@ export function TableAuditors() {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={6} className="h-24 text-center">
+                <TableCell colSpan={5} className="h-24 text-center">
                   No auditors found.
                 </TableCell>
               </TableRow>
@@ -228,10 +159,29 @@ export function TableAuditors() {
         </Table>
       </div>
 
-      <DataPagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        onPageChange={setCurrentPage}
+      {pagination && pagination.totalPages > 0 && (
+        <DataPagination
+          currentPage={currentPage}
+          totalPages={pagination.totalPages}
+          onPageChange={setCurrentPage}
+        />
+      )}
+
+      {/* Edit Auditor Dialog */}
+      <DialogEditAuditor
+        isOpen={editDialogOpen}
+        onClose={() => setEditDialogOpen(false)}
+        auditor={selectedAuditor}
+        onSuccess={handleSuccess}
+      />
+
+      {/* Delete Auditor Dialog */}
+      <DialogDeleteAuditor
+        isOpen={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+        auditorId={selectedAuditor?.id || null}
+        auditorName={selectedAuditor?.name}
+        onSuccess={handleSuccess}
       />
     </div>
   );
