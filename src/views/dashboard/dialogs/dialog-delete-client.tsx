@@ -1,3 +1,5 @@
+import { useState } from "react";
+import { Loader2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -23,6 +25,17 @@ const DialogDeleteClient = ({
   deleteFormRef,
   handleDeleteClient,
 }: DialogDeleteClientProps) => {
+  const [isLoading, setIsLoading] = useState(false);
+
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    setIsLoading(true);
+    try {
+      await handleDeleteClient(e);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
       <DialogContent>
@@ -33,18 +46,26 @@ const DialogDeleteClient = ({
             undone.
           </DialogDescription>
         </DialogHeader>
-        <form ref={deleteFormRef} onSubmit={handleDeleteClient}>
+        <form ref={deleteFormRef} onSubmit={onSubmit}>
           <input type="hidden" name="id" value={selectedClientId || ""} />
           <DialogFooter className="mt-4">
             <Button
               type="button"
               variant="outline"
               onClick={() => setIsDeleteDialogOpen(false)}
+              disabled={isLoading}
             >
               Cancel
             </Button>
-            <Button type="submit" variant="destructive">
-              Delete Client
+            <Button type="submit" variant="destructive" disabled={isLoading}>
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                "Delete Client"
+              )}
             </Button>
           </DialogFooter>
         </form>

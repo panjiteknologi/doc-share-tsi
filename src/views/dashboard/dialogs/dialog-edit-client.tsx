@@ -1,3 +1,5 @@
+import { useState } from "react";
+import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -26,6 +28,17 @@ const DialogEditClient = ({
   editFormRef,
   handleEditClient,
 }: DialogEditClientProps) => {
+  const [isLoading, setIsLoading] = useState(false);
+
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    setIsLoading(true);
+    try {
+      await handleEditClient(e);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
       <DialogContent>
@@ -34,7 +47,7 @@ const DialogEditClient = ({
           <DialogDescription>Update client information.</DialogDescription>
         </DialogHeader>
         {selectedClient && (
-          <form ref={editFormRef} onSubmit={handleEditClient}>
+          <form ref={editFormRef} onSubmit={onSubmit}>
             <input type="hidden" name="id" value={selectedClient.id} />
             <div className="space-y-4 py-2">
               <div className="space-y-2">
@@ -45,6 +58,7 @@ const DialogEditClient = ({
                   placeholder="Enter client name"
                   defaultValue={selectedClient.name}
                   required
+                  disabled={isLoading}
                 />
               </div>
               <div className="space-y-2">
@@ -56,6 +70,7 @@ const DialogEditClient = ({
                   placeholder="Enter client email"
                   defaultValue={selectedClient.email}
                   required
+                  disabled={isLoading}
                 />
               </div>
             </div>
@@ -64,10 +79,20 @@ const DialogEditClient = ({
                 type="button"
                 variant="outline"
                 onClick={() => setIsEditDialogOpen(false)}
+                disabled={isLoading}
               >
                 Cancel
               </Button>
-              <Button type="submit">Update Client</Button>
+              <Button type="submit" disabled={isLoading}>
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Updating...
+                  </>
+                ) : (
+                  "Update Client"
+                )}
+              </Button>
             </DialogFooter>
           </form>
         )}
