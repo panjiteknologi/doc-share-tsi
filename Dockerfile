@@ -1,7 +1,7 @@
 FROM node:20-alpine AS base
 
-# Install pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
+# Install pnpm using npm instead of corepack
+RUN npm install -g pnpm
 
 # Set working directory
 WORKDIR /app
