@@ -1,6 +1,15 @@
 import { LoginForm } from "@/components/login-form";
 import { auth } from "@/lib/auth";
+import { Metadata } from "next";
 import { redirect } from "next/navigation";
+
+export const metadata: Metadata = {
+  title: "TSI Audit Document Share | Secure Document Management",
+  description:
+    "Log in to TSI Audit Document Share - A secure platform for managing, sharing, and collaborating on audit documentation between clients, auditors, and surveyors.",
+  keywords:
+    "audit document management, document sharing, secure audit platform, TSI",
+};
 
 export default async function Home() {
   const session = await auth();

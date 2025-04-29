@@ -22,7 +22,16 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { Metadata } from "next";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "Document Drive | TSI Audit Document Share",
+  description:
+    "Access and organize all your audit-related documents in a secure, centralized document drive with advanced sorting, filtering, and sharing capabilities.",
+  keywords:
+    "document drive, file management, audit documents, secure storage, TSI",
+};
 
 export default async function DrivePage() {
   const session = await auth();

@@ -24,7 +24,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Metadata } from "next";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "Upload Documents | TSI Audit Document Share",
+  description:
+    "Securely upload audit documents with our intuitive interface. Supports various file formats with automatic categorization and metadata extraction.",
+  keywords:
+    "document upload, file upload, audit documentation, secure upload, TSI",
+};
 
 export default async function UploadPage() {
   const session = await auth();
