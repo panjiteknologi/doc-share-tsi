@@ -4,7 +4,7 @@ import { auth } from "@/lib/auth";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { documentId: string } }
+  context: { params: { documentId: string } }
 ) {
   try {
     const session = await auth();
@@ -12,7 +12,7 @@ export async function GET(
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
-    const { documentId } = params;
+    const { documentId } = context.params;
 
     // Fetch the document with related data
     const document = await prisma.document.findUnique({

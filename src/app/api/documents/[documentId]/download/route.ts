@@ -7,7 +7,7 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { documentId: string } }
+  context: { params: { documentId: string } }
 ) {
   try {
     const session = await auth();
@@ -15,7 +15,7 @@ export async function GET(
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
-    const { documentId } = params;
+    const { documentId } = context.params;
     const operation = request.nextUrl.searchParams.get("operation") || "view";
 
     // Fetch the document with related data

@@ -4,7 +4,7 @@ import { auth } from "@/lib/auth";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { folderId: string } }
+  context: { params: { folderId: string } }
 ) {
   try {
     const session = await auth();
@@ -12,7 +12,7 @@ export async function GET(
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
-    const { folderId } = params;
+    const { folderId } = context.params;
 
     // Fetch the folder with related data
     const folder = await prisma.folder.findUnique({
