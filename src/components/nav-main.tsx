@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import {
   IconFolderPlus,
   IconCloudUpload,
@@ -22,7 +23,7 @@ export function NavMain({
   items: {
     title: string;
     url: string;
-    icon?: Icon;
+    icon: Icon;
   }[];
 }) {
   return (
@@ -51,9 +52,11 @@ export function NavMain({
           <SidebarGroupLabel>Home</SidebarGroupLabel>
           {items.map((item) => (
             <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton tooltip={item.title}>
-                {item.icon && <item.icon />}
-                <span>{item.title}</span>
+              <SidebarMenuButton tooltip={item.title} asChild>
+                <Link href={item.url}>
+                  <item.icon />
+                  <span>{item.title}</span>
+                </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}
