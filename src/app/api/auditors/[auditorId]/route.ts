@@ -4,7 +4,7 @@ import { auth } from "@/lib/auth";
 
 export async function GET(
   request: NextRequest,
-  context: { params: { auditorId: string } }
+  { params }: { params: Promise<{ auditorId: string }> }
 ) {
   try {
     // Authenticate the request
@@ -13,7 +13,7 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { auditorId } = context.params;
+    const auditorId = (await params).auditorId;
 
     // Fetch auditor by ID
     const auditor = await prisma.user.findUnique({
