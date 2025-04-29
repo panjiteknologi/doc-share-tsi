@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Loader2 } from "lucide-react";
 import { getDocumentViewUrl } from "@/action/s3-document";
 
@@ -11,6 +11,10 @@ interface DocumentViewerProps {
 
 export function DocumentViewer({ documentId, className }: DocumentViewerProps) {
   const [documentUrl, setDocumentUrl] = useState<string | null>(null);
+  const [numPages, setNumPages] = useState<number>();
+  const [pageNumber, setPageNumber] = useState<number>(1);
+  const [containerRef, setContainerRef] = useState<HTMLElement | null>(null);
+  const [containerWidth, setContainerWidth] = useState<number>();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -39,6 +43,18 @@ export function DocumentViewer({ documentId, className }: DocumentViewerProps) {
       fetchDocumentUrl();
     }
   }, [documentId]);
+
+  const onResize = useCallback<ResizeObserverCallback>((entries) => {
+    const [entry] = entries;
+
+    if (entry) {
+      setContainerWidth(entry.contentRect.width);
+    }
+  }, []);
+
+  function onDocumentLoadSuccess({ numPages }: { numPages: number }): void {
+    setNumPages(numPages);
+  }
 
   if (loading) {
     return (
@@ -95,27 +111,15 @@ export function DocumentViewer({ documentId, className }: DocumentViewerProps) {
   // For PDF files
   if (documentUrl.includes(".pdf")) {
     return (
-      <iframe
-        src={documentUrl}
-        className={`h-full w-full inset-0 border-0 ${className}`}
-        style={{ height: "80vh", width: "100%" }}
-        allowFullScreen
-        allow="fullscreen"
-        title="Document viewer"
-      />
-    );
-  }
-
-  // For images
-  if (/\.(jpe?g|png|gif|svg)$/i.test(documentUrl)) {
-    return (
-      <div
-        className={`flex h-full w-full items-center justify-center overflow-auto ${className}`}
-      >
-        <img
-          src={documentUrl}
-          alt="Document preview"
-          className="max-w-full max-h-full object-contain"
+      <div>
+        <iframe
+          src={`https://docs.google.com/viewer?url=${encodeURIComponent(
+            documentUrl
+          )}&embedded=true`}
+          className="h-full w-full border-0"
+          style={{ height: "80vh" }}
+          allowFullScreen
+          title="Document viewer"
         />
       </div>
     );
@@ -145,14 +149,6 @@ export function DocumentViewer({ documentId, className }: DocumentViewerProps) {
         <p className="text-sm text-muted-foreground">
           This file type cannot be previewed directly in the browser.
         </p>
-        <a
-          href={documentUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="bg-primary text-primary-foreground mt-2 inline-flex h-9 items-center justify-center rounded-md px-4 py-2 text-sm font-medium shadow-sm transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-        >
-          Download File
-        </a>
       </div>
     </div>
   );
