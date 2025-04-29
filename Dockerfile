@@ -1,64 +1,29 @@
+# Stage 1: Base
 FROM node:20-alpine AS base
+WORKDIR /app
 
-# Install pnpm using npm instead of corepack
+# Install pnpm saja dulu
 RUN npm install -g pnpm
 
-# Set working directory
-WORKDIR /app
+# Stage 2: Dependencies
+FROM base AS dependencies
 
-# Install dependencies only when needed
-FROM base AS deps
-COPY package.json pnpm-lock.yaml* ./
+# Hanya copy file yang dibutuhkan untuk dependency install
+COPY package.json pnpm-lock.yaml ./
+
 RUN pnpm install --frozen-lockfile
 
-# Rebuild the source code only when needed
-FROM base AS builder
-WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
+# Stage 3: Build
+FROM dependencies AS build
+
 COPY . .
 
-# Copy the .env.production file to .env.local for Next.js to use during build
-COPY .env.production .env.local
-
-# Set environment variables for build
-ENV NEXT_TELEMETRY_DISABLED=1
-
-# Generate Prisma client
-RUN pnpm prisma generate
-
-# Build the application
 RUN pnpm build
 
-# Production image, copy all the files and run next
-FROM base AS runner
+# Stage 4: Production
+FROM node:20-alpine AS production
 WORKDIR /app
 
-ENV NODE_ENV=production
-ENV NEXT_TELEMETRY_DISABLED=1
+COPY --from=build /app .
 
-# Create a non-root user
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
-USER nextjs
-
-# Copy necessary files
-COPY --from=builder --chown=nextjs:nodejs /app/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
-
-# Copy the Prisma client from the custom location
-COPY --from=builder --chown=nextjs:nodejs /app/src/generated/prisma ./src/generated/prisma
-
-# Copy .env.production to be used at runtime
-COPY --from=builder --chown=nextjs:nodejs /app/.env.production ./.env.local
-
-# Set hostname
-ENV HOSTNAME="0.0.0.0"
-ENV PORT=5000
-
-# Expose port
-EXPOSE 5000
-
-# Start the application
-CMD ["node", "server.js"]
+CMD ["node", "dist/index.js"]
