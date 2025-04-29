@@ -17,9 +17,10 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# Environment and secrets
+# Environment and secrets (exclude regular .env but allow .env.production)
 .env
 .env.*
+!.env.production
 !.env.example
 
 # Testing
@@ -29,9 +30,6 @@ coverage
 # Misc
 .DS_Store
 *.pem
-.dockerignore
-Dockerfile
-docker-compose.yml
 README.md
 LICENSE
 *.md

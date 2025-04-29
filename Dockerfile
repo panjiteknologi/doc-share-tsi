@@ -17,9 +17,11 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Set environment variables
-ENV NEXT_TELEMETRY_DISABLED 1
-ENV NODE_ENV production
+# Copy the .env.production file to .env.local for Next.js to use during build
+COPY .env.production .env.local
+
+# Set environment variables for build
+ENV NEXT_TELEMETRY_DISABLED=1
 
 # Generate Prisma client
 RUN pnpm prisma generate
@@ -31,8 +33,8 @@ RUN pnpm build
 FROM base AS runner
 WORKDIR /app
 
-ENV NODE_ENV production
-ENV NEXT_TELEMETRY_DISABLED 1
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
 
 # Create a non-root user
 RUN addgroup --system --gid 1001 nodejs
@@ -46,9 +48,12 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.prisma ./node_modules/.prisma
 
+# Copy .env.production to be used at runtime
+COPY --from=builder --chown=nextjs:nodejs /app/.env.production ./.env.local
+
 # Set hostname
-ENV HOSTNAME "0.0.0.0"
-ENV PORT 5000
+ENV HOSTNAME="0.0.0.0"
+ENV PORT=5000
 
 # Expose port
 EXPOSE 5000
