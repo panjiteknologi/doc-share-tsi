@@ -7,6 +7,8 @@ export const env = createEnv({
     DATABASE_URL: z.string().url(),
     AUTH_SECRET: z.string().min(1),
     NEXTAUTH_URL: z.string().url(),
+    S3_ACCESS_KEY_ID: z.string().min(1),
+    S3_SECRET_ACCESS_KEY: z.string().min(1),
   },
 
   client: {
@@ -14,8 +16,6 @@ export const env = createEnv({
     // S3 Configuration - all server-side only
     NEXT_PUBLIC_S3_ENDPOINT: z.string().url(),
     NEXT_PUBLIC_S3_REGION: z.string().min(1),
-    NEXT_PUBLIC_S3_ACCESS_KEY_ID: z.string().min(1),
-    NEXT_PUBLIC_S3_SECRET_ACCESS_KEY: z.string().min(1),
     NEXT_PUBLIC_S3_BUCKET_NAME: z.string().min(1),
     NEXT_PUBLIC_S3_COMPANY: z.string().min(1),
 
@@ -32,11 +32,12 @@ export const env = createEnv({
     // S3 Configuration
     NEXT_PUBLIC_S3_ENDPOINT: process.env.NEXT_PUBLIC_S3_ENDPOINT,
     NEXT_PUBLIC_S3_REGION: process.env.NEXT_PUBLIC_S3_REGION,
-    NEXT_PUBLIC_S3_ACCESS_KEY_ID: process.env.NEXT_PUBLIC_S3_ACCESS_KEY_ID,
-    NEXT_PUBLIC_S3_SECRET_ACCESS_KEY:
-      process.env.NEXT_PUBLIC_S3_SECRET_ACCESS_KEY,
     NEXT_PUBLIC_S3_BUCKET_NAME: process.env.NEXT_PUBLIC_S3_BUCKET_NAME,
     NEXT_PUBLIC_S3_COMPANY: process.env.NEXT_PUBLIC_S3_COMPANY,
+
+    // S3 Secret
+    S3_ACCESS_KEY_ID: process.env.S3_ACCESS_KEY_ID,
+    S3_SECRET_ACCESS_KEY: process.env.S3_SECRET_ACCESS_KEY,
 
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
   },
