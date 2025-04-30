@@ -76,6 +76,20 @@ const fetcher = async (url: string) => {
   }
 };
 
+// POST request fetcher for batch operations
+const postFetcher = async (url: string, data: any) => {
+  try {
+    const response = await axios.post(url, data);
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response) {
+      const errorMessage = error.response.data?.error || error.message;
+      throw new Error(errorMessage || "Failed to fetch data");
+    }
+    throw error;
+  }
+};
+
 // Hook for fetching a paginated list of folders
 export function useFolders({
   userId = undefined, // Make userId optional with default value
@@ -136,6 +150,132 @@ export function useFolder(folderId: string | null) {
 
   return {
     folder: data?.folder,
+    isLoading,
+    error,
+    mutate,
+  };
+}
+
+// Hook for fetching all non-root folders
+export function useNonRootFolders() {
+  const { data, error, isLoading, mutate } = useSWR<{ folders: Folder[] }>(
+    "/api/folders/non-root",
+    fetcher,
+    {
+      onError: (err) => {
+        toast.error(err.message || "Failed to fetch folders");
+      },
+      revalidateOnFocus: false,
+    }
+  );
+
+  return {
+    folders: data?.folders || [],
+    isLoading,
+    error,
+    mutate,
+  };
+}
+
+// Hook for fetching non-root folders by user ID
+export function useNonRootFoldersByUserId(userId: string) {
+  const { data, error, isLoading, mutate } = useSWR<{ folders: Folder[] }>(
+    userId ? `/api/folders/non-root/${userId}` : null,
+    fetcher,
+    {
+      onError: (err) => {
+        toast.error(err.message || "Failed to fetch user folders");
+      },
+      revalidateOnFocus: false,
+    }
+  );
+
+  return {
+    folders: data?.folders || [],
+    isLoading,
+    error,
+    mutate,
+  };
+}
+
+// Hook for fetching the root folder
+export function useRootFolder() {
+  const { data, error, isLoading, mutate } = useSWR<{ folder: Folder | null }>(
+    "/api/folders/root",
+    fetcher,
+    {
+      onError: (err) => {
+        toast.error(err.message || "Failed to fetch root folder");
+      },
+      revalidateOnFocus: false,
+    }
+  );
+
+  return {
+    folder: data?.folder,
+    isLoading,
+    error,
+    mutate,
+  };
+}
+
+// Hook for fetching the current user's root folder
+export function useCurrentUserRootFolder() {
+  const { data, error, isLoading, mutate } = useSWR<{ folder: Folder | null }>(
+    "/api/folders/root/user",
+    fetcher,
+    {
+      onError: (err) => {
+        toast.error(err.message || "Failed to fetch your root folder");
+      },
+      revalidateOnFocus: false,
+    }
+  );
+
+  return {
+    folder: data?.folder,
+    isLoading,
+    error,
+    mutate,
+  };
+}
+
+// Hook for fetching folders by their IDs
+export function useFoldersByIds(folderIds: string[]) {
+  const { data, error, isLoading, mutate } = useSWR<{ folders: Folder[] }>(
+    folderIds.length > 0 ? ["/api/folders/batch", folderIds] : null,
+    ([url, ids]) => postFetcher(url, { folderIds: ids }),
+    {
+      onError: (err) => {
+        toast.error(err.message || "Failed to fetch folders");
+      },
+      revalidateOnFocus: false,
+    }
+  );
+
+  return {
+    folders: data?.folders || [],
+    isLoading,
+    error,
+    mutate,
+  };
+}
+
+// Hook for fetching all folders by user ID
+export function useFoldersByUserId(userId: string) {
+  const { data, error, isLoading, mutate } = useSWR<{ folders: Folder[] }>(
+    userId ? `/api/folders/user/${userId}` : null,
+    fetcher,
+    {
+      onError: (err) => {
+        toast.error(err.message || "Failed to fetch user folders");
+      },
+      revalidateOnFocus: false,
+    }
+  );
+
+  return {
+    folders: data?.folders || [],
     isLoading,
     error,
     mutate,
