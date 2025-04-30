@@ -1,7 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { Search, MoreHorizontal, UserCog } from "lucide-react";
+import {
+  Search,
+  MoreHorizontal,
+  UserCog,
+  RefreshCcw,
+  RefreshCwOff,
+} from "lucide-react";
 
 import {
   Table,
@@ -25,6 +31,7 @@ import { Badge } from "@/components/ui/badge";
 import { useAuditors } from "@/hooks/use-auditors";
 import DialogEditAuditor from "../dialogs/dialog-edit-auditor";
 import DialogDeleteAuditor from "../dialogs/dialog-delete-auditor";
+import DialogConnectProject from "../dialogs/dialog-connect-project";
 
 export function TableAuditors() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -32,6 +39,7 @@ export function TableAuditors() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedAuditor, setSelectedAuditor] = useState<any>(null);
+  const [connectDialogOpen, setConnectDialogOpen] = useState(false);
 
   const itemsPerPage = 10;
 
@@ -58,6 +66,12 @@ export function TableAuditors() {
   const handleOpenDeleteDialog = (auditor: any) => {
     setSelectedAuditor(auditor);
     setDeleteDialogOpen(true);
+  };
+
+  // Open connect dialog
+  const handleOpenConnectDialog = (auditor: any) => {
+    setSelectedAuditor(auditor);
+    setConnectDialogOpen(true);
   };
 
   // Handle refresh after successful operation
@@ -87,6 +101,7 @@ export function TableAuditors() {
               <TableHead>Name</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Projects</TableHead>
+              <TableHead>Connect</TableHead>
               <TableHead className="w-[100px]">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -99,6 +114,9 @@ export function TableAuditors() {
                   </TableCell>
                   <TableCell>
                     <Skeleton className="h-5 w-[180px]" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-5 w-[40px]" />
                   </TableCell>
                   <TableCell>
                     <Skeleton className="h-5 w-[40px]" />
@@ -122,6 +140,25 @@ export function TableAuditors() {
                     <Badge variant="secondary">
                       {auditor.projectCount} projects
                     </Badge>
+                  </TableCell>
+                  <TableCell align="left" className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="hover:cursor-pointer"
+                      onClick={() => handleOpenConnectDialog(auditor)}
+                    >
+                      <RefreshCcw className="h-4 w-4" />
+                      <span className="sr-only">Connect</span>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="hover:cursor-pointer"
+                    >
+                      <RefreshCwOff className="h-4 w-4" />
+                      <span className="sr-only">Disconnect</span>
+                    </Button>
                   </TableCell>
                   <TableCell>
                     <DropdownMenu>
@@ -179,6 +216,15 @@ export function TableAuditors() {
       <DialogDeleteAuditor
         isOpen={deleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}
+        auditorId={selectedAuditor?.id || null}
+        auditorName={selectedAuditor?.name}
+        onSuccess={handleSuccess}
+      />
+
+      {/* Connect Auditor Dialog */}
+      <DialogConnectProject
+        isOpen={connectDialogOpen}
+        onClose={() => setConnectDialogOpen(false)}
         auditorId={selectedAuditor?.id || null}
         auditorName={selectedAuditor?.name}
         onSuccess={handleSuccess}
