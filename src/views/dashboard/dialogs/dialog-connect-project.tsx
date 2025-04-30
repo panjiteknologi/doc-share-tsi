@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Loader2, RefreshCcw } from "lucide-react";
 import { toast } from "sonner";
 
@@ -25,7 +24,7 @@ import { Label } from "@/components/ui/label";
 import { connectUserWithProject } from "@/action/user-project";
 import { useClients } from "@/hooks/use-clients";
 import { useFolders } from "@/hooks/use-folders";
-import { useAuditor } from "@/hooks/use-auditors";
+import { useAuditor, useAuditors } from "@/hooks/use-auditors";
 
 interface DialogConnectProjectProps {
   auditorId: string;
@@ -42,12 +41,12 @@ export default function DialogConnectProject({
   onClose,
   onSuccess,
 }: DialogConnectProjectProps) {
-  const router = useRouter();
   const [clientId, setClientId] = useState<string>("");
   const [folderId, setFolderId] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const { auditor } = useAuditor(auditorId);
+  const { mutate } = useAuditors({ page: 1, limit: 100 });
   const projectFolderIds =
     auditor?.projects?.map((project) => project.folderId) || [];
 
@@ -74,9 +73,6 @@ export default function DialogConnectProject({
     try {
       const project = getProject(folderId);
 
-      console.log("Project:", project);
-      console.log("Auditor ID:", auditorId);
-
       if (!project?.id) {
         toast.error("Project not found for the selected folder");
         setIsLoading(false);
@@ -90,7 +86,7 @@ export default function DialogConnectProject({
 
       if (result.success) {
         toast.success("Auditor connected to project successfully");
-        router.refresh();
+        mutate();
 
         if (onSuccess) onSuccess();
         handleClose();
