@@ -75,13 +75,23 @@ export async function disconnectUserFromProject(data: {
 
     const validatedData = userProjectSchema.parse(data);
 
+    const projectExists = await prisma.project.findUnique({
+      where: {
+        id: validatedData.projectId,
+      },
+    });
+
+    if (!projectExists) {
+      return { success: false, error: "Project not found" };
+    }
+
     const user = await prisma.user.update({
       where: {
         id: validatedData.id,
       },
       data: {
         projects: {
-          disconnect: { folderId: validatedData.projectId },
+          disconnect: { id: validatedData.projectId },
         },
       },
     });

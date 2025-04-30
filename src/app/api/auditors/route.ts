@@ -72,6 +72,7 @@ export async function GET(request: NextRequest) {
       email: auditor.email,
       role: auditor.role,
       projectCount: auditor.projects.length,
+      projects: auditor.projects,
     }));
 
     // Get total count for pagination

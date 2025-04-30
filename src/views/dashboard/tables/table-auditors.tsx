@@ -32,6 +32,7 @@ import { useAuditors } from "@/hooks/use-auditors";
 import DialogEditAuditor from "../dialogs/dialog-edit-auditor";
 import DialogDeleteAuditor from "../dialogs/dialog-delete-auditor";
 import DialogConnectProject from "../dialogs/dialog-connect-project";
+import DialogDisconnectProject from "../dialogs/dialog-disconnect-project";
 
 export function TableAuditors() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -40,6 +41,7 @@ export function TableAuditors() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedAuditor, setSelectedAuditor] = useState<any>(null);
   const [connectDialogOpen, setConnectDialogOpen] = useState(false);
+  const [disconnectDialogOpen, setDisconnectDialogOpen] = useState(false);
 
   const itemsPerPage = 10;
 
@@ -74,9 +76,14 @@ export function TableAuditors() {
     setConnectDialogOpen(true);
   };
 
-  // Handle refresh after successful operation
+  // Open disconnect dialog
+  const handleOpenDisconnectDialog = (auditor: any) => {
+    setSelectedAuditor(auditor);
+    setDisconnectDialogOpen(true);
+  };
+
   const handleSuccess = () => {
-    mutate(); // Refresh the auditors data
+    mutate();
   };
 
   return (
@@ -155,6 +162,7 @@ export function TableAuditors() {
                       variant="outline"
                       size="icon"
                       className="hover:cursor-pointer"
+                      onClick={() => handleOpenDisconnectDialog(auditor)}
                     >
                       <RefreshCwOff className="h-4 w-4" />
                       <span className="sr-only">Disconnect</span>
@@ -225,6 +233,15 @@ export function TableAuditors() {
       <DialogConnectProject
         isOpen={connectDialogOpen}
         onClose={() => setConnectDialogOpen(false)}
+        auditorId={selectedAuditor?.id || null}
+        auditorName={selectedAuditor?.name}
+        onSuccess={handleSuccess}
+      />
+
+      {/* Disconnect Auditor Dialog */}
+      <DialogDisconnectProject
+        isOpen={disconnectDialogOpen}
+        onClose={() => setDisconnectDialogOpen(false)}
         auditorId={selectedAuditor?.id || null}
         auditorName={selectedAuditor?.name}
         onSuccess={handleSuccess}
