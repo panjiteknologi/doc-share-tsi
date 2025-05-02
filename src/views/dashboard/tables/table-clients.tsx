@@ -26,6 +26,7 @@ import { useClients } from "@/hooks/use-clients";
 import { deleteClient, updateClient } from "@/action/client";
 import DialogEditClient from "../dialogs/dialog-edit-client";
 import DialogDeleteClient from "../dialogs/dialog-delete-client";
+import { CopyButton } from "@/components/copy-button";
 
 export function TableClients() {
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -124,6 +125,7 @@ export function TableClients() {
             <TableRow>
               <TableHead>Name</TableHead>
               <TableHead>Email</TableHead>
+              <TableHead>Password</TableHead>
               <TableHead className="w-[100px]">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -133,6 +135,9 @@ export function TableClients() {
                 <TableRow key={index}>
                   <TableCell>
                     <Skeleton className="h-5 w-[150px]" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-5 w-[200px]" />
                   </TableCell>
                   <TableCell>
                     <Skeleton className="h-5 w-[200px]" />
@@ -150,6 +155,9 @@ export function TableClients() {
                 <TableRow key={client.id}>
                   <TableCell className="font-medium">{client.name}</TableCell>
                   <TableCell>{client.email}</TableCell>
+                  <TableCell>
+                    <CopyButton value={client.hashedPassword} />
+                  </TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>

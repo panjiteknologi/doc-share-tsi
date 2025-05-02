@@ -49,12 +49,14 @@ export async function GET(request: NextRequest) {
         id: true,
         name: true,
         email: true,
+        hashedPassword: true,
         role: {
           select: {
             name: true,
             code: true,
           },
         },
+        projects: true,
       },
       skip,
       take: limit,

@@ -17,16 +17,16 @@ export function DashboardTabs() {
       onValueChange={setActiveTab}
     >
       <TabsList>
-        <TabsTrigger value="clients">Clients</TabsTrigger>
         <TabsTrigger value="auditors">Auditors</TabsTrigger>
+        <TabsTrigger value="clients">Clients</TabsTrigger>
         <TabsTrigger value="folders">Folders</TabsTrigger>
         <TabsTrigger value="documents">Documents</TabsTrigger>
       </TabsList>
-      <TabsContent value="clients">
-        <TableClients />
-      </TabsContent>
       <TabsContent value="auditors">
         <TableAuditors />
+      </TabsContent>
+      <TabsContent value="clients">
+        <TableClients />
       </TabsContent>
       <TabsContent value="folders">
         <TableFolders />

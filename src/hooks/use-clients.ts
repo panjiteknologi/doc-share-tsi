@@ -1,5 +1,6 @@
 import useSWR from "swr";
 import axios from "axios";
+import { Project } from "@prisma/client";
 
 const fetcher = async (url: string) => {
   const response = await axios.get(url);
@@ -11,10 +12,12 @@ export interface Client {
   name: string;
   email: string;
   createdAt: string;
+  hashedPassword: string;
   role: {
     name: string;
     code: string;
   };
+  projects: Project;
 }
 
 export interface PaginatedResponse<T> {

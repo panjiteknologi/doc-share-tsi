@@ -10,6 +10,7 @@ export interface Auditor {
   id: string;
   name: string;
   email: string;
+  hashedPassword: string;
   role: {
     name: string;
     code: string;

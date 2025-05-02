@@ -33,6 +33,7 @@ import DialogEditAuditor from "../dialogs/dialog-edit-auditor";
 import DialogDeleteAuditor from "../dialogs/dialog-delete-auditor";
 import DialogConnectProject from "../dialogs/dialog-connect-project";
 import DialogDisconnectProject from "../dialogs/dialog-disconnect-project";
+import { CopyButton } from "@/components/copy-button";
 
 export function TableAuditors() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -107,7 +108,8 @@ export function TableAuditors() {
             <TableRow>
               <TableHead>Name</TableHead>
               <TableHead>Email</TableHead>
-              <TableHead>Projects</TableHead>
+              <TableHead>Password</TableHead>
+              <TableHead>Clients</TableHead>
               <TableHead>Connect</TableHead>
               <TableHead className="w-[100px]">Actions</TableHead>
             </TableRow>
@@ -118,6 +120,9 @@ export function TableAuditors() {
                 <TableRow key={index}>
                   <TableCell>
                     <Skeleton className="h-5 w-[140px]" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-5 w-[180px]" />
                   </TableCell>
                   <TableCell>
                     <Skeleton className="h-5 w-[180px]" />
@@ -144,8 +149,12 @@ export function TableAuditors() {
                   </TableCell>
                   <TableCell>{auditor.email}</TableCell>
                   <TableCell>
+                    <CopyButton value={auditor.hashedPassword} />
+                  </TableCell>
+                  <TableCell>
                     <Badge variant="secondary">
-                      {auditor.projectCount} projects
+                      {auditor.projectCount}{" "}
+                      {auditor.projectCount <= 1 ? "client" : "clients"}
                     </Badge>
                   </TableCell>
                   <TableCell align="left" className="flex items-center gap-2">
