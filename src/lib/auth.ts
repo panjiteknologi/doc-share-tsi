@@ -29,23 +29,38 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       }
       return true;
     },
-    jwt({ token, user }) {
+    async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
         token.email = user.email;
         token.name = user.name;
         token.roleId = user.roleId;
         token.image = user.image;
+
+        if (user.roleId) {
+          const role = await prisma.role.findUnique({
+            where: { id: user.roleId },
+            select: { code: true },
+          });
+
+          if (role) {
+            token.roleCode = role.code;
+          }
+        }
       }
       return token;
     },
-    session({ session, token }) {
+    async session({ session, token }) {
       if (token && session.user) {
         session.user.id = token.id as string;
         session.user.email = token.email as string;
         session.user.name = token.name as string;
         session.user.roleId = token.roleId as string;
         session.user.image = token.image as string | undefined;
+
+        if (token.roleCode) {
+          session.user.roleCode = token.roleCode as string;
+        }
       }
       return session;
     },
