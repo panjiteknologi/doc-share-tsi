@@ -7,7 +7,10 @@ import {
   useFoldersProjects,
   useNonRootFolders,
 } from "@/hooks/use-folders";
-import { useDocuments } from "@/hooks/use-documents";
+import {
+  useRootDocuments,
+  useRootDocumentsByUserId,
+} from "@/hooks/use-documents";
 import { Grid3x3, List, FolderPlus, File } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -39,25 +42,22 @@ const DriveView = () => {
   // Fetch folders Auditor
   const { folders: foldersProjects } = useFoldersProjects(userRole);
 
-  // Fetch documents based on role
-  const shouldFetchDocuments = userRole === "surveyor" || userRole === "client";
-  const { documents, isLoading: documentsLoading } = useDocuments(
-    shouldFetchDocuments
-      ? {
-          userId: userRole === "client" ? userId : undefined,
-          page: 1,
-          limit: 20,
-          userRole,
-        }
-      : undefined
-  );
+  // Fetch documents LS
+  const { documents, isLoading: isLoadingDocuments } =
+    useRootDocuments(userRole);
+  //Fetch documents Client
+  const { documents: documentsByUserId, isLoading: isDocumentsRootLoading } =
+    useRootDocumentsByUserId(userId, userRole);
 
   const handleViewDocument = (document: any) => {
     setSelectedDocument(document);
     setIsViewDialogOpen(true);
   };
 
+  const loadingDocuments = isLoadingDocuments || isDocumentsRootLoading;
   const loadingFolders = isFoldersLoading || isFoldersByIdLoading;
+
+  const noDocumentsFound = documents.length === 0;
   const noFoldersFound =
     folders.length === 0 &&
     foldersByUserId.length === 0 &&
@@ -94,26 +94,30 @@ const DriveView = () => {
       </div>
 
       {/* ================================= | FILE / DOCUMENTS | ================================= */}
-      {shouldFetchDocuments && (
-        <>
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-medium">Documents</h2>
-          </div>
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-medium">Documents</h2>
+      </div>
 
-          <div className={cn("w-full", documentsLoading && "opacity-70")}>
-            {documentsLoading ? (
-              <div className="flex items-center justify-center h-40">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-              </div>
-            ) : !documents || documents.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-40 border rounded-lg border-dashed border-muted-foreground/50 p-6">
-                <File className="h-10 w-10 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-medium mb-1">No documents found</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  There are no documents available in your drive
-                </p>
-              </div>
-            ) : viewMode === "grid" ? (
+      <div className={cn("w-full", loadingDocuments && "opacity-70")}>
+        {loadingDocuments && (
+          <div className="flex items-center justify-center h-40">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        )}
+
+        {!loadingDocuments && noDocumentsFound && (
+          <div className="flex flex-col items-center justify-center h-40 border rounded-lg border-dashed border-muted-foreground/50 p-6">
+            <File className="h-10 w-10 text-muted-foreground mb-4" />
+            <h3 className="text-lg font-medium mb-1">No documents found</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              There are no documents available in your drive
+            </p>
+          </div>
+        )}
+
+        {!loadingDocuments && userRole === "surveyor" && (
+          <>
+            {viewMode === "grid" ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {documents.map((document) => (
                   <DocumentCard
@@ -129,9 +133,30 @@ const DriveView = () => {
                 onViewDocument={handleViewDocument}
               />
             )}
-          </div>
-        </>
-      )}
+          </>
+        )}
+
+        {!loadingDocuments && userRole === "client" && (
+          <>
+            {viewMode === "grid" ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {documentsByUserId.map((document) => (
+                  <DocumentCard
+                    key={document.id}
+                    document={document}
+                    onViewDocument={handleViewDocument}
+                  />
+                ))}
+              </div>
+            ) : (
+              <DocumentTable
+                documents={documents}
+                onViewDocument={handleViewDocument}
+              />
+            )}
+          </>
+        )}
+      </div>
 
       {/* ================================= | FOLDER | ================================= */}
       <div className="flex items-center justify-between pt-4">

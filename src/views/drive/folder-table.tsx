@@ -25,17 +25,19 @@ interface FolderTableProps {
 
 const FolderTable: React.FC<FolderTableProps> = ({ folders }) => {
   return (
-    <div className="rounded-md border">
+    <div className={`${folders.length > 0 && "rounded-md border"}`}>
       <Table>
         <TableHeader>
-          <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Documents</TableHead>
-            <TableHead>Date Range</TableHead>
-            <TableHead>Created By</TableHead>
-            <TableHead>Created</TableHead>
-            <TableHead className="w-[80px]">Actions</TableHead>
-          </TableRow>
+          {folders.length > 0 && (
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Documents</TableHead>
+              <TableHead>Date Range</TableHead>
+              <TableHead>Created By</TableHead>
+              <TableHead>Created</TableHead>
+              <TableHead className="w-[80px]">Actions</TableHead>
+            </TableRow>
+          )}
         </TableHeader>
         <TableBody>
           {folders.map((folder) => {

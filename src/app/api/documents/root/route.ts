@@ -9,44 +9,11 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
-    const searchParams = request.nextUrl.searchParams;
-    const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "10");
-    const sortBy = searchParams.get("sortBy") || "createdAt";
-    const sortOrder = searchParams.get("sortOrder") || "desc";
-
-    // Calculate pagination
-    const skip = (page - 1) * limit;
-
-    // Find the root folder(s)
-    const rootFolders = await prisma.folder.findMany({
-      where: {
-        isRoot: true,
-      },
-      select: {
-        id: true,
-      },
-    });
-
-    const rootFolderIds = rootFolders.map((folder) => folder.id);
-
-    if (rootFolderIds.length === 0) {
-      return NextResponse.json({
-        documents: [],
-        pagination: {
-          total: 0,
-          page,
-          limit,
-          totalPages: 0,
-        },
-      });
-    }
-
     // Fetch documents in root folders
     const documents = await prisma.document.findMany({
       where: {
-        folderId: {
-          in: rootFolderIds,
+        folder: {
+          isRoot: true,
         },
       },
       include: {
@@ -64,10 +31,8 @@ export async function GET(request: NextRequest) {
           },
         },
       },
-      skip,
-      take: limit,
       orderBy: {
-        [sortBy]: sortOrder,
+        createdAt: "desc",
       },
     });
 
@@ -119,23 +84,8 @@ export async function GET(request: NextRequest) {
       };
     });
 
-    // Get total count for pagination
-    const total = await prisma.document.count({
-      where: {
-        folderId: {
-          in: rootFolderIds,
-        },
-      },
-    });
-
     return NextResponse.json({
       documents: formattedDocuments,
-      pagination: {
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
-      },
     });
   } catch (error) {
     console.error("Error fetching root documents:", error);

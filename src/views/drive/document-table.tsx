@@ -64,18 +64,20 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
   };
 
   return (
-    <div className="rounded-md border">
+    <div className={`${documents.length > 0 && "rounded-md border"}`}>
       <Table>
         <TableHeader className="sticky top-0 z-10 bg-muted">
-          <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Type</TableHead>
-            <TableHead>Folder</TableHead>
-            <TableHead>Size</TableHead>
-            <TableHead>Uploaded By</TableHead>
-            <TableHead>Date</TableHead>
-            <TableHead className="w-[100px]">Actions</TableHead>
-          </TableRow>
+          {documents.length > 0 && (
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Type</TableHead>
+              <TableHead>Folder</TableHead>
+              <TableHead>Size</TableHead>
+              <TableHead>Uploaded By</TableHead>
+              <TableHead>Date</TableHead>
+              <TableHead className="w-[100px]">Actions</TableHead>
+            </TableRow>
+          )}
         </TableHeader>
         <TableBody>
           {documents.map((document) => (

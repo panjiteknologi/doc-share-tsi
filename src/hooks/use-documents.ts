@@ -63,6 +63,7 @@ export function useDocuments({
   search = "",
   sortBy = "createdAt",
   sortOrder = "desc",
+  userRole,
 }: {
   userId?: string;
   folderId?: string;
@@ -71,6 +72,7 @@ export function useDocuments({
   search?: string;
   sortBy?: string;
   sortOrder?: "asc" | "desc";
+  userRole?: string;
 } = {}) {
   const searchParams = new URLSearchParams();
   if (userId) searchParams.append("userId", userId);
@@ -81,8 +83,10 @@ export function useDocuments({
   searchParams.append("sortBy", sortBy);
   searchParams.append("sortOrder", sortOrder);
 
+  const shouldFetch = userRole !== "auditor";
+
   const { data, error, isLoading, mutate } = useSWR<DocumentsResponse>(
-    `/api/documents?${searchParams.toString()}`,
+    shouldFetch ? `/api/documents?${searchParams.toString()}` : null,
     fetcher,
     {
       onError: (err) => {
@@ -121,9 +125,11 @@ export function useDocument(documentId: string | null) {
 }
 
 // Hook for fetching root documents
-export function useRootDocuments() {
+export function useRootDocuments(userRole: string) {
+  const shouldFetch = userRole === "surveyor";
+
   const { data, error, isLoading, mutate } = useSWR<DocumentsResponse>(
-    "/api/documents/root",
+    shouldFetch ? "/api/documents/root" : null,
     fetcher,
     {
       onError: (err) => {
@@ -142,9 +148,11 @@ export function useRootDocuments() {
 }
 
 // Hook for fetching root documents by user ID
-export function useRootDocumentsByUserId(userId: string) {
+export function useRootDocumentsByUserId(userId: string, userRole: string) {
+  const shouldFetch = userId && userRole === "client";
+
   const { data, error, isLoading, mutate } = useSWR<DocumentsResponse>(
-    userId ? `/api/documents/root/${userId}` : null,
+    shouldFetch ? `/api/documents/root/${userId}` : null,
     fetcher,
     {
       onError: (err) => {
