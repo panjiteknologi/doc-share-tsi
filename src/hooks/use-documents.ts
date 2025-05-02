@@ -71,7 +71,7 @@ export function useDocuments({
   search?: string;
   sortBy?: string;
   sortOrder?: "asc" | "desc";
-}) {
+} = {}) {
   const searchParams = new URLSearchParams();
   if (userId) searchParams.append("userId", userId);
   if (folderId) searchParams.append("folderId", folderId);
@@ -118,4 +118,124 @@ export function useDocument(documentId: string | null) {
     error,
     mutate,
   };
+}
+
+// Hook for fetching root documents
+export function useRootDocuments() {
+  const { data, error, isLoading, mutate } = useSWR<DocumentsResponse>(
+    "/api/documents/root",
+    fetcher,
+    {
+      onError: (err) => {
+        toast.error(err.message || "Failed to fetch root documents");
+      },
+      revalidateOnFocus: false,
+    }
+  );
+
+  return {
+    documents: data?.documents || [],
+    isLoading,
+    error,
+    mutate,
+  };
+}
+
+// Hook for fetching root documents by user ID
+export function useRootDocumentsByUserId(userId: string) {
+  const { data, error, isLoading, mutate } = useSWR<DocumentsResponse>(
+    userId ? `/api/documents/root/${userId}` : null,
+    fetcher,
+    {
+      onError: (err) => {
+        toast.error(err.message || "Failed to fetch user root documents");
+      },
+      revalidateOnFocus: false,
+    }
+  );
+
+  return {
+    documents: data?.documents || [],
+    isLoading,
+    error,
+    mutate,
+  };
+}
+
+// Hook for fetching documents by folder ID
+export function useDocumentsByFolder(folderId: string) {
+  const { data, error, isLoading, mutate } = useSWR<DocumentsResponse>(
+    folderId ? `/api/documents/folder/${folderId}` : null,
+    fetcher,
+    {
+      onError: (err) => {
+        toast.error(err.message || "Failed to fetch folder documents");
+      },
+      revalidateOnFocus: false,
+    }
+  );
+
+  return {
+    documents: data?.documents || [],
+    isLoading,
+    error,
+    mutate,
+  };
+}
+
+// Hook for fetching documents by folder ID and user ID
+export function useDocumentsByFolderAndUser(folderId: string, userId: string) {
+  const { data, error, isLoading, mutate } = useSWR<DocumentsResponse>(
+    folderId && userId
+      ? `/api/documents/folder/${folderId}/user/${userId}`
+      : null,
+    fetcher,
+    {
+      onError: (err) => {
+        toast.error(err.message || "Failed to fetch user folder documents");
+      },
+      revalidateOnFocus: false,
+    }
+  );
+
+  return {
+    documents: data?.documents || [],
+    isLoading,
+    error,
+    mutate,
+  };
+}
+
+// Function to delete a document
+export async function deleteDocument(documentId: string) {
+  try {
+    const response = await axios.delete(`/api/documents/${documentId}`);
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response) {
+      throw new Error(
+        error.response.data?.error || "Failed to delete document"
+      );
+    }
+    throw error;
+  }
+}
+
+// Function to upload a document
+export async function uploadDocument(data: {
+  url: string;
+  folderId: string;
+  userId: string;
+}) {
+  try {
+    const response = await axios.post("/api/documents/upload", data);
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response) {
+      throw new Error(
+        error.response.data?.error || "Failed to upload document"
+      );
+    }
+    throw error;
+  }
 }

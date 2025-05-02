@@ -123,3 +123,64 @@ export async function GET(
     );
   }
 }
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { documentId: string } }
+) {
+  try {
+    const session = await auth();
+    if (!session || !session.user) {
+      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+    }
+
+    const { documentId } = params;
+
+    // Fetch the document to verify ownership
+    const document = await prisma.document.findUnique({
+      where: { id: documentId },
+      include: {
+        folder: {
+          select: {
+            userId: true,
+          },
+        },
+      },
+    });
+
+    if (!document) {
+      return NextResponse.json(
+        { error: "Document not found" },
+        { status: 404 }
+      );
+    }
+
+    // Check if the current user has permission to delete this document
+    // Only the document owner or folder owner should be able to delete
+    const isDocumentOwner = document.userId === session.user.id;
+    const isFolderOwner = document.folder.userId === session.user.id;
+
+    if (!isDocumentOwner && !isFolderOwner) {
+      return NextResponse.json(
+        { error: "Unauthorized to delete this document" },
+        { status: 403 }
+      );
+    }
+
+    // Delete the document
+    await prisma.document.delete({
+      where: { id: documentId },
+    });
+
+    return NextResponse.json({
+      success: true,
+      message: "Document deleted successfully",
+    });
+  } catch (error) {
+    console.error("Error deleting document:", error);
+    return NextResponse.json(
+      { error: "Failed to delete document" },
+      { status: 500 }
+    );
+  }
+}
