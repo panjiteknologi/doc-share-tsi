@@ -1,40 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { auth } from "@/lib/auth";
-import { z } from "zod";
 
-const batchRequestSchema = z.object({
-  folderIds: z.array(z.string()),
-});
-
-export async function POST(request: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
     const session = await auth();
     if (!session || !session.user) {
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
-    const body = await request.json();
-    const parsedBody = batchRequestSchema.safeParse(body);
-
-    if (!parsedBody.success) {
-      return NextResponse.json(
-        { error: "Invalid request data" },
-        { status: 400 }
-      );
-    }
-
-    const { folderIds } = parsedBody.data;
-
     const folders = await prisma.folder.findMany({
       where: {
-        id: {
-          in: folderIds,
-        },
+        userId: session.user.id,
       },
       include: {
         user: true,
         documents: true,
+        project: true,
       },
     });
 

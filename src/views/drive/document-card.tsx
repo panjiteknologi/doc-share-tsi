@@ -116,7 +116,7 @@ const DocumentCard: React.FC<DocumentCardProps> = ({
       </CardContent>
       <CardFooter className="px-4 pt-0 flex items-center text-xs text-muted-foreground">
         <User className="h-3 w-3 mr-1" />
-        <span>Uploaded by {document.uploadedBy}</span>
+        <span className="truncate max-w-[125px]">{document.uploadedBy}</span>
         <span className="ml-auto">{document.fileSize}</span>
       </CardFooter>
     </Card>

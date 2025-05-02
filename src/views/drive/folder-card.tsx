@@ -74,8 +74,8 @@ const FolderCard: React.FC<FolderCardProps> = ({ folder }) => {
           <div className="flex items-center text-sm text-muted-foreground">
             <FileText className="h-4 w-4 mr-2" />
             <span>
-              {folder.documentCount}{" "}
-              {folder.documentCount === 1 ? "document" : "documents"}
+              {folder.documents.length}{" "}
+              {folder.documents.length <= 1 ? "document" : "documents"}
             </span>
           </div>
           <div className="flex items-center text-sm text-muted-foreground">
@@ -88,7 +88,7 @@ const FolderCard: React.FC<FolderCardProps> = ({ folder }) => {
       </CardContent>
       <CardFooter className="px-4 pt-0 flex items-center text-xs text-muted-foreground">
         <User className="h-3 w-3 mr-1" />
-        <span>Created by {folder.createdByName}</span>
+        <span className="truncate max-w-[125px]">{folder.user.name}</span>
         <span className="ml-auto">{createdTimeAgo}</span>
       </CardFooter>
     </Card>

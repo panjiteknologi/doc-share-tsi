@@ -1,6 +1,7 @@
 import useSWR from "swr";
 import axios from "axios";
 import { toast } from "sonner";
+import { User } from "@prisma/client";
 
 // Type definitions for folder data
 export interface Document {
@@ -25,6 +26,8 @@ export interface Folder {
   createdByName: string;
   userId: string;
   hasProject: boolean;
+  documents: Document[];
+  user: User;
 }
 
 export interface DetailedFolder
@@ -157,9 +160,11 @@ export function useFolder(folderId: string | null) {
 }
 
 // Hook for fetching all non-root folders
-export function useNonRootFolders() {
+export function useNonRootFolders(userRole: string) {
+  const shouldFetch = userRole === "surveyor";
+
   const { data, error, isLoading, mutate } = useSWR<{ folders: Folder[] }>(
-    "/api/folders/non-root",
+    shouldFetch ? "/api/folders/non-root" : null,
     fetcher,
     {
       onError: (err) => {
@@ -241,10 +246,12 @@ export function useCurrentUserRootFolder() {
 }
 
 // Hook for fetching folders by their IDs
-export function useFoldersByIds(folderIds: string[]) {
+export function useFoldersProjects(userRole: string) {
+  const shouldFetch = userRole === "auditor";
+
   const { data, error, isLoading, mutate } = useSWR<{ folders: Folder[] }>(
-    folderIds.length > 0 ? ["/api/folders/batch", folderIds] : null,
-    ([url, ids]) => postFetcher(url, { folderIds: ids }),
+    shouldFetch ? "/api/folders/projects" : null,
+    fetcher,
     {
       onError: (err) => {
         toast.error(err.message || "Failed to fetch folders");
@@ -255,16 +262,18 @@ export function useFoldersByIds(folderIds: string[]) {
 
   return {
     folders: data?.folders || [],
-    isLoading,
+    isLoading: shouldFetch ? isLoading : false,
     error,
     mutate,
   };
 }
 
 // Hook for fetching all folders by user ID
-export function useFoldersByUserId(userId: string) {
+export function useFoldersByUserId(userId: string, userRole: string) {
+  const shouldFetch = userId && userRole === "client";
+
   const { data, error, isLoading, mutate } = useSWR<{ folders: Folder[] }>(
-    userId ? `/api/folders/user/${userId}` : null,
+    shouldFetch ? `/api/folders/user/${userId}` : null,
     fetcher,
     {
       onError: (err) => {

@@ -2,20 +2,14 @@
 
 import React, { useState } from "react";
 import { useSession } from "next-auth/react";
-import { useFolders, useNonRootFolders } from "@/hooks/use-folders";
-import { useDocuments } from "@/hooks/use-documents";
 import {
-  Grid3x3,
-  List,
-  FolderPlus,
-  Search,
-  Settings2,
-  Filter,
-  File,
-} from "lucide-react";
-import { Input } from "@/components/ui/input";
+  useFoldersByUserId,
+  useFoldersProjects,
+  useNonRootFolders,
+} from "@/hooks/use-folders";
+import { useDocuments } from "@/hooks/use-documents";
+import { Grid3x3, List, FolderPlus, File } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import FolderCard from "./folder-card";
@@ -29,59 +23,45 @@ const DriveView = () => {
   const { data: session } = useSession();
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
-  const [searchQuery, setSearchQuery] = useState("");
-  const [documentSearchQuery, setDocumentSearchQuery] = useState("");
   const [isCreateFolderOpen, setIsCreateFolderOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [selectedDocument, setSelectedDocument] = useState<any>(null);
 
   // Determine user role
   const userRole = session?.user?.roleCode || "";
-  const userId = session?.user?.id;
+  const userId = session?.user?.id as string;
 
-  // Fetch folders
-  const {
-    folders,
-    isLoading: foldersLoading,
-    mutate: mutateFolders,
-  } = useNonRootFolders();
+  // Fetch folders LS
+  const { folders, isLoading: isFoldersLoading } = useNonRootFolders(userRole);
+  // Fetch folders Client
+  const { folders: foldersByUserId, isLoading: isFoldersByIdLoading } =
+    useFoldersByUserId(userId, userRole);
+  // Fetch folders Auditor
+  const { folders: foldersProjects } = useFoldersProjects(userRole);
 
   // Fetch documents based on role
   const shouldFetchDocuments = userRole === "surveyor" || userRole === "client";
-  const {
-    documents,
-    isLoading: documentsLoading,
-    mutate: mutateDocuments,
-  } = useDocuments(
+  const { documents, isLoading: documentsLoading } = useDocuments(
     shouldFetchDocuments
       ? {
           userId: userRole === "client" ? userId : undefined,
           page: 1,
           limit: 20,
-          search: documentSearchQuery,
+          userRole,
         }
       : undefined
   );
-
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
-  };
-
-  const handleDocumentSearchChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    setDocumentSearchQuery(e.target.value);
-  };
-
-  const handleCreateFolderSuccess = () => {
-    mutateFolders();
-    toast.success("Folder created successfully");
-  };
 
   const handleViewDocument = (document: any) => {
     setSelectedDocument(document);
     setIsViewDialogOpen(true);
   };
+
+  const loadingFolders = isFoldersLoading || isFoldersByIdLoading;
+  const noFoldersFound =
+    folders.length === 0 &&
+    foldersByUserId.length === 0 &&
+    foldersProjects.length === 0;
 
   return (
     <div className="px-6 py-4 space-y-6">
@@ -113,7 +93,7 @@ const DriveView = () => {
         </div>
       </div>
 
-      {/* Documents Section */}
+      {/* ================================= | FILE / DOCUMENTS | ================================= */}
       {shouldFetchDocuments && (
         <>
           <div className="flex items-center justify-between">
@@ -153,18 +133,19 @@ const DriveView = () => {
         </>
       )}
 
-      {/* Folders Section */}
+      {/* ================================= | FOLDER | ================================= */}
       <div className="flex items-center justify-between pt-4">
         <h2 className="text-lg font-medium">Folders</h2>
       </div>
 
-      {/* Folders Display */}
-      <div className={cn("w-full", foldersLoading && "opacity-70")}>
-        {foldersLoading ? (
+      <div className={cn("w-full", isFoldersLoading && "opacity-70")}>
+        {loadingFolders && (
           <div className="flex items-center justify-center h-40">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
           </div>
-        ) : folders.length === 0 ? (
+        )}
+
+        {!loadingFolders && noFoldersFound && (
           <div className="flex flex-col items-center justify-center h-40 border rounded-lg border-dashed border-muted-foreground/50 p-6">
             <FolderPlus className="h-10 w-10 text-muted-foreground mb-4" />
             <h3 className="text-lg font-medium mb-1">No folders found</h3>
@@ -176,19 +157,39 @@ const DriveView = () => {
               Create Folder
             </Button>
           </div>
-        ) : viewMode === "grid" ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {folders.map((folder) => (
-              <FolderCard key={folder.id} folder={folder} />
-            ))}
-          </div>
-        ) : (
-          <FolderTable folders={folders} />
+        )}
+
+        {!loadingFolders && userRole === "surveyor" && (
+          <>
+            {viewMode === "grid" ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {folders.map((folder) => (
+                  <FolderCard key={folder.id} folder={folder} />
+                ))}
+              </div>
+            ) : (
+              <FolderTable folders={folders} />
+            )}
+          </>
+        )}
+
+        {!loadingFolders && userRole === "client" && (
+          <>
+            {viewMode === "grid" ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {foldersByUserId.map((folder) => (
+                  <FolderCard key={folder.id} folder={folder} />
+                ))}
+              </div>
+            ) : (
+              <FolderTable folders={foldersByUserId} />
+            )}
+          </>
         )}
       </div>
 
       {/* Create Folder Dialog */}
-      <DialogAddFolder onSuccess={handleCreateFolderSuccess} />
+      <DialogAddFolder />
 
       {/* View Document Dialog */}
       <DialogViewDocument

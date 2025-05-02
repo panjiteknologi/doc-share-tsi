@@ -8,7 +8,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -32,7 +31,6 @@ const FolderTable: React.FC<FolderTableProps> = ({ folders }) => {
           <TableRow>
             <TableHead>Name</TableHead>
             <TableHead>Documents</TableHead>
-            <TableHead>Type</TableHead>
             <TableHead>Date Range</TableHead>
             <TableHead>Created By</TableHead>
             <TableHead>Created</TableHead>
@@ -64,15 +62,9 @@ const FolderTable: React.FC<FolderTableProps> = ({ folders }) => {
                     </Link>
                   </div>
                 </TableCell>
-                <TableCell>{folder.documentCount}</TableCell>
                 <TableCell>
-                  {folder.isRoot ? (
-                    <Badge variant="outline">Root</Badge>
-                  ) : folder.hasProject ? (
-                    <Badge>Project</Badge>
-                  ) : (
-                    <Badge variant="secondary">Standard</Badge>
-                  )}
+                  {folder.documents.length}{" "}
+                  {folder.documents.length <= 1 ? "file" : "files"}
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-1 text-sm">
@@ -80,7 +72,9 @@ const FolderTable: React.FC<FolderTableProps> = ({ folders }) => {
                     <span className="text-xs">{dateRange}</span>
                   </div>
                 </TableCell>
-                <TableCell>{folder.createdByName}</TableCell>
+                <TableCell className="truncate max-w-[150px]">
+                  {folder.user.name}
+                </TableCell>
                 <TableCell>{createdTimeAgo}</TableCell>
                 <TableCell>
                   <DropdownMenu>
