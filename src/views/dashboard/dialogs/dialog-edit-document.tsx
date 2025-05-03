@@ -72,7 +72,7 @@ export default function DialogEditDocument({
     defaultValues: document
       ? {
           id: document.id,
-          folderId: document.folder.id,
+          folderId: document.folder?.id ?? "",
         }
       : undefined,
   });
@@ -85,7 +85,7 @@ export default function DialogEditDocument({
     if (document) {
       reset({
         id: document.id,
-        folderId: document.folder.id,
+        folderId: document.folder?.id ?? "",
       });
     }
   }, [document, reset]);
@@ -168,7 +168,7 @@ export default function DialogEditDocument({
                 Destination Folder <span className="text-destructive">*</span>
               </Label>
               <Select
-                defaultValue={document.folder.id}
+                defaultValue={document.folder?.id ?? ""}
                 onValueChange={(value) =>
                   setValue("folderId", value, { shouldValidate: true })
                 }
@@ -191,7 +191,7 @@ export default function DialogEditDocument({
                       <SelectItem
                         key={folder.id}
                         value={folder.id}
-                        disabled={folder.id === document.folder.id}
+                        disabled={folder.id === document.folder?.id}
                       >
                         <span className="flex items-center gap-2">
                           <FolderIcon className="h-4 w-4" />
@@ -201,7 +201,7 @@ export default function DialogEditDocument({
                           >
                             {folder.name}
                           </span>
-                          {folder.id === document.folder.id && " (Current)"}
+                          {folder.id === document.folder?.id && " (Current)"}
                         </span>
                       </SelectItem>
                     ))
@@ -218,7 +218,7 @@ export default function DialogEditDocument({
             {/* Show current location */}
             <div className="text-sm text-muted-foreground mt-1">
               Current location:{" "}
-              <span className="font-medium">{document.folder.name}</span>
+              <span className="font-medium">{document?.folder?.name}</span>
             </div>
           </div>
 
@@ -235,7 +235,7 @@ export default function DialogEditDocument({
               type="submit"
               disabled={
                 isLoading ||
-                selectedFolderId === document.folder.id ||
+                selectedFolderId === document.folder?.id ||
                 foldersLoading
               }
             >
