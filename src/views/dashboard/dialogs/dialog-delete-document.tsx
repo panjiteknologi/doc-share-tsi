@@ -88,7 +88,7 @@ export default function DialogDeleteDocument({
             <div className="text-sm">{document.fileSize}</div>
 
             <div className="text-sm text-muted-foreground">Location:</div>
-            <div className="text-sm">{document.folder.name}</div>
+            <div className="text-sm">{document.folder?.name || "Unknown"}</div>
 
             <div className="text-sm text-muted-foreground">Uploaded by:</div>
             <div className="text-sm">{document.uploadedBy}</div>
