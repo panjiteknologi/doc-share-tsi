@@ -34,6 +34,7 @@ import Link from "next/link";
 import DocumentCard from "../document-card";
 import { DialogAddDocument } from "@/views/dashboard/dialogs/dialog-add-document";
 import DialogViewDocument from "@/views/dashboard/dialogs/dialog-view-document";
+import DialogUploadDocument from "./dialog-upload-document";
 
 interface FolderDetailViewProps {
   folderId: string;
@@ -46,7 +47,7 @@ const FolderDetailView: React.FC<FolderDetailViewProps> = ({ folderId }) => {
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [selectedDocument, setSelectedDocument] = useState<any>(null);
 
-  const { folder, isLoading: isFolderLoading } = useFolder(folderId);
+  const { folder, isLoading: isFolderLoading, mutate } = useFolder(folderId);
 
   if (isFolderLoading) {
     return (
@@ -108,9 +109,9 @@ const FolderDetailView: React.FC<FolderDetailViewProps> = ({ folderId }) => {
     setIsViewDialogOpen(true);
   };
 
-  // const handleAddDocumentSuccess = () => {
-  //   mutate();
-  // };
+  const handleAddDocumentSuccess = () => {
+    mutate();
+  };
 
   return (
     <div className="px-6 py-4 space-y-6">
@@ -296,7 +297,12 @@ const FolderDetailView: React.FC<FolderDetailViewProps> = ({ folderId }) => {
       </div>
 
       {/* Add Document Dialog */}
-      <DialogAddDocument />
+      <DialogUploadDocument
+        isOpen={isAddDocumentOpen}
+        onClose={() => setIsAddDocumentOpen(false)}
+        folderId={folderId}
+        onSuccess={handleAddDocumentSuccess}
+      />
 
       {/* View Document Dialog */}
       <DialogViewDocument
