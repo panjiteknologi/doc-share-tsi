@@ -109,7 +109,7 @@ export function FileUpload({
                 Drag and drop file here or click to browse
               </span>
               <span className="text-xs text-muted-foreground">
-                PDF, DOC, DOCX, XLS, XLSX, JPG, PNG (Max {maxSize / 1024 / 1024}
+                PDF or DOC (Max {maxSize / 1024 / 1024}
                 MB)
               </span>
             </div>
