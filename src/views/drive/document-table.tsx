@@ -92,7 +92,7 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
                 <Badge variant="outline">{document.fileType}</Badge>
               </TableCell>
               <TableCell className="truncate max-w-[150px]">
-                {document.folder.name}
+                {document?.folder?.name ?? ""}
               </TableCell>
               <TableCell>{document.fileSize}</TableCell>
               <TableCell className="truncate max-w-[150px]">
