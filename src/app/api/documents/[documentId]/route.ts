@@ -126,7 +126,7 @@ export async function GET(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { documentId: string } }
+  { params }: { params: Promise<{ documentId: string }> }
 ) {
   try {
     const session = await auth();
@@ -134,7 +134,7 @@ export async function DELETE(
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
-    const { documentId } = params;
+    const documentId = (await params).documentId;
 
     // Fetch the document to verify ownership
     const document = await prisma.document.findUnique({
