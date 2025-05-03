@@ -69,8 +69,6 @@ const DocumentCard: React.FC<DocumentCardProps> = ({
     }
   };
 
-  console.log("DOC doc ; ", document);
-
   return (
     <Card className="overflow-hidden hover:border-primary/50 transition-colors">
       <CardHeader className="px-4 flex flex-row items-start justify-between">
