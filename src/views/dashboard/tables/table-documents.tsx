@@ -199,7 +199,7 @@ export function TableDocuments({
                     <TableCell className="flex items-center">
                       <FolderIcon className="h-4 w-4 text-muted-foreground mr-1" />
                       <span className="truncate max-w-[150px]">
-                        {document.folder.name}
+                        {document?.folder?.name ?? ""}
                       </span>
                     </TableCell>
                   )}
