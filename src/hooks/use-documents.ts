@@ -11,13 +11,13 @@ export interface Document {
   fileExtension: string;
   fileSize: string;
   createdAt: string;
-  folder: {
+  folder?: {
     id: string;
     name: string;
   };
-  uploadedBy: string;
-  uploadedById: string;
-  uploadedByEmail: string;
+  uploadedBy?: string;
+  uploadedById?: string;
+  uploadedByEmail?: string;
 }
 
 export interface DetailedDocument extends Document {

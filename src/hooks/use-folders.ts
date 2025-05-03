@@ -10,6 +10,7 @@ export interface Document {
   fileName: string;
   fileType: string;
   fileExtension: string;
+  fileSize: string;
   createdAt: string;
   uploadedBy: string;
   uploadedByEmail: string;

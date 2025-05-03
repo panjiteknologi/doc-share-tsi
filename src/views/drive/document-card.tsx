@@ -27,7 +27,7 @@ import { toast } from "sonner";
 
 interface DocumentCardProps {
   document: Document;
-  onViewDocument: (document: Document) => void;
+  onViewDocument?: (document: Document) => void;
 }
 
 const DocumentCard: React.FC<DocumentCardProps> = ({
@@ -60,7 +60,7 @@ const DocumentCard: React.FC<DocumentCardProps> = ({
   const handleView = async () => {
     try {
       setIsViewLoading(true);
-      onViewDocument(document);
+      onViewDocument?.(document);
     } catch (error) {
       console.error("Error preparing document viewer:", error);
       toast.error("An error occurred while preparing the document viewer");
@@ -68,6 +68,8 @@ const DocumentCard: React.FC<DocumentCardProps> = ({
       setIsViewLoading(false);
     }
   };
+
+  console.log("DOC doc ; ", document);
 
   return (
     <Card className="overflow-hidden hover:border-primary/50 transition-colors">
@@ -102,12 +104,14 @@ const DocumentCard: React.FC<DocumentCardProps> = ({
       </CardHeader>
       <CardContent className="px-4">
         <div className="flex flex-col gap-2">
-          <div className="flex items-center text-sm text-muted-foreground">
-            <FolderIcon className="h-4 w-4 mr-2" />
-            <span className="truncate" title={document.folder.name}>
-              {document.folder.name}
-            </span>
-          </div>
+          {document?.folder && (
+            <div className="flex items-center text-sm text-muted-foreground">
+              <FolderIcon className="h-4 w-4 mr-2" />
+              <span className="truncate" title={document?.folder?.name}>
+                {document?.folder?.name}
+              </span>
+            </div>
+          )}
           <div className="flex items-center text-sm text-muted-foreground">
             <Calendar className="h-4 w-4 mr-2" />
             <span>{createdTimeAgo}</span>
