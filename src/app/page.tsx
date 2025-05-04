@@ -14,8 +14,16 @@ export const metadata: Metadata = {
 export default async function Home() {
   const session = await auth();
 
-  if (session) {
+  if (session && session.user.roleCode === "surveyor") {
     redirect("/dashboard");
+  }
+
+  if (session && session.user.roleCode === "client") {
+    redirect("/drive");
+  }
+
+  if (session && session.user.roleCode === "auditor") {
+    redirect("/drive");
   }
 
   return (
