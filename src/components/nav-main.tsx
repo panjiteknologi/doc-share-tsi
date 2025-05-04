@@ -1,13 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import {
-  IconFolderPlus,
-  IconCloudUpload,
-  type Icon,
-} from "@tabler/icons-react";
+import { type Icon } from "@tabler/icons-react";
 
-import { Button } from "@/components/ui/button";
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -16,6 +11,9 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import { useSession } from "next-auth/react";
+import { Badge } from "./ui/badge";
+import { Building, ShieldCheck, User } from "lucide-react";
 
 export function NavMain({
   items,
@@ -26,26 +24,53 @@ export function NavMain({
     icon: Icon;
   }[];
 }) {
+  const { data: session } = useSession();
+  const userRole = session?.user?.roleCode || "";
+  // Get role badge color and icon
+  const getRoleBadge = () => {
+    switch (userRole) {
+      case "surveyor":
+        return {
+          color: "bg-indigo-500 text-white dark:bg-indigo-600",
+          label: "Lembaga Survey",
+          icon: <User className="h-3 w-3 mr-1" />,
+        };
+      case "auditor":
+        return {
+          color: "bg-teal-500 text-white dark:bg-teal-600",
+          label: "Auditor",
+          icon: <ShieldCheck className="h-3 w-3 mr-1" />,
+        };
+      case "client":
+        return {
+          color: "bg-amber-500 text-white dark:bg-amber-600",
+          label: "Client",
+          icon: <Building className="h-3 w-3 mr-1" />,
+        };
+      default:
+        return {
+          color: "bg-gray-500 text-white",
+          label: "Guest",
+          icon: <User className="h-3 w-3 mr-1" />,
+        };
+    }
+  };
+
+  const roleBadge = getRoleBadge();
   return (
     <SidebarGroup>
       <SidebarGroupContent className="flex flex-col gap-2">
         <SidebarMenu>
           <SidebarMenuItem className="flex items-center gap-2">
-            <SidebarMenuButton
-              tooltip="Quick Create"
-              className="bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground min-w-8 duration-200 ease-linear"
-            >
-              <IconCloudUpload />
-              <span>Quick Upload</span>
-            </SidebarMenuButton>
-            <Button
-              size="icon"
-              className="size-8 group-data-[collapsible=icon]:opacity-0"
-              variant="outline"
-            >
-              <IconFolderPlus />
-              <span className="sr-only">Inbox</span>
-            </Button>
+            {session?.user && (
+              <Badge
+                className={`${roleBadge.color} flex items-center h-8 px-2 mr-2 w-full`}
+                variant="outline"
+              >
+                {roleBadge.icon}
+                {roleBadge.label}
+              </Badge>
+            )}
           </SidebarMenuItem>
         </SidebarMenu>
         <SidebarMenu>
