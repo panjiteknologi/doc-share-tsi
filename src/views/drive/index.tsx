@@ -86,10 +86,12 @@ const DriveView = () => {
               </TabsList>
             </Tabs>
           </div>
-          <Button onClick={() => setIsCreateFolderOpen(true)}>
-            <FolderPlus className="h-4 w-4 mr-2" />
-            Create Folder
-          </Button>
+          {userRole !== "auditor" && (
+            <Button onClick={() => setIsCreateFolderOpen(true)}>
+              <FolderPlus className="h-4 w-4 mr-2" />
+              Create Folder
+            </Button>
+          )}
         </div>
       </div>
 
@@ -177,10 +179,6 @@ const DriveView = () => {
             <p className="text-sm text-muted-foreground mb-4">
               Get started by creating a new folder
             </p>
-            <Button onClick={() => setIsCreateFolderOpen(true)}>
-              <FolderPlus className="h-4 w-4 mr-2" />
-              Create Folder
-            </Button>
           </div>
         )}
 
