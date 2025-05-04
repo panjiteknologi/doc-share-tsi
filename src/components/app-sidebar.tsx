@@ -1,11 +1,12 @@
 "use client";
 
 import * as React from "react";
+import { useSession } from "next-auth/react";
 import {
-  IconInnerShadowTop,
   IconLayoutDashboard,
   IconFolderShare,
   IconCloudUpload,
+  Icon,
 } from "@tabler/icons-react";
 
 import { NavDocuments } from "@/components/nav-documents";
@@ -21,29 +22,62 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 
-const data = {
-  navMain: [
-    {
-      title: "Dashboard",
-      url: "/dashboard",
-      icon: IconLayoutDashboard,
-    },
-  ],
-  documents: [
-    {
-      name: "Drive",
-      url: "/drive",
-      icon: IconFolderShare,
-    },
-    {
-      name: "Upload",
-      url: "/upload",
-      icon: IconCloudUpload,
-    },
-  ],
-};
-
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { data: session } = useSession();
+  const userRole = session?.user?.roleCode || "";
+
+  // Define navigation items based on user role
+  const getNavItems = () => {
+    const navItems: {
+      navMain: { title: string; url: string; icon: Icon }[];
+      documents: { name: string; url: string; icon: Icon }[];
+    } = {
+      navMain: [],
+      documents: [],
+    };
+
+    // Main navigation (Dashboard)
+    if (userRole === "surveyor") {
+      navItems.navMain.push({
+        title: "Dashboard",
+        url: "/dashboard",
+        icon: IconLayoutDashboard,
+      });
+      navItems.documents.push({
+        name: "Drive",
+        url: "/drive",
+        icon: IconFolderShare,
+      });
+    }
+
+    // Only surveyor and client roles have access to Upload
+    if (userRole === "client") {
+      navItems.documents.push({
+        name: "Drive",
+        url: "/drive",
+        icon: IconFolderShare,
+      });
+      navItems.documents.push({
+        name: "Upload",
+        url: "/upload",
+        icon: IconCloudUpload,
+      });
+    }
+
+    // Only surveyor and client roles have access to Upload
+    if (userRole === "auditor") {
+      navItems.documents.push({
+        name: "Drive",
+        url: "/drive",
+        icon: IconFolderShare,
+      });
+    }
+
+    return navItems;
+  };
+
+  const navItems = getNavItems();
+
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
@@ -68,8 +102,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
-        <NavDocuments items={data.documents} />
+        {navItems.navMain.length > 0 && <NavMain items={navItems.navMain} />}
+        {navItems.documents.length > 0 && (
+          <NavDocuments items={navItems.documents} />
+        )}
       </SidebarContent>
       <SidebarFooter>
         <NavUser />
