@@ -513,11 +513,11 @@ export default function UploadPage() {
                 </li>
                 <li className="flex items-center gap-2">
                   <FileText className="h-4 w-4 text-green-500" />
-                  <span>Excel Spreadsheets (.xls, .xlsx)</span>
+                  <span>Excel Spreadsheets (Coming soon)</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <FileText className="h-4 w-4 text-purple-500" />
-                  <span>Images (.jpg, .png)</span>
+                  <span>Images (Coming soon)</span>
                 </li>
               </ul>
             </CardContent>
