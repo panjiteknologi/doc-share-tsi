@@ -20,6 +20,10 @@ export default async function DashboardPage() {
     redirect("/");
   }
 
+  if (session && session.user.roleCode !== "surveyor") {
+    redirect("/drive");
+  }
+
   return (
     <LayoutDashboard>
       <DashboardView />
