@@ -32,7 +32,7 @@ export function NavMain({
       case "surveyor":
         return {
           color: "bg-indigo-500 text-white dark:bg-indigo-600",
-          label: "Lembaga Survey",
+          label: "Lembaga Sertifikasi",
           icon: <User className="h-3 w-3 mr-1" />,
         };
       case "auditor":

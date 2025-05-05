@@ -3,7 +3,7 @@ import prisma from "@/lib/prisma";
 async function main() {
   // Data roles
   const roles = [
-    { code: "surveyor", name: "Lembaga Survey" },
+    { code: "surveyor", name: "Lembaga Sertifikasi" },
     { code: "client", name: "Client" },
     { code: "auditor", name: "Auditor" },
   ];
