@@ -36,7 +36,7 @@ import { Badge } from "@/components/ui/badge";
 import { useDocuments } from "@/hooks/use-documents";
 import DialogEditDocument from "../dialogs/dialog-edit-document";
 import DialogDeleteDocument from "../dialogs/dialog-delete-document";
-import DialogViewDocument from "../dialogs/dialog-view-document";
+import DocumentDrawerViewer from "@/components/document-drawer-viewer";
 
 interface TableDocumentsProps {
   folderId?: string;
@@ -291,8 +291,8 @@ export function TableDocuments({
         onSuccess={handleSuccess}
       />
 
-      {/* View Document Dialog */}
-      <DialogViewDocument
+      {/* View Document Drawer */}
+      <DocumentDrawerViewer
         isOpen={viewDialogOpen}
         onClose={() => setViewDialogOpen(false)}
         document={selectedDocument}

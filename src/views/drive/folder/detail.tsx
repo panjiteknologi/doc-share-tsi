@@ -32,9 +32,9 @@ import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import Link from "next/link";
 import DocumentCard from "../document-card";
-import { DialogAddDocument } from "@/views/dashboard/dialogs/dialog-add-document";
-import DialogViewDocument from "@/views/dashboard/dialogs/dialog-view-document";
+// import { DialogAddDocument } from "@/views/dashboard/dialogs/dialog-add-document";
 import DialogUploadDocument from "./dialog-upload-document";
+import DocumentDrawerViewer from "@/components/document-drawer-viewer";
 
 interface FolderDetailViewProps {
   folderId: string;
@@ -305,7 +305,7 @@ const FolderDetailView: React.FC<FolderDetailViewProps> = ({ folderId }) => {
       />
 
       {/* View Document Dialog */}
-      <DialogViewDocument
+      <DocumentDrawerViewer
         isOpen={isViewDialogOpen}
         onClose={() => setIsViewDialogOpen(false)}
         document={selectedDocument}
