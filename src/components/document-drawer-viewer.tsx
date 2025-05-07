@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   X,
   Maximize2,
   Minimize2,
   ChevronLeft,
   ChevronRight,
+  Shield,
 } from "lucide-react";
 import { getDocumentViewUrl } from "@/action/s3-document";
 import { Document } from "@/hooks/use-documents";
@@ -18,6 +19,7 @@ import {
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { Alert, AlertDescription } from "./ui/alert";
 
 interface DocumentDrawerViewerProps {
   isOpen: boolean;
@@ -34,11 +36,15 @@ export default function DocumentDrawerViewer({
   const [documentUrl, setDocumentUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showProtectionAlert, setShowProtectionAlert] = useState(false);
+
+  const iframeRef = useRef<HTMLIFrameElement>(null);
 
   // Reset expanded state when drawer closes
   useEffect(() => {
     if (!isOpen) {
       setIsExpanded(false);
+      setShowProtectionAlert(false);
     }
   }, [isOpen]);
 
@@ -68,6 +74,50 @@ export default function DocumentDrawerViewer({
 
     fetchDocumentUrl();
   }, [document, isOpen]);
+
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setShowProtectionAlert(true);
+
+    // Hide the alert after 3 seconds
+    setTimeout(() => {
+      setShowProtectionAlert(false);
+    }, 3000);
+
+    return false;
+  };
+
+  const handleIframeLoad = () => {
+    try {
+      const iframe = iframeRef.current;
+      if (iframe && iframe.contentWindow) {
+        // Try to add event listener to iframe content
+        iframe.contentWindow.document.addEventListener("contextmenu", (e) => {
+          e.preventDefault();
+          return false;
+        });
+
+        // Add style to prevent selection inside iframe
+        const style = iframe.contentWindow.document.createElement("style");
+        style.textContent = `
+          * {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
+          }
+          ::selection { background: transparent; }
+        `;
+        iframe.contentWindow.document.head.appendChild(style);
+      }
+    } catch (e) {
+      // Silent catch - may fail due to cross-origin restrictions
+      console.log(
+        "Could not modify iframe content due to security restrictions"
+      );
+    }
+  };
 
   const toggleExpand = () => {
     setIsExpanded(!isExpanded);
@@ -195,11 +245,24 @@ export default function DocumentDrawerViewer({
             </div>
           </SheetHeader>
 
-          <div className="flex-1 overflow-auto">
+          {/* Protection alert message */}
+          {showProtectionAlert && (
+            <Alert className="absolute top-16 left-1/2 transform -translate-x-1/2 z-50 bg-red-600 text-white animate-in fade-in slide-in-from-top duration-300">
+              <Shield className="h-4 w-4 text-white" />
+              <AlertDescription className="text-white">
+                This document is protected. Downloading is not allowed.
+              </AlertDescription>
+            </Alert>
+          )}
+
+          <div
+            className="flex-1 overflow-auto"
+            onContextMenu={handleContextMenu}
+          >
             {loading ? (
               <div className="flex h-full w-full items-center justify-center">
                 <div className="flex flex-col items-center gap-2">
-                  <div className="h-8 w-8 animate-spin rounded-full border-2 border-current border-t-transparent border-primary"></div>
+                  <div className="h-8 w-8 animate-spin rounded-full border-2 border-t-transparent border-primary"></div>
                   <p className="text-sm text-muted-foreground">
                     Loading document...
                   </p>
@@ -231,12 +294,24 @@ export default function DocumentDrawerViewer({
                 </div>
               </div>
             ) : (
-              <div className="h-full w-full overflow-auto bg-muted/20">
+              <div
+                className="h-full w-full overflow-auto bg-muted/20"
+                style={{ pointerEvents: "none" }}
+                onContextMenu={handleContextMenu}
+              >
                 {documentUrl && document.fileType === "PDF" ? (
                   <iframe
+                    ref={iframeRef}
+                    onLoad={handleIframeLoad}
                     src={`${documentUrl}#view=FitH&toolbar=0&navpanes=0`}
                     className="h-full w-full border-0"
                     title={document.fileName || "Document"}
+                    onContextMenu={(e) => {
+                      e.preventDefault();
+                      setShowProtectionAlert(true);
+                      setTimeout(() => setShowProtectionAlert(false), 3000);
+                      return false;
+                    }}
                   />
                 ) : (
                   <div className="flex h-full w-full items-center justify-center p-6">
