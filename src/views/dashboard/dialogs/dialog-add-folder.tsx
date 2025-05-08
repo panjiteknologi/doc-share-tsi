@@ -18,10 +18,18 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { createFolder } from "@/action/folder";
 import { useDashboardDialog } from "@/store/store-dashboard-dialog";
 import { IconFolderPlus } from "@tabler/icons-react";
 import { useFolders } from "@/hooks/use-folders";
+import { useClients } from "@/hooks/use-clients";
 
 // Form validation schema
 const FormSchema = z
@@ -34,6 +42,7 @@ const FormSchema = z
         message:
           "Folder name can only contain letters, numbers, spaces, hyphens, and underscores",
       }),
+    clientId: z.string().min(1, "Client selection is required"),
     startDate: z.string().refine((val) => !isNaN(Date.parse(val)), {
       message: "Invalid start date format",
     }),
@@ -66,6 +75,10 @@ export function DialogAddFolder({ onSuccess }: AddFolderDialogProps) {
   const isDialogOpen = isOpen && dialogType === "folder";
 
   const { mutate } = useFolders({ page: 1, limit: 10 });
+  const { clients, isLoading: isLoadingClients } = useClients({
+    page: 1,
+    limit: 100, // Load more clients to ensure we get all
+  });
 
   const today = new Date().toISOString().split("T")[0];
   const thirtyDaysLater = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
@@ -76,15 +89,20 @@ export function DialogAddFolder({ onSuccess }: AddFolderDialogProps) {
     register,
     handleSubmit,
     reset,
+    setValue,
+    watch,
     formState: { errors },
   } = useForm<FormData>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
       name: "",
+      clientId: "",
       startDate: today,
       endDate: thirtyDaysLater,
     },
   });
+
+  const selectedClientId = watch("clientId");
 
   const onSubmit = async (data: FormData) => {
     if (!session?.user?.id) {
@@ -95,9 +113,10 @@ export function DialogAddFolder({ onSuccess }: AddFolderDialogProps) {
     setLoading(true);
 
     try {
+      // Use the selected client's ID instead of the current admin's ID
       const result = await createFolder({
         name: data.name,
-        userId: session.user.id,
+        userId: data.clientId, // Use client ID instead of session user ID
         isRoot: false,
         startDate: new Date(data.startDate),
         endDate: new Date(data.endDate),
@@ -139,8 +158,8 @@ export function DialogAddFolder({ onSuccess }: AddFolderDialogProps) {
               <DialogTitle>Add New Folder</DialogTitle>
             </div>
             <DialogDescription>
-              Create a new folder to organize your documents. Fill in the fields
-              below.
+              Create a new folder to organize documents for a client. Fill in
+              the fields below.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -160,6 +179,47 @@ export function DialogAddFolder({ onSuccess }: AddFolderDialogProps) {
                 </p>
               )}
             </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="client">
+                Client <span className="text-destructive">*</span>
+              </Label>
+              <Select
+                onValueChange={(value) =>
+                  setValue("clientId", value, {
+                    shouldValidate: true,
+                  })
+                }
+                disabled={isLoading || isLoadingClients}
+              >
+                <SelectTrigger id="client">
+                  <SelectValue placeholder="Select a client" />
+                </SelectTrigger>
+                <SelectContent>
+                  {isLoadingClients ? (
+                    <SelectItem value="loading" disabled>
+                      Loading clients...
+                    </SelectItem>
+                  ) : clients?.length === 0 ? (
+                    <SelectItem value="empty" disabled>
+                      No clients available
+                    </SelectItem>
+                  ) : (
+                    clients.map((client) => (
+                      <SelectItem key={client.id} value={client.id}>
+                        {client.name}
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
+              {errors.clientId && (
+                <p className="text-sm font-medium text-destructive">
+                  {errors.clientId.message}
+                </p>
+              )}
+            </div>
+
             <div className="grid grid-cols-12 gap-4">
               <div className="col-span-6 grid gap-2">
                 <Label htmlFor="startDate">
@@ -212,7 +272,7 @@ export function DialogAddFolder({ onSuccess }: AddFolderDialogProps) {
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isLoading}>
+            <Button type="submit" disabled={isLoading || !selectedClientId}>
               {isLoading ? (
                 <>
                   <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"></div>

@@ -51,10 +51,6 @@ export async function createFolder(data: FolderFormData) {
       return { success: false, error: "Not authenticated" };
     }
 
-    if (session.user.id !== data.userId) {
-      return { success: false, error: "Unauthorized operation" };
-    }
-
     const validatedData = FolderSchema.parse(data);
 
     const existingFolder = await prisma.folder.findFirst({
