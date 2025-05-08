@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useSession } from "next-auth/react";
-import { useFolders } from "@/hooks/use-folders";
+import { useFolders, useFoldersByUserId } from "@/hooks/use-folders";
 import axios from "axios";
 import { toast } from "sonner";
 import { createDocument } from "@/action/document";
@@ -45,7 +45,10 @@ import {
 
 export default function UploadPage() {
   const { data: session, status } = useSession();
-  const userId = session?.user?.id;
+
+  // Determine user role
+  const userId = session?.user?.id as string;
+  const userRole = session?.user?.roleCode || "";
 
   // States for the multi-step process
   const [step, setStep] = useState(1);
@@ -63,9 +66,10 @@ export default function UploadPage() {
   const [error, setError] = useState("");
 
   // Fetch available folders
-  const { folders, isLoading: foldersLoading } = useFolders({
-    limit: 100,
-  });
+  const { folders, isLoading: foldersLoading } = useFoldersByUserId(
+    userId,
+    userRole
+  );
 
   // Handle folder selection
   const handleFolderChange = (value: string) => {
