@@ -149,12 +149,12 @@ const FolderDetailView: React.FC<FolderDetailViewProps> = ({ folderId }) => {
                 View and manage folder information
               </CardDescription>
             </div>
-            <Button variant="outline" asChild>
+            {/* <Button variant="outline" asChild>
               <Link href={`/folder/${folder.id}/settings`}>
                 <Settings2 className="h-4 w-4 mr-2" />
                 Manage Folder
               </Link>
-            </Button>
+            </Button> */}
           </div>
         </CardHeader>
         <CardContent>
