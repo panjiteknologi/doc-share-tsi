@@ -64,7 +64,6 @@ export default function UploadPage() {
 
   // Fetch available folders
   const { folders, isLoading: foldersLoading } = useFolders({
-    userId,
     limit: 100,
   });
 
