@@ -39,6 +39,7 @@ export default function DocumentDrawerViewer({
   const [showProtectionAlert, setShowProtectionAlert] = useState(false);
 
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   // Reset expanded state when drawer closes
   useEffect(() => {
@@ -75,17 +76,26 @@ export default function DocumentDrawerViewer({
     fetchDocumentUrl();
   }, [document, isOpen]);
 
-  const handleContextMenu = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setShowProtectionAlert(true);
+  // Setup global event handlers for the document container
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
 
-    // Hide the alert after 3 seconds
-    setTimeout(() => {
-      setShowProtectionAlert(false);
-    }, 3000);
+    const preventContextMenu = (e: MouseEvent) => {
+      e.preventDefault();
+      setShowProtectionAlert(true);
+      setTimeout(() => setShowProtectionAlert(false), 3000);
+      return false;
+    };
 
-    return false;
-  };
+    // Add event listeners to capture right-click
+    container.addEventListener("contextmenu", preventContextMenu);
+
+    // Cleanup event listeners on unmount
+    return () => {
+      container.removeEventListener("contextmenu", preventContextMenu);
+    };
+  }, []);
 
   const handleIframeLoad = () => {
     try {
@@ -94,6 +104,8 @@ export default function DocumentDrawerViewer({
         // Try to add event listener to iframe content
         iframe.contentWindow.document.addEventListener("contextmenu", (e) => {
           e.preventDefault();
+          setShowProtectionAlert(true);
+          setTimeout(() => setShowProtectionAlert(false), 3000);
           return false;
         });
 
@@ -110,6 +122,9 @@ export default function DocumentDrawerViewer({
           ::selection { background: transparent; }
         `;
         iframe.contentWindow.document.head.appendChild(style);
+
+        // Disable the browser's context menu in the iframe
+        iframe.contentWindow.document.oncontextmenu = () => false;
       }
     } catch (e) {
       // Silent catch - may fail due to cross-origin restrictions
@@ -182,7 +197,7 @@ export default function DocumentDrawerViewer({
   // Handle resize button on left side
   const ResizeHandle = () => (
     <div
-      className="absolute left-0 top-1/2 -translate-y-1/2 h-24 w-5 flex items-center justify-center bg-muted/50 hover:bg-muted rounded-r-md cursor-col-resize group"
+      className="absolute left-0 top-1/2 -translate-y-1/2 h-24 w-5 flex items-center justify-center bg-muted/50 hover:bg-muted rounded-r-md cursor-col-resize group z-20"
       onClick={toggleExpand}
     >
       {isExpanded ? (
@@ -255,10 +270,7 @@ export default function DocumentDrawerViewer({
             </Alert>
           )}
 
-          <div
-            className="flex-1 overflow-auto"
-            onContextMenu={handleContextMenu}
-          >
+          <div ref={containerRef} className="flex-1 overflow-hidden relative">
             {loading ? (
               <div className="flex h-full w-full items-center justify-center">
                 <div className="flex flex-col items-center gap-2">
@@ -294,25 +306,51 @@ export default function DocumentDrawerViewer({
                 </div>
               </div>
             ) : (
-              <div
-                className="h-full w-full overflow-auto bg-muted/20"
-                style={{ pointerEvents: "none" }}
-                onContextMenu={handleContextMenu}
-              >
+              <div className="h-full w-full overflow-hidden relative">
                 {documentUrl && document.fileType === "PDF" ? (
-                  <iframe
-                    ref={iframeRef}
-                    onLoad={handleIframeLoad}
-                    src={`${documentUrl}#view=FitH&toolbar=0&navpanes=0`}
-                    className="h-full w-full border-0"
-                    title={document.fileName || "Document"}
-                    onContextMenu={(e) => {
-                      e.preventDefault();
-                      setShowProtectionAlert(true);
-                      setTimeout(() => setShowProtectionAlert(false), 3000);
-                      return false;
-                    }}
-                  />
+                  <>
+                    {/* Transparent overlay to catch right-clicks */}
+                    <div
+                      className="absolute inset-0 z-10"
+                      style={{
+                        pointerEvents: "none",
+                      }}
+                      onContextMenu={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setShowProtectionAlert(true);
+                        setTimeout(() => setShowProtectionAlert(false), 3000);
+                        return false;
+                      }}
+                    >
+                      {/* This div will now only catch right-clicks */}
+                    </div>
+
+                    {/* The iframe containing the document */}
+                    <div className="h-full w-full overflow-auto">
+                      <iframe
+                        ref={iframeRef}
+                        onLoad={handleIframeLoad}
+                        src={`${documentUrl}#view=FitH&toolbar=0&navpanes=0`}
+                        className="h-full w-full border-0"
+                        title={document.fileName || "Document"}
+                        onContextMenu={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setShowProtectionAlert(true);
+                          setTimeout(() => setShowProtectionAlert(false), 3000);
+                          return false;
+                        }}
+                        style={{
+                          // Allow scrolling but disable other features
+                          WebkitUserSelect: "none",
+                          MozUserSelect: "none",
+                          msUserSelect: "none",
+                          userSelect: "none",
+                        }}
+                      />
+                    </div>
+                  </>
                 ) : (
                   <div className="flex h-full w-full items-center justify-center p-6">
                     <div className="flex flex-col items-center gap-4">
