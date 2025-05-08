@@ -35,12 +35,16 @@ import DocumentCard from "../document-card";
 // import { DialogAddDocument } from "@/views/dashboard/dialogs/dialog-add-document";
 import DialogUploadDocument from "./dialog-upload-document";
 import DocumentDrawerViewer from "@/components/document-drawer-viewer";
+import { useSession } from "next-auth/react";
 
 interface FolderDetailViewProps {
   folderId: string;
 }
 
 const FolderDetailView: React.FC<FolderDetailViewProps> = ({ folderId }) => {
+  const { data: session } = useSession();
+  const userRole = session?.user.roleCode;
+
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddDocumentOpen, setIsAddDocumentOpen] = useState(false);
@@ -253,10 +257,12 @@ const FolderDetailView: React.FC<FolderDetailViewProps> = ({ folderId }) => {
                 </TabsTrigger>
               </TabsList>
             </Tabs>
-            <Button onClick={() => setIsAddDocumentOpen(true)}>
-              <UploadCloud className="h-4 w-4 mr-2" />
-              Upload
-            </Button>
+            {userRole !== "auditor" && (
+              <Button onClick={() => setIsAddDocumentOpen(true)}>
+                <UploadCloud className="h-4 w-4 mr-2" />
+                Upload
+              </Button>
+            )}
           </div>
         </div>
 
