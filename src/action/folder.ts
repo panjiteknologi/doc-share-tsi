@@ -71,14 +71,30 @@ export async function createFolder(data: FolderFormData) {
       };
     }
 
-    const folder = await prisma.folder.create({
-      data: validatedData,
+    // Use a transaction to ensure both folder and project are created atomically
+    const result = await prisma.$transaction(async (tx) => {
+      // Create the folder
+      const folder = await tx.folder.create({
+        data: validatedData,
+      });
+
+      // Create the project for this folder
+      if (!validatedData.isRoot) {
+        // Optional: only create projects for non-root folders
+        await tx.project.create({
+          data: {
+            folderId: folder.id,
+          },
+        });
+      }
+
+      return folder;
     });
 
     revalidatePath("/dashboard");
     revalidatePath("/drive");
 
-    return { success: true, folder };
+    return { success: true, folder: result };
   } catch (error) {
     console.error("Error creating folder:", error);
 

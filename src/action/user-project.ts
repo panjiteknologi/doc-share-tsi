@@ -22,23 +22,43 @@ export async function connectUserWithProject(data: {
 
     const validatedData = userProjectSchema.parse(data);
 
-    const projectExists = await prisma.project.findUnique({
+    // First, check if the folder exists
+    const folder = await prisma.folder.findUnique({
       where: {
-        folderId: validatedData.projectId,
+        id: validatedData.projectId,
+      },
+      include: {
+        project: true,
       },
     });
 
-    if (!projectExists) {
-      return { success: false, error: "Project not found" };
+    if (!folder) {
+      return { success: false, error: "Folder not found" };
     }
 
+    // Check if project needs to be created (project doesn't exist and folder is not root)
+    let projectId = folder.project?.id;
+
+    if (!folder.project && !folder.isRoot) {
+      // Create a project for this folder since it doesn't exist yet
+      const newProject = await prisma.project.create({
+        data: {
+          folderId: folder.id,
+        },
+      });
+      projectId = newProject.id;
+    } else if (!folder.project && folder.isRoot) {
+      return { success: false, error: "Cannot connect users to root folders" };
+    }
+
+    // Now connect the user to the project (either existing or newly created)
     const user = await prisma.user.update({
       where: {
         id: validatedData.id,
       },
       data: {
         projects: {
-          connect: { folderId: validatedData.projectId },
+          connect: { id: projectId },
         },
       },
     });
