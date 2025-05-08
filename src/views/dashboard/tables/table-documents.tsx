@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useSession } from "next-auth/react";
 import {
   Search,
   FileText,
@@ -47,7 +46,6 @@ export function TableDocuments({
   folderId,
   showFolderColumn = true,
 }: TableDocumentsProps) {
-  const { data: session } = useSession();
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -58,11 +56,9 @@ export function TableDocuments({
     [key: string]: { view?: boolean; download?: boolean };
   }>({});
 
-  const userId = session?.user?.id;
   const itemsPerPage = 10;
 
   const { documents, pagination, isLoading, mutate } = useDocuments({
-    userId,
     folderId,
     page: currentPage,
     limit: itemsPerPage,

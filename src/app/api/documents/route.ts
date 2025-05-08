@@ -10,7 +10,6 @@ export async function GET(request: NextRequest) {
     }
 
     const searchParams = request.nextUrl.searchParams;
-    const userId = searchParams.get("userId") || session.user.id;
     const folderId = searchParams.get("folderId");
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "10");
@@ -23,11 +22,6 @@ export async function GET(request: NextRequest) {
 
     // Build query for documents with optional filters
     const where: any = {};
-
-    // If a specific user's documents are requested, add userId filter
-    if (userId) {
-      where.userId = userId;
-    }
 
     // If a specific folder's documents are requested, add folderId filter
     if (folderId) {
@@ -53,18 +47,6 @@ export async function GET(request: NextRequest) {
         return NextResponse.json(
           { error: "Folder not found" },
           { status: 404 }
-        );
-      }
-
-      const isOwner = folder.userId === session.user.id;
-      const isAuditor = folder.project?.auditors.some(
-        (auditor) => auditor.id === session.user.id
-      );
-
-      if (!isOwner && !isAuditor) {
-        return NextResponse.json(
-          { error: "Unauthorized to access this folder" },
-          { status: 403 }
         );
       }
     }

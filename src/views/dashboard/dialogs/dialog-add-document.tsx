@@ -56,10 +56,7 @@ export function DialogAddDocument() {
   const isDialogOpen = isOpen && dialogType === "document";
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
 
-  const userId = session?.user?.id;
-
   const { mutate } = useDocuments({
-    userId,
     sortBy: "createdAt",
     sortOrder: "desc",
   });
