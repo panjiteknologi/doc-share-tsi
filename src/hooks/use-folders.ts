@@ -96,14 +96,12 @@ const postFetcher = async (url: string, data: any) => {
 
 // Hook for fetching a paginated list of folders
 export function useFolders({
-  userId = undefined, // Make userId optional with default value
   page = 1,
   limit = 10,
   search = "",
   sortBy = "createdAt",
   sortOrder = "desc",
 }: {
-  userId?: string | undefined; // Make userId parameter optional
   page?: number;
   limit?: number;
   search?: string;
@@ -112,7 +110,6 @@ export function useFolders({
 } = {}) {
   // Add default empty object
   const searchParams = new URLSearchParams();
-  if (userId) searchParams.append("userId", userId);
   searchParams.append("page", page.toString());
   searchParams.append("limit", limit.toString());
   if (search) searchParams.append("search", search);
@@ -120,7 +117,7 @@ export function useFolders({
   searchParams.append("sortOrder", sortOrder);
 
   const { data, error, isLoading, mutate } = useSWR<FoldersResponse>(
-    userId ? `/api/folders?${searchParams.toString()}` : null,
+    `/api/folders?${searchParams.toString()}`,
     fetcher,
     {
       onError: (err) => {
