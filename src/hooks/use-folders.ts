@@ -48,8 +48,6 @@ export interface DetailedFolder
       email: string;
     }>;
   } | null;
-  isOwner: boolean;
-  isAuditor: boolean;
 }
 
 export interface PaginatedResponse<T> {

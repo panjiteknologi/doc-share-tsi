@@ -51,20 +51,6 @@ export async function GET(
       );
     }
 
-    // Check if user has permission to view this document
-    const isOwner = document.userId === session.user.id;
-    const isFolderOwner = document.folder.userId === session.user.id;
-    const isAuditor = document.folder.project?.auditors.some(
-      (auditor) => auditor.id === session.user.id
-    );
-
-    if (!isOwner && !isFolderOwner && !isAuditor) {
-      return NextResponse.json(
-        { error: "Unauthorized to view this document" },
-        { status: 403 }
-      );
-    }
-
     // Format document data
     // Extract filename from URL
     const urlParts = document.url.split("/");
@@ -109,9 +95,6 @@ export async function GET(
       uploadedBy: document.user.name,
       uploadedById: document.user.id,
       uploadedByEmail: document.user.email,
-      isOwner,
-      canEdit: isOwner,
-      canDelete: isOwner,
     };
 
     return NextResponse.json({ document: formattedDocument });

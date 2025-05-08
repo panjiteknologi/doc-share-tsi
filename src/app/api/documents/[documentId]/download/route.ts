@@ -52,20 +52,6 @@ export async function GET(
       );
     }
 
-    // Check permissions
-    const isOwner = document.userId === session.user.id;
-    const isFolderOwner = document.folder.userId === session.user.id;
-    const isAuditor = document.folder.project?.auditors.some(
-      (auditor) => auditor.id === session.user.id
-    );
-
-    if (!isOwner && !isFolderOwner && !isAuditor) {
-      return NextResponse.json(
-        { error: "Unauthorized to access this document" },
-        { status: 403 }
-      );
-    }
-
     // Extract the key from the URL
     const url = new URL(document.url);
     const key = url.pathname.substring(1).split("/").slice(1).join("/");

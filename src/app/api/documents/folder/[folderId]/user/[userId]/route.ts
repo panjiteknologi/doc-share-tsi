@@ -35,21 +35,6 @@ export async function GET(
       return NextResponse.json({ error: "Folder not found" }, { status: 404 });
     }
 
-    // Check if the current user has permission to view this folder's documents
-    const isOwner = folder.userId === session.user.id;
-    const isAuditor = folder.project?.auditors.some(
-      (auditor) => auditor.id === session.user.id
-    );
-    const isRequestedUser = session.user.id === userId;
-
-    // Allow if user is owner, auditor, or the requested user
-    if (!isOwner && !isAuditor && !isRequestedUser) {
-      return NextResponse.json(
-        { error: "Unauthorized to access these documents" },
-        { status: 403 }
-      );
-    }
-
     const searchParams = request.nextUrl.searchParams;
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "10");

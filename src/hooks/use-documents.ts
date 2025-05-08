@@ -20,12 +20,6 @@ export interface Document {
   uploadedByEmail?: string;
 }
 
-export interface DetailedDocument extends Document {
-  isOwner: boolean;
-  canEdit: boolean;
-  canDelete: boolean;
-}
-
 export interface PaginatedResponse<T> {
   documents: T[];
   pagination: {
@@ -102,14 +96,16 @@ export function useDocuments({
 
 // Hook for fetching a single document by ID
 export function useDocument(documentId: string | null) {
-  const { data, error, isLoading, mutate } = useSWR<{
-    document: DetailedDocument;
-  }>(documentId ? `/api/documents/${documentId}` : null, fetcher, {
-    onError: (err) => {
-      toast.error(err.message || "Failed to fetch document details");
-    },
-    revalidateOnFocus: false,
-  });
+  const { data, error, isLoading, mutate } = useSWR(
+    documentId ? `/api/documents/${documentId}` : null,
+    fetcher,
+    {
+      onError: (err) => {
+        toast.error(err.message || "Failed to fetch document details");
+      },
+      revalidateOnFocus: false,
+    }
+  );
 
   return {
     document: data?.document,
