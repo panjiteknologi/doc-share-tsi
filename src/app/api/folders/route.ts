@@ -10,27 +10,17 @@ export async function GET(request: NextRequest) {
     }
 
     const searchParams = request.nextUrl.searchParams;
-    const userId = searchParams.get("userId");
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "10");
     const search = searchParams.get("search") || "";
     const sortBy = searchParams.get("sortBy") || "createdAt";
     const sortOrder = searchParams.get("sortOrder") || "desc";
 
-    if (!userId) {
-      return NextResponse.json(
-        { error: "User ID is required" },
-        { status: 400 }
-      );
-    }
-
     // Calculate pagination
     const skip = (page - 1) * limit;
 
     // Build query for folders with optional search
-    const where: any = {
-      userId,
-    };
+    const where: any = {};
 
     if (search) {
       where.name = {
