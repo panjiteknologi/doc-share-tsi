@@ -10,9 +10,14 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { FileText, Eye } from "lucide-react";
+import { FileText, Eye, Clock } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
+import {
+  calculateExpiryDate,
+  formatTimeRemaining,
+  getExpiryStatusColor,
+} from "@/lib/cron";
 
 interface DocumentTableProps {
   documents: Document[];
@@ -75,54 +80,68 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
               <TableHead>Size</TableHead>
               <TableHead>Uploaded By</TableHead>
               <TableHead>Date</TableHead>
+              <TableHead>Auto-Delete</TableHead>
               <TableHead className="w-[100px]">Actions</TableHead>
             </TableRow>
           )}
         </TableHeader>
         <TableBody>
-          {documents.map((document) => (
-            <TableRow key={document.id}>
-              <TableCell className="font-medium flex items-center">
-                {getDocumentIcon(document.fileType)}
-                <span className="ml-2 truncate max-w-[200px]">
-                  {document.fileName}
-                </span>
-              </TableCell>
-              <TableCell>
-                <Badge variant="outline">{document.fileType}</Badge>
-              </TableCell>
-              <TableCell className="truncate max-w-[150px]">
-                {document?.folder?.name ?? ""}
-              </TableCell>
-              <TableCell>{document.fileSize}</TableCell>
-              <TableCell className="truncate max-w-[150px]">
-                {document.uploadedBy}
-              </TableCell>
-              <TableCell>
-                {formatDistanceToNow(new Date(document.createdAt), {
-                  addSuffix: true,
-                })}
-              </TableCell>
-              <TableCell>
-                <div className="flex items-center gap-1">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 w-8 p-0"
-                    onClick={() => handleViewDocument(document)}
-                    disabled={loadingActions[document.id]?.view}
-                  >
-                    {loadingActions[document.id]?.view ? (
-                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
-                    )}
-                    <span className="sr-only">View</span>
-                  </Button>
-                </div>
-              </TableCell>
-            </TableRow>
-          ))}
+          {documents.map((document) => {
+            // Calculate expiration date and countdown
+            const expiryDate = calculateExpiryDate(document.createdAt);
+            const timeRemaining = formatTimeRemaining(expiryDate);
+            const expiryStatusClass = getExpiryStatusColor(expiryDate);
+
+            return (
+              <TableRow key={document.id}>
+                <TableCell className="font-medium flex items-center">
+                  {getDocumentIcon(document.fileType)}
+                  <span className="ml-2 truncate max-w-[200px]">
+                    {document.fileName}
+                  </span>
+                </TableCell>
+                <TableCell>
+                  <Badge variant="outline">{document.fileType}</Badge>
+                </TableCell>
+                <TableCell className="truncate max-w-[150px]">
+                  {document?.folder?.name ?? ""}
+                </TableCell>
+                <TableCell>{document.fileSize}</TableCell>
+                <TableCell className="truncate max-w-[150px]">
+                  {document.uploadedBy}
+                </TableCell>
+                <TableCell>
+                  {formatDistanceToNow(new Date(document.createdAt), {
+                    addSuffix: true,
+                  })}
+                </TableCell>
+                <TableCell>
+                  <Badge className={expiryStatusClass}>
+                    <Clock className="h-3 w-3 mr-1" />
+                    {timeRemaining}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 w-8 p-0"
+                      onClick={() => handleViewDocument(document)}
+                      disabled={loadingActions[document.id]?.view}
+                    >
+                      {loadingActions[document.id]?.view ? (
+                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                      <span className="sr-only">View</span>
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            );
+          })}
         </TableBody>
       </Table>
     </div>

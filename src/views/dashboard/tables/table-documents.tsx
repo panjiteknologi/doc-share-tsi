@@ -10,6 +10,7 @@ import {
   Trash2,
   FolderIcon,
   Loader2,
+  Clock,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -36,6 +37,11 @@ import { useDocuments } from "@/hooks/use-documents";
 import DialogEditDocument from "../dialogs/dialog-edit-document";
 import DialogDeleteDocument from "../dialogs/dialog-delete-document";
 import DocumentDrawerViewer from "@/components/document-drawer-viewer";
+import {
+  calculateExpiryDate,
+  formatTimeRemaining,
+  getExpiryStatusColor,
+} from "@/lib/cron";
 
 interface TableDocumentsProps {
   folderId?: string;
@@ -147,6 +153,7 @@ export function TableDocuments({
               <TableHead>Size</TableHead>
               <TableHead>Uploaded By</TableHead>
               <TableHead>Date</TableHead>
+              <TableHead>Auto-Delete</TableHead>
               <TableHead className="w-[100px]">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -170,6 +177,9 @@ export function TableDocuments({
                   </TableCell>
                   <TableCell>
                     <Skeleton className="h-5 w-[100px]" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-5 w-[80px]" />
                   </TableCell>
                   <TableCell>
                     <Skeleton className="h-5 w-[80px]" />
@@ -205,6 +215,23 @@ export function TableDocuments({
                   </TableCell>
                   <TableCell>
                     {new Date(document.createdAt).toLocaleDateString()}
+                  </TableCell>
+                  <TableCell>
+                    {(() => {
+                      const expiryDate = calculateExpiryDate(
+                        document.createdAt
+                      );
+                      const timeRemaining = formatTimeRemaining(expiryDate);
+                      const expiryStatusClass =
+                        getExpiryStatusColor(expiryDate);
+
+                      return (
+                        <Badge className={expiryStatusClass}>
+                          <Clock className="h-3 w-3 mr-1" />
+                          {timeRemaining}
+                        </Badge>
+                      );
+                    })()}
                   </TableCell>
                   <TableCell>
                     <DropdownMenu>

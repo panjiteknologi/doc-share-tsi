@@ -9,6 +9,7 @@ import {
   User,
   Calendar,
   FolderIcon,
+  Clock,
 } from "lucide-react";
 import {
   Card,
@@ -23,7 +24,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import {
+  calculateExpiryDate,
+  formatTimeRemaining,
+  getExpiryStatusColor,
+} from "@/lib/cron";
 
 interface DocumentCardProps {
   document: Document;
@@ -39,6 +46,11 @@ const DocumentCard: React.FC<DocumentCardProps> = ({
   // Format date for display
   const createdAt = new Date(document.createdAt);
   const createdTimeAgo = formatDistanceToNow(createdAt, { addSuffix: true });
+
+  // Calculate expiration date and countdown
+  const expiryDate = calculateExpiryDate(document.createdAt);
+  const timeRemaining = formatTimeRemaining(expiryDate);
+  const expiryStatusClass = getExpiryStatusColor(expiryDate);
 
   // Get document icon based on file type
   const getDocumentIcon = (type: string) => {
@@ -70,7 +82,7 @@ const DocumentCard: React.FC<DocumentCardProps> = ({
   };
 
   return (
-    <Card className="overflow-hidden hover:border-primary/50 transition-colors">
+    <Card className="overflow-hidden hover:border-primary/50 transition-colors relative">
       <CardHeader className="px-4 flex flex-row items-start justify-between">
         <div className="flex items-center gap-2">
           <div className="bg-primary/10 p-2 rounded-md">
@@ -114,12 +126,24 @@ const DocumentCard: React.FC<DocumentCardProps> = ({
             <Calendar className="h-4 w-4 mr-2" />
             <span>{createdTimeAgo}</span>
           </div>
+          <div className="flex items-center text-xs text-muted-foreground mt-1">
+            <Clock className="h-3 w-3 mr-1" />
+            <span>Auto-deletes on {expiryDate.toLocaleDateString()}</span>
+          </div>
         </div>
       </CardContent>
-      <CardFooter className="px-4 pt-0 flex items-center text-xs text-muted-foreground">
-        <User className="h-3 w-3 mr-1" />
-        <span className="truncate max-w-[125px]">{document.uploadedBy}</span>
-        <span className="ml-auto">{document.fileSize}</span>
+      <CardFooter className="px-4 pt-0 flex justify-between items-center">
+        <div className="flex items-center text-xs text-muted-foreground">
+          <User className="h-3 w-3 mr-1" />
+          <span className="truncate max-w-[125px]">{document.uploadedBy}</span>
+          <span className="ml-auto">{document.fileSize}</span>
+        </div>
+
+        {/* Expiry Badge*/}
+        <Badge className={`${expiryStatusClass}`}>
+          <Clock className="h-3 w-3" />
+          {timeRemaining}
+        </Badge>
       </CardFooter>
     </Card>
   );
