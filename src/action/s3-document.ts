@@ -36,19 +36,6 @@ export async function getDocumentViewUrl(documentId: string) {
       return { success: false, error: "Document not found" };
     }
 
-    // const isOwner = document.userId === session.user.id;
-    // const isFolderOwner = document.folder.userId === session.user.id;
-    // const isAuditor = document.folder.project?.auditors.some(
-    //   (auditor) => auditor.id === session.user.id
-    // );
-
-    // if (!isOwner && !isFolderOwner && !isAuditor) {
-    //   return {
-    //     success: false,
-    //     error: "You don't have permission to view this document",
-    //   };
-    // }
-
     const url = new URL(document.url);
     const key = url.pathname.substring(1).split("/").slice(1).join("/");
 
