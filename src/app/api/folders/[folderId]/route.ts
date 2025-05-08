@@ -61,19 +61,6 @@ export async function GET(
       return NextResponse.json({ error: "Folder not found" }, { status: 404 });
     }
 
-    // Check if user has permission to view this folder
-    const isOwner = folder.userId === session.user.id;
-    const isAuditor = folder.project?.auditors.some(
-      (auditor) => auditor.id === session.user.id
-    );
-
-    if (!isOwner && !isAuditor) {
-      return NextResponse.json(
-        { error: "Unauthorized to view this folder" },
-        { status: 403 }
-      );
-    }
-
     // Format document URLs and other information
     const formattedDocuments = folder.documents.map((doc) => {
       // Extract filename from URL
@@ -130,8 +117,6 @@ export async function GET(
             auditors: folder.project.auditors,
           }
         : null,
-      isOwner,
-      isAuditor,
     };
 
     return NextResponse.json({ folder: formattedFolder });
