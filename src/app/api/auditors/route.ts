@@ -74,6 +74,7 @@ export async function GET(request: NextRequest) {
       role: auditor.role,
       projectCount: auditor.projects.length,
       projects: auditor.projects,
+      hashedPassword: auditor.hashedPassword,
     }));
 
     // Get total count for pagination
