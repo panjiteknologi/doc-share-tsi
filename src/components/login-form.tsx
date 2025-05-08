@@ -61,8 +61,8 @@ export function LoginForm({
         redirect: false,
       });
 
-      if (!response?.ok) {
-        setError(response?.error || "Something went wrong. Please try again.");
+      if (response?.error) {
+        setError(`${response?.error}: wrong email or password.`);
         return;
       }
 
