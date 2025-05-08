@@ -42,8 +42,6 @@ const DriveView = () => {
   // Fetch folders Auditor
   const { folders: foldersProjects } = useFoldersProjects(userRole);
 
-  console.log("folders aufitor : ", foldersProjects);
-
   // Fetch documents LS
   const { documents, isLoading: isLoadingDocuments } =
     useRootDocuments(userRole);
