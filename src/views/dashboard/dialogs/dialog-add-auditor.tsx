@@ -26,16 +26,7 @@ import { Loader2 } from "lucide-react";
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Please enter a valid email address"),
-  password: z
-    .string()
-    .min(8, "Password must be at least 8 characters")
-    .regex(
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
-      {
-        message:
-          "Password must include uppercase, lowercase, number, and special character.",
-      }
-    ),
+  password: z.string().min(5, "Password must be at least 8 characters"),
 });
 
 export function DialogAddAuditor() {
