@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useSession } from "next-auth/react";
 import { Search, FolderOpen, MoreHorizontal, Calendar } from "lucide-react";
 
 import {
@@ -28,19 +27,16 @@ import DialogEditFolder from "../dialogs/dialog-edit-folder";
 import DialogDeleteFolder from "../dialogs/dialog-delete-folder";
 
 export function TableFolders() {
-  const { data: session } = useSession();
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedFolder, setSelectedFolder] = useState<any>(null);
 
-  const userId = session?.user?.id;
   const itemsPerPage = 10;
 
   // Use the SWR hook to fetch folders
   const { folders, pagination, isLoading, mutate } = useFolders({
-    userId,
     page: currentPage,
     limit: itemsPerPage,
     search: searchQuery,

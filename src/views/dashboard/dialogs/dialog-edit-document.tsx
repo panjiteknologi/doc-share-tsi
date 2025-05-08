@@ -7,7 +7,6 @@ import { z } from "zod";
 import { toast } from "sonner";
 import { Loader2, FolderIcon } from "lucide-react";
 import { IconFileText } from "@tabler/icons-react";
-import { useSession } from "next-auth/react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -52,12 +51,9 @@ export default function DialogEditDocument({
   onSuccess,
 }: DialogEditDocumentProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const { data: session } = useSession();
-  const userId = session?.user?.id;
 
   // Fetch available folders
   const { folders, isLoading: foldersLoading } = useFolders({
-    userId,
     limit: 100, // Get more folders for the dropdown
   });
 

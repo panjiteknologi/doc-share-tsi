@@ -65,11 +65,7 @@ export function DialogAddDocument() {
   });
 
   // Safe access to userId - only pass it when session is available
-  const { folders, isLoading: foldersLoading } = useFolders(
-    status === "authenticated" && session?.user?.id
-      ? { userId: session.user.id }
-      : {}
-  );
+  const { folders, isLoading: foldersLoading } = useFolders({});
 
   const {
     handleSubmit,
