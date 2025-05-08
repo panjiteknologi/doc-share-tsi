@@ -21,10 +21,44 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import { Building, ShieldCheck, User } from "lucide-react";
+import { Badge } from "./ui/badge";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { data: session } = useSession();
   const userRole = session?.user?.roleCode || "";
+
+  // Get role badge color and icon
+  const getRoleBadge = () => {
+    switch (userRole) {
+      case "surveyor":
+        return {
+          color: "text-indigo-500 boder border-indigo-500",
+          label: "Lembaga Sertifikasi",
+          icon: <User className="h-3 w-3 mr-1" />,
+        };
+      case "auditor":
+        return {
+          color: "text-teal-500 boder border-teal-500",
+          label: "Auditor",
+          icon: <ShieldCheck className="h-3 w-3 mr-1" />,
+        };
+      case "client":
+        return {
+          color: "text-rose-500 boder border-rose-500",
+          label: "Client",
+          icon: <Building className="h-3 w-3 mr-1" />,
+        };
+      default:
+        return {
+          color: "text-gray-500",
+          label: "Guest",
+          icon: <User className="h-3 w-3 mr-1" />,
+        };
+    }
+  };
+
+  const roleBadge = getRoleBadge();
 
   // Define navigation items based on user role
   const getNavItems = () => {
@@ -98,6 +132,19 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 </span>
               </div>
             </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+        <SidebarMenu>
+          <SidebarMenuItem className="flex items-center mt-4">
+            {session?.user && (
+              <Badge
+                className={`${roleBadge.color} flex items-center h-8 px-2 mr-2 w-full`}
+                variant="outline"
+              >
+                {roleBadge.icon}
+                {roleBadge.label}
+              </Badge>
+            )}
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
