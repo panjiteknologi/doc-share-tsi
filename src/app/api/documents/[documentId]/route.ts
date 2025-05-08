@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { auth } from "@/lib/auth";
+import { BUCKET_NAME, s3Client } from "@/lib/s3-client";
+import { DeleteObjectCommand } from "@aws-sdk/client-s3";
 
 export async function GET(
   request: NextRequest,
@@ -139,7 +141,6 @@ export async function DELETE(
     }
 
     // Check if the current user has permission to delete this document
-    // Only the document owner or folder owner should be able to delete
     const isDocumentOwner = document.userId === session.user.id;
     const isFolderOwner = document.folder.userId === session.user.id;
 
@@ -150,7 +151,25 @@ export async function DELETE(
       );
     }
 
-    // Delete the document
+    // Extract the S3 key from the URL
+    const url = new URL(document.url);
+    const key = url.pathname.substring(1).split("/").slice(1).join("/");
+
+    try {
+      // Delete the file from S3
+      await s3Client.send(
+        new DeleteObjectCommand({
+          Bucket: BUCKET_NAME,
+          Key: key,
+        })
+      );
+    } catch (s3Error) {
+      console.error("Error deleting file from S3:", s3Error);
+      // You might decide to continue with database deletion
+      // despite S3 errors, or fail the entire operation
+    }
+
+    // Delete the document record from the database
     await prisma.document.delete({
       where: { id: documentId },
     });
