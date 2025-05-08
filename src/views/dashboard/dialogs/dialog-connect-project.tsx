@@ -53,7 +53,6 @@ export default function DialogConnectProject({
   const { clients } = useClients({ page: 1, limit: 100 });
 
   const { folders } = useFolders({
-    userId: clientId || undefined,
     limit: 100,
   });
 
