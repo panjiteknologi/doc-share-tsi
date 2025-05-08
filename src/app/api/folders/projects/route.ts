@@ -9,22 +9,45 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
+    // For auditors: Get folders connected to projects where the current user is assigned
     const folders = await prisma.folder.findMany({
       where: {
-        userId: session.user.id,
+        project: {
+          auditors: {
+            some: {
+              id: session.user.id,
+            },
+          },
+        },
       },
       include: {
-        user: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
         documents: true,
-        project: true,
+        project: {
+          include: {
+            auditors: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
+          },
+        },
       },
     });
 
     return NextResponse.json({ folders });
   } catch (error) {
-    console.error("Error fetching folders by IDs:", error);
+    console.error("Error fetching auditor project folders:", error);
     return NextResponse.json(
-      { error: "Failed to fetch folders" },
+      { error: "Failed to fetch auditor project folders" },
       { status: 500 }
     );
   }

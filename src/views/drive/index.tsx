@@ -42,6 +42,8 @@ const DriveView = () => {
   // Fetch folders Auditor
   const { folders: foldersProjects } = useFoldersProjects(userRole);
 
+  console.log("folders aufitor : ", foldersProjects);
+
   // Fetch documents LS
   const { documents, isLoading: isLoadingDocuments } =
     useRootDocuments(userRole);
@@ -206,6 +208,20 @@ const DriveView = () => {
               </div>
             ) : (
               <FolderTable folders={foldersByUserId} />
+            )}
+          </>
+        )}
+
+        {!loadingFolders && userRole === "auditor" && (
+          <>
+            {viewMode === "grid" ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {foldersProjects.map((folder) => (
+                  <FolderCard key={folder.id} folder={folder} />
+                ))}
+              </div>
+            ) : (
+              <FolderTable folders={foldersProjects} />
             )}
           </>
         )}

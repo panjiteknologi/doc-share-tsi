@@ -268,7 +268,7 @@ export function useFoldersProjects(userRole: string) {
 
 // Hook for fetching all folders by user ID
 export function useFoldersByUserId(userId: string, userRole: string) {
-  const shouldFetch = userId && userRole === "client";
+  const shouldFetch = userRole === "client";
 
   const { data, error, isLoading, mutate } = useSWR<{ folders: Folder[] }>(
     shouldFetch ? `/api/folders/user/${userId}` : null,
