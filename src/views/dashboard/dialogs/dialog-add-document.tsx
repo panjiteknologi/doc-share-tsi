@@ -50,13 +50,19 @@ const FormSchema = z.object({
 type FormData = z.infer<typeof FormSchema>;
 
 export function DialogAddDocument() {
+  const { data: session, status } = useSession();
   const { isOpen, dialogType, closeDialog, isLoading, setLoading } =
     useDashboardDialog();
   const isDialogOpen = isOpen && dialogType === "document";
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
-  const { data: session, status } = useSession();
 
-  const { mutate } = useDocuments({ page: 1, limit: 10 });
+  const userId = session?.user?.id;
+
+  const { mutate } = useDocuments({
+    userId,
+    sortBy: "createdAt",
+    sortOrder: "desc",
+  });
 
   // Safe access to userId - only pass it when session is available
   const { folders, isLoading: foldersLoading } = useFolders(
@@ -126,8 +132,8 @@ export function DialogAddDocument() {
       if (result.success) {
         toast.success("Document uploaded successfully");
         reset();
-        mutate();
         closeDialog();
+        mutate();
       } else {
         toast.error(result.error || "Failed to upload document");
       }
