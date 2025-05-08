@@ -56,7 +56,6 @@ const fetcher = async (url: string) => {
 
 // Hook for fetching a paginated list of documents
 export function useDocuments({
-  userId,
   folderId,
   page = 1,
   limit = 10,
@@ -65,7 +64,6 @@ export function useDocuments({
   sortOrder = "desc",
   userRole,
 }: {
-  userId?: string;
   folderId?: string;
   page?: number;
   limit?: number;
@@ -75,7 +73,6 @@ export function useDocuments({
   userRole?: string;
 } = {}) {
   const searchParams = new URLSearchParams();
-  if (userId) searchParams.append("userId", userId);
   if (folderId) searchParams.append("folderId", folderId);
   searchParams.append("page", page.toString());
   searchParams.append("limit", limit.toString());
@@ -83,10 +80,8 @@ export function useDocuments({
   searchParams.append("sortBy", sortBy);
   searchParams.append("sortOrder", sortOrder);
 
-  const shouldFetch = userRole !== "auditor";
-
   const { data, error, isLoading, mutate } = useSWR<DocumentsResponse>(
-    shouldFetch ? `/api/documents?${searchParams.toString()}` : null,
+    `/api/documents?${searchParams.toString()}`,
     fetcher,
     {
       onError: (err) => {
