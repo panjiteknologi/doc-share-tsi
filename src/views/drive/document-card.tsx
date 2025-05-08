@@ -1,6 +1,3 @@
-// src/views/drive/document-card.tsx
-// Modify the existing component
-
 import React, { useState } from "react";
 import { Document } from "@/hooks/use-documents";
 import { formatDistanceToNow } from "date-fns";
@@ -12,7 +9,6 @@ import {
   User,
   Calendar,
   FolderIcon,
-  Clock,
 } from "lucide-react";
 import {
   Card,
@@ -27,13 +23,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import {
-  calculateExpiryDate,
-  formatTimeRemaining,
-  getExpiryStatusColor,
-} from "@/lib/cron";
 
 interface DocumentCardProps {
   document: Document;
@@ -49,11 +39,6 @@ const DocumentCard: React.FC<DocumentCardProps> = ({
   // Format date for display
   const createdAt = new Date(document.createdAt);
   const createdTimeAgo = formatDistanceToNow(createdAt, { addSuffix: true });
-
-  // Calculate expiration date and countdown
-  const expiryDate = calculateExpiryDate(document.createdAt);
-  const timeRemaining = formatTimeRemaining(expiryDate);
-  const expiryStatusClass = getExpiryStatusColor(expiryDate);
 
   // Get document icon based on file type
   const getDocumentIcon = (type: string) => {
@@ -85,14 +70,8 @@ const DocumentCard: React.FC<DocumentCardProps> = ({
   };
 
   return (
-    <Card className="overflow-hidden hover:border-primary/50 transition-colors relative">
-      {/* Expiry Badge - New addition */}
-      <Badge className={`absolute top-2 right-2 ${expiryStatusClass}`}>
-        <Clock className="h-3 w-3 mr-1" />
-        {timeRemaining}
-      </Badge>
-
-      <CardHeader className="px-4 flex flex-row items-start justify-between pt-10">
+    <Card className="overflow-hidden hover:border-primary/50 transition-colors">
+      <CardHeader className="px-4 flex flex-row items-start justify-between">
         <div className="flex items-center gap-2">
           <div className="bg-primary/10 p-2 rounded-md">
             {getDocumentIcon(document.fileType)}
@@ -134,12 +113,6 @@ const DocumentCard: React.FC<DocumentCardProps> = ({
           <div className="flex items-center text-sm text-muted-foreground">
             <Calendar className="h-4 w-4 mr-2" />
             <span>{createdTimeAgo}</span>
-          </div>
-
-          {/* Auto-delete notice - New addition */}
-          <div className="flex items-center text-xs text-muted-foreground mt-1">
-            <Clock className="h-3 w-3 mr-1" />
-            <span>Auto-deletes on {expiryDate.toLocaleDateString()}</span>
           </div>
         </div>
       </CardContent>
