@@ -143,10 +143,6 @@ export async function updateFolder(formData: FormData) {
       return { success: false, error: "Folder not found" };
     }
 
-    if (existingFolder.userId !== session.user.id) {
-      return { success: false, error: "Unauthorized operation" };
-    }
-
     if (name && name !== existingFolder.name) {
       const folderWithSameName = await prisma.folder.findFirst({
         where: {
@@ -236,10 +232,6 @@ export async function deleteFolder(formData: FormData) {
 
     if (!existingFolder) {
       return { success: false, error: "Folder not found" };
-    }
-
-    if (existingFolder.userId !== session.user.id) {
-      return { success: false, error: "Unauthorized operation" };
     }
 
     if (existingFolder.documents.length > 0) {
