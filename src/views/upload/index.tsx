@@ -41,6 +41,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { useChunkedUpload } from "@/hooks/use-chunked-upload";
+import { useDirectUpload } from "@/hooks/use-direct-upload";
 
 export default function UploadPage() {
   const { data: session, status } = useSession();
@@ -70,7 +71,7 @@ export default function UploadPage() {
     userRole
   );
 
-  const { uploadFile } = useChunkedUpload({
+  const { uploadFile } = useDirectUpload({
     onProgress: (p) => setUploadProgress(p),
   });
 

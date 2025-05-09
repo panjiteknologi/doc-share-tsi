@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/dialog";
 import { FileUpload } from "@/components/file-upload";
 import { useChunkedUpload } from "@/hooks/use-chunked-upload";
+import { useDirectUpload } from "@/hooks/use-direct-upload";
 
 // Form validation schema
 const formSchema = z.object({
@@ -48,7 +49,7 @@ export default function DialogUploadDocument({
 }: DialogUploadDocumentProps) {
   const { data: session } = useSession();
 
-  const { uploadFile, isUploading, progress } = useChunkedUpload({
+  const { uploadFile, isUploading, progress } = useDirectUpload({
     onSuccess: () => {
       toast.success("Document uploaded successfully");
       reset();

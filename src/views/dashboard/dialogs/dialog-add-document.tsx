@@ -30,6 +30,7 @@ import { useDashboardDialog } from "@/store/store-dashboard-dialog";
 import { useFolders } from "@/hooks/use-folders";
 import { useDocuments } from "@/hooks/use-documents";
 import { useChunkedUpload } from "@/hooks/use-chunked-upload";
+import { useDirectUpload } from "@/hooks/use-direct-upload";
 
 // Form validation schema
 const FormSchema = z.object({
@@ -57,7 +58,7 @@ export function DialogAddDocument() {
     sortOrder: "desc",
   });
 
-  const { uploadFile, progress } = useChunkedUpload({
+  const { uploadFile, progress } = useDirectUpload({
     onSuccess: () => {
       toast.success("Document uploaded successfully");
       reset();
