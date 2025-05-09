@@ -4,5 +4,21 @@
       "path": "/api/cron/document-cleanup",
       "schedule": "0 0 * * *"
     }
+  ],
+  "functions": {
+    "api/upload": {
+      "memory": 1024,
+      "maxDuration": 60
+    }
+  },
+  "routes": [
+    {
+      "src": "/api/upload",
+      "dest": "/api/upload",
+      "methods": ["POST"],
+      "headers": {
+        "Content-Type": "multipart/form-data"
+      }
+    }
   ]
 }

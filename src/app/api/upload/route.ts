@@ -1,6 +1,16 @@
 import { NextResponse } from "next/server";
 import { generateFileKey, uploadFileToS3 } from "@/action/s3";
 
+export const runtime = "edge";
+
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: "20mb",
+    },
+  },
+};
+
 export async function POST(request: Request) {
   try {
     const formData = await request.formData();
