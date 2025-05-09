@@ -1,14 +1,12 @@
 "use client";
 
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import { FolderIcon, FileUp } from "lucide-react";
-
-import axios from "axios";
+import { IconFileUpload } from "@tabler/icons-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -28,11 +26,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { FileUpload } from "@/components/file-upload";
-import { createDocument } from "@/action/document";
 import { useDashboardDialog } from "@/store/store-dashboard-dialog";
 import { useFolders } from "@/hooks/use-folders";
-import { IconFileUpload } from "@tabler/icons-react";
 import { useDocuments } from "@/hooks/use-documents";
+import { useChunkedUpload } from "@/hooks/use-chunked-upload";
 
 // Form validation schema
 const FormSchema = z.object({
@@ -54,11 +51,27 @@ export function DialogAddDocument() {
   const { isOpen, dialogType, closeDialog, isLoading, setLoading } =
     useDashboardDialog();
   const isDialogOpen = isOpen && dialogType === "document";
-  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
 
   const { mutate } = useDocuments({
     sortBy: "createdAt",
     sortOrder: "desc",
+  });
+
+  const { uploadFile, progress } = useChunkedUpload({
+    onSuccess: () => {
+      toast.success("Document uploaded successfully");
+      reset();
+      closeDialog();
+      mutate();
+    },
+    onError: (error) => {
+      console.error("Upload error:", error);
+      toast.error("Failed to upload document. Please try again.");
+      setLoading(false);
+    },
+    onProgress: (p) => {
+      // Progress is handled by the hook
+    },
   });
 
   // Safe access to userId - only pass it when session is available
@@ -78,6 +91,7 @@ export function DialogAddDocument() {
   });
 
   const fileValue = watch("file");
+  const selectedFolderId = watch("folderId");
 
   const handleFileChange = (file: File | null) => {
     setValue("file", file as File, {
@@ -94,64 +108,18 @@ export function DialogAddDocument() {
     }
 
     setLoading(true);
-    setUploadProgress(0);
 
     try {
-      const formData = new FormData();
-      formData.append("file", data.file);
-      formData.append("folderId", data.folderId || "");
-
-      const response = await axios.post("/api/upload", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-        onUploadProgress: (progressEvent) => {
-          const percentCompleted = progressEvent.total
-            ? Math.round((progressEvent.loaded * 100) / progressEvent.total)
-            : 0;
-
-          setUploadProgress(percentCompleted);
-        },
-      });
-
-      // setUploadProgress(100);
-
-      const result = await createDocument({
-        url: response.data.url,
-        folderId: data.folderId,
-        userId: session.user.id,
-      });
-
-      if (result.success) {
-        toast.success("Document uploaded successfully");
-        reset();
-        closeDialog();
-        mutate();
-      } else {
-        toast.error(result.error || "Failed to upload document");
-      }
+      await uploadFile(data.file, data.folderId);
     } catch (error) {
-      console.error("Error uploading document:", error);
-      if (axios.isAxiosError(error) && error.response) {
-        toast.error(
-          `Upload failed: ${error.response.data.error || error.message}`
-        );
-      } else {
-        toast.error("Failed to upload document. Please try again.");
-      }
-    } finally {
-      setLoading(false);
-      setUploadProgress(null);
+      // Error handling is done in the hook
     }
   };
 
   const handleClose = () => {
-    setUploadProgress(null);
-
     if (!isLoading) {
       reset();
       closeDialog();
-      setUploadProgress(null);
     }
   };
 
@@ -222,7 +190,7 @@ export function DialogAddDocument() {
                   "application/pdf": [".pdf"],
                 }}
                 disabled={isLoading}
-                progress={uploadProgress || null}
+                progress={progress || null}
               />
               {errors.file && (
                 <p className="text-sm font-medium text-destructive">
@@ -242,12 +210,18 @@ export function DialogAddDocument() {
             </Button>
             <Button
               type="submit"
-              disabled={isLoading || status === "loading" || foldersLoading}
+              disabled={
+                isLoading ||
+                status === "loading" ||
+                foldersLoading ||
+                !selectedFolderId ||
+                !fileValue
+              }
             >
               {isLoading ? (
                 <>
                   <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
-                  Uploading...
+                  Uploading... {progress}%
                 </>
               ) : (
                 <>

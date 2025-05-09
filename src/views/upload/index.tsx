@@ -3,9 +3,7 @@
 import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { useFoldersByUserId } from "@/hooks/use-folders";
-import axios from "axios";
 import { toast } from "sonner";
-import { createDocument } from "@/action/document";
 
 // UI Components
 import {
@@ -42,6 +40,7 @@ import {
   Info,
   Loader2,
 } from "lucide-react";
+import { useChunkedUpload } from "@/hooks/use-chunked-upload";
 
 export default function UploadPage() {
   const { data: session, status } = useSession();
@@ -70,6 +69,10 @@ export default function UploadPage() {
     userId,
     userRole
   );
+
+  const { uploadFile } = useChunkedUpload({
+    onProgress: (p) => setUploadProgress(p),
+  });
 
   // Handle folder selection
   const handleFolderChange = (value: string) => {
@@ -123,47 +126,16 @@ export default function UploadPage() {
 
     try {
       // Create FormData for file upload
-      const formData = new FormData();
-      formData.append("file", selectedFile);
-      formData.append("folderId", selectedFolderId);
+      const result = await uploadFile(selectedFile, selectedFolderId);
 
-      // Upload file to S3 via API
-      const uploadResponse = await axios.post("/api/upload", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-        onUploadProgress: (progressEvent) => {
-          const percentCompleted = progressEvent.total
-            ? Math.round((progressEvent.loaded * 100) / progressEvent.total)
-            : 0;
-          setUploadProgress(percentCompleted);
-        },
+      toast.success("Document uploaded successfully!", {
+        description: "Your document has been uploaded and is now available.",
       });
 
-      // Create document record in database
-      const documentResponse = await createDocument({
-        url: uploadResponse.data.url,
-        folderId: selectedFolderId,
-        userId: userId,
-      });
+      setUploadedDoc(result.document);
 
-      if (documentResponse.success) {
-        if (documentResponse?.document) {
-          setUploadedDoc(documentResponse.document);
-        } else {
-          throw new Error("Document response is undefined");
-        }
-        // Show success message
-        toast.success("Document uploaded successfully!", {
-          description: "Your document has been uploaded and is now available.",
-        });
-        // Move to success step
-        setStep(3);
-      } else {
-        throw new Error(
-          documentResponse.error || "Failed to create document record"
-        );
-      }
+      // Move to success step
+      setStep(3);
     } catch (error: any) {
       console.error("Upload error:", error);
       setError(error?.message || "Failed to upload file. Please try again.");

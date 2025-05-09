@@ -1,13 +1,11 @@
 "use client";
 
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import { FileUp, Loader2 } from "lucide-react";
-import axios from "axios";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -19,7 +17,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { FileUpload } from "@/components/file-upload";
-import { createDocument } from "@/action/document";
+import { useChunkedUpload } from "@/hooks/use-chunked-upload";
 
 // Form validation schema
 const formSchema = z.object({
@@ -48,9 +46,20 @@ export default function DialogUploadDocument({
   folderId,
   onSuccess,
 }: DialogUploadDocumentProps) {
-  const [isLoading, setIsLoading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const { data: session } = useSession();
+
+  const { uploadFile, isUploading, progress } = useChunkedUpload({
+    onSuccess: () => {
+      toast.success("Document uploaded successfully");
+      reset();
+      if (onSuccess) onSuccess();
+      handleClose();
+    },
+    onError: (error) => {
+      console.error("Upload error:", error);
+      toast.error("Failed to upload document. Please try again.");
+    },
+  });
 
   const {
     handleSubmit,
@@ -78,60 +87,16 @@ export default function DialogUploadDocument({
       return;
     }
 
-    setIsLoading(true);
-    setUploadProgress(0);
-
     try {
-      const formData = new FormData();
-      formData.append("file", data.file);
-      formData.append("folderId", folderId);
-
-      const response = await axios.post("/api/upload", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-        onUploadProgress: (progressEvent) => {
-          const percentCompleted = progressEvent.total
-            ? Math.round((progressEvent.loaded * 100) / progressEvent.total)
-            : 0;
-
-          setUploadProgress(percentCompleted);
-        },
-      });
-
-      const result = await createDocument({
-        url: response.data.url,
-        folderId: folderId,
-        userId: session.user.id,
-      });
-
-      if (result.success) {
-        toast.success("Document uploaded successfully");
-        reset();
-        if (onSuccess) onSuccess();
-        handleClose();
-      } else {
-        toast.error(result.error || "Failed to upload document");
-      }
+      await uploadFile(data.file, folderId);
     } catch (error) {
-      console.error("Error uploading document:", error);
-      if (axios.isAxiosError(error) && error.response) {
-        toast.error(
-          `Upload failed: ${error.response.data.error || error.message}`
-        );
-      } else {
-        toast.error("Failed to upload document. Please try again.");
-      }
-    } finally {
-      setIsLoading(false);
-      setUploadProgress(null);
+      // Error handling is done in the hook
     }
   };
 
   const handleClose = () => {
-    if (!isLoading) {
+    if (!isUploading) {
       reset();
-      setUploadProgress(null);
       onClose();
     }
   };
@@ -155,8 +120,8 @@ export default function DialogUploadDocument({
               accept={{
                 "application/pdf": [".pdf"],
               }}
-              disabled={isLoading}
-              progress={uploadProgress}
+              disabled={isUploading}
+              progress={progress}
             />
             {errors.file && (
               <p className="text-sm font-medium text-destructive">
@@ -170,15 +135,15 @@ export default function DialogUploadDocument({
               type="button"
               variant="outline"
               onClick={handleClose}
-              disabled={isLoading}
+              disabled={isUploading}
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isLoading || !fileValue}>
-              {isLoading ? (
+            <Button type="submit" disabled={isUploading || !fileValue}>
+              {isUploading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Uploading...
+                  Uploading... {progress}%
                 </>
               ) : (
                 <>
