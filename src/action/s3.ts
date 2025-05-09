@@ -41,8 +41,8 @@ export async function generatePresignedUrl(
 export function generateFileKey(fileName: string, folderId: string): string {
   const timestamp = Date.now();
   const extension = fileName.split(".").pop();
-  const sanitizedFileName = fileName
-    .split(".")[0]
+  const nameWithoutExtension = fileName.substring(0, fileName.lastIndexOf("."));
+  const sanitizedFileName = nameWithoutExtension
     .replace(/[^a-zA-Z0-9]/g, "-")
     .toLowerCase();
 
