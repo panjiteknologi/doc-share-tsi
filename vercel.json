@@ -6,7 +6,7 @@
     }
   ],
   "functions": {
-    "api/upload/**/*.js": {
+    "app/api/upload/route.ts": {
       "memory": 1024,
       "maxDuration": 60
     }
