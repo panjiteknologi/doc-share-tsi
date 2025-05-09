@@ -242,20 +242,17 @@ export async function deleteFolder(formData: FormData) {
       };
     }
 
-    const project = await prisma.project.findUnique({
-      where: { folderId: id },
-    });
+    // Use a transaction to delete both the project and folder atomically
+    await prisma.$transaction(async (tx) => {
+      // First, delete any project associated with this folder
+      await tx.project.deleteMany({
+        where: { folderId: id },
+      });
 
-    if (project) {
-      return {
-        success: false,
-        error:
-          "Cannot delete folder that is associated with a project. Remove project association first.",
-      };
-    }
-
-    await prisma.folder.delete({
-      where: { id },
+      // Then delete the folder
+      await tx.folder.delete({
+        where: { id },
+      });
     });
 
     revalidatePath("/dashboard");
