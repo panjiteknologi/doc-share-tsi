@@ -57,7 +57,7 @@ const FolderTable: React.FC<FolderTableProps> = ({ folders }) => {
                   <div className="flex items-center gap-2">
                     <Folder className="h-4 w-4 text-primary" />
                     <Link
-                      href={`/folder/${folder.id}`}
+                      href={`/drive/${folder.id}`}
                       className="hover:underline font-medium"
                     >
                       {folder.name}
