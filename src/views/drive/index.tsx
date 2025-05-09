@@ -19,14 +19,12 @@ import FolderCard from "./folder-card";
 import FolderTable from "./folder-table";
 import DocumentCard from "./document-card";
 import DocumentTable from "./document-table";
-import { DialogAddFolder } from "@/views/dashboard/dialogs/dialog-add-folder";
 import DocumentDrawerViewer from "@/components/document-drawer-viewer";
 
 const DriveView = () => {
   const { data: session } = useSession();
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
-  const [isCreateFolderOpen, setIsCreateFolderOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [selectedDocument, setSelectedDocument] = useState<any>(null);
 
@@ -87,7 +85,7 @@ const DriveView = () => {
             </Tabs>
           </div>
           {userRole !== "auditor" && (
-            <Button onClick={() => setIsCreateFolderOpen(true)}>
+            <Button>
               <FolderPlus className="h-4 w-4 mr-2" />
               Create Folder
             </Button>
@@ -226,7 +224,6 @@ const DriveView = () => {
       </div>
 
       {/* Create Folder Dialog */}
-      <DialogAddFolder />
 
       {/* View Document Dialog */}
       <DocumentDrawerViewer
