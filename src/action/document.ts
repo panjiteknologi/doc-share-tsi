@@ -49,7 +49,6 @@ export async function createDocument(data: DocumentFormData) {
     const folder = await prisma.folder.findUnique({
       where: {
         id: validatedData.folderId,
-        userId: validatedData.userId,
       },
     });
 
