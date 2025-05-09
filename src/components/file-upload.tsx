@@ -22,7 +22,7 @@ export function FileUpload({
   onChange,
   value,
   accept,
-  maxSize = 5242880, // 5MB
+  maxSize = 20971520, // 20MB
   maxFiles = 1,
   disabled = false,
   progress,

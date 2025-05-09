@@ -26,7 +26,7 @@ const formSchema = z.object({
   file: z
     .instanceof(File, { message: "Please upload a document" })
     .refine((file) => file.size <= 10 * 1024 * 1024, {
-      message: "File size must be less than 10MB",
+      message: "File size must be less than 20MB",
     })
     .refine((file) => ["application/pdf"].includes(file.type), {
       message: "File type not supported. Please upload PDF files only.",
@@ -144,7 +144,7 @@ export default function DialogUploadDocument({
             <DialogTitle>Upload Document</DialogTitle>
             <DialogDescription>
               Upload a document to the current folder. Supported format: PDF
-              (max 10MB).
+              (max 20MB).
             </DialogDescription>
           </DialogHeader>
 
