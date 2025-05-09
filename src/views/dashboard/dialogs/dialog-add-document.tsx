@@ -39,7 +39,7 @@ const FormSchema = z.object({
   folderId: z.string().min(1, "Please select a folder"),
   file: z
     .instanceof(File, { message: "Please upload a document" })
-    .refine((file) => file.size <= 10 * 1024 * 1024, {
+    .refine((file) => file.size <= 20 * 1024 * 1024, {
       message: "File size must be less than 20MB",
     })
     .refine((file) => ["application/pdf"].includes(file.type), {
