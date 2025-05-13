@@ -1,14 +1,7 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import {
-  X,
-  Maximize2,
-  Minimize2,
-  ChevronLeft,
-  ChevronRight,
-  Shield,
-} from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { X, Maximize2, Minimize2, Shield } from "lucide-react";
 import { getDocumentViewUrl } from "@/action/s3-document";
 import { Document } from "@/hooks/use-documents";
 import {
@@ -19,7 +12,25 @@ import {
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Alert, AlertDescription } from "./ui/alert";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import dynamic from "next/dynamic";
+
+// Dynamically import EnhancedPdfViewer with no SSR
+const EnhancedPdfViewer = dynamic(() => import("./enhanced-pdf-viewer"), {
+  ssr: false,
+  loading: () => <LoadingState />,
+});
+
+function LoadingState() {
+  return (
+    <div className="flex h-full w-full items-center justify-center">
+      <div className="flex flex-col items-center gap-2">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-t-transparent border-primary"></div>
+        <p className="text-sm text-muted-foreground">Loading viewer...</p>
+      </div>
+    </div>
+  );
+}
 
 interface DocumentDrawerViewerProps {
   isOpen: boolean;
@@ -37,8 +48,6 @@ export default function DocumentDrawerViewer({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showProtectionAlert, setShowProtectionAlert] = useState(false);
-
-  const iframeRef = useRef<HTMLIFrameElement>(null);
 
   // Reset expanded state when drawer closes
   useEffect(() => {
@@ -85,38 +94,6 @@ export default function DocumentDrawerViewer({
     }, 3000);
 
     return false;
-  };
-
-  const handleIframeLoad = () => {
-    try {
-      const iframe = iframeRef.current;
-      if (iframe && iframe.contentWindow) {
-        // Try to add event listener to iframe content
-        iframe.contentWindow.document.addEventListener("contextmenu", (e) => {
-          e.preventDefault();
-          return false;
-        });
-
-        // Add style to prevent selection inside iframe
-        const style = iframe.contentWindow.document.createElement("style");
-        style.textContent = `
-          * {
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-            user-select: none;
-            -webkit-touch-callout: none;
-          }
-          ::selection { background: transparent; }
-        `;
-        iframe.contentWindow.document.head.appendChild(style);
-      }
-    } catch (e) {
-      // Silent catch - may fail due to cross-origin restrictions
-      console.log(
-        "Could not modify iframe content due to security restrictions"
-      );
-    }
   };
 
   const toggleExpand = () => {
@@ -182,14 +159,27 @@ export default function DocumentDrawerViewer({
   // Handle resize button on left side
   const ResizeHandle = () => (
     <div
-      className="absolute left-0 top-1/2 -translate-y-1/2 h-24 w-5 flex items-center justify-center bg-muted/50 hover:bg-muted rounded-r-md cursor-col-resize group"
+      className="absolute left-0 top-1/2 -translate-y-1/2 h-24 w-5 flex items-center justify-center bg-muted/50 hover:bg-muted rounded-r-md cursor-col-resize group z-10"
       onClick={toggleExpand}
     >
-      {isExpanded ? (
-        <ChevronRight className="h-4 w-4 group-hover:text-primary transition-colors" />
-      ) : (
-        <ChevronLeft className="h-4 w-4 group-hover:text-primary transition-colors" />
-      )}
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="group-hover:text-primary transition-colors"
+      >
+        {isExpanded ? (
+          <polyline points="13 17 18 12 13 7" />
+        ) : (
+          <polyline points="11 17 6 12 11 7" />
+        )}
+      </svg>
     </div>
   );
 
@@ -217,32 +207,6 @@ export default function DocumentDrawerViewer({
                 {document.fileName}
               </SheetTitle>
             </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-8 w-8"
-                onClick={toggleExpand}
-              >
-                {isExpanded ? (
-                  <Minimize2 className="h-4 w-4" />
-                ) : (
-                  <Maximize2 className="h-4 w-4" />
-                )}
-                <span className="sr-only">
-                  {isExpanded ? "Reduce Size" : "Expand Size"}
-                </span>
-              </Button>
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-8 w-8"
-                onClick={onClose}
-              >
-                <X className="h-4 w-4" />
-                <span className="sr-only">Close</span>
-              </Button>
-            </div>
           </SheetHeader>
 
           {/* Protection alert message */}
@@ -256,18 +220,11 @@ export default function DocumentDrawerViewer({
           )}
 
           <div
-            className="flex-1 overflow-auto"
+            className="flex-1 overflow-hidden"
             onContextMenu={handleContextMenu}
           >
             {loading ? (
-              <div className="flex h-full w-full items-center justify-center">
-                <div className="flex flex-col items-center gap-2">
-                  <div className="h-8 w-8 animate-spin rounded-full border-2 border-t-transparent border-primary"></div>
-                  <p className="text-sm text-muted-foreground">
-                    Loading document...
-                  </p>
-                </div>
-              </div>
+              <LoadingState />
             ) : error ? (
               <div className="flex h-full w-full items-center justify-center p-6">
                 <div className="flex flex-col items-center gap-2 text-center max-w-md">
@@ -293,55 +250,34 @@ export default function DocumentDrawerViewer({
                   <p className="text-sm text-muted-foreground">{error}</p>
                 </div>
               </div>
+            ) : documentUrl && document.fileType === "PDF" ? (
+              <EnhancedPdfViewer url={documentUrl} />
             ) : (
-              <div
-                className="h-full w-full overflow-auto bg-muted/20"
-                // style={{ pointerEvents: "none" }}
-                onContextMenu={handleContextMenu}
-              >
-                {documentUrl && document.fileType === "PDF" ? (
-                  <iframe
-                    ref={iframeRef}
-                    onLoad={handleIframeLoad}
-                    src={`${documentUrl}#view=FitH&toolbar=0&navpanes=0`}
-                    className="h-full w-full border-0"
-                    title={document.fileName || "Document"}
-                    onContextMenu={(e) => {
-                      e.preventDefault();
-                      setShowProtectionAlert(true);
-                      setTimeout(() => setShowProtectionAlert(false), 3000);
-                      return false;
-                    }}
-                  />
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center p-6">
-                    <div className="flex flex-col items-center gap-4">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-12 w-12 text-muted-foreground"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                        />
-                      </svg>
-                      <h3 className="text-lg font-semibold">
-                        Preview Not Available
-                      </h3>
-                      <p className="text-sm text-muted-foreground text-center">
-                        This file type cannot be previewed directly in the
-                        browser.
-                        <br />
-                        You can download the file instead.
-                      </p>
-                    </div>
-                  </div>
-                )}
+              <div className="flex h-full w-full items-center justify-center p-6">
+                <div className="flex flex-col items-center gap-4">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-12 w-12 text-muted-foreground"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                    />
+                  </svg>
+                  <h3 className="text-lg font-semibold">
+                    Preview Not Available
+                  </h3>
+                  <p className="text-sm text-muted-foreground text-center">
+                    This file type cannot be previewed directly in the browser.
+                    <br />
+                    You can download the file instead.
+                  </p>
+                </div>
               </div>
             )}
           </div>

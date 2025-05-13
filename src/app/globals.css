@@ -112,6 +112,25 @@
   --sidebar-ring: oklch(0.551 0.027 264.364);
 }
 
+.pdf-document-container {
+  background-color: #f0f0f0;
+  padding: 20px;
+  border-radius: 5px;
+}
+
+.pdf-page {
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+  background-color: white;
+}
+
+/* Add responsive adjustments */
+@media (max-width: 768px) {
+  .pdf-page {
+    margin: 0 !important;
+  }
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
