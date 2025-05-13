@@ -40,7 +40,6 @@ import {
   Info,
   Loader2,
 } from "lucide-react";
-import { useChunkedUpload } from "@/hooks/use-chunked-upload";
 import { useDirectUpload } from "@/hooks/use-direct-upload";
 
 export default function UploadPage() {

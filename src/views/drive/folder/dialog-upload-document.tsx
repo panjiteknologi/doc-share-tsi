@@ -17,7 +17,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { FileUpload } from "@/components/file-upload";
-import { useChunkedUpload } from "@/hooks/use-chunked-upload";
 import { useDirectUpload } from "@/hooks/use-direct-upload";
 
 // Form validation schema
