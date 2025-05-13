@@ -33,23 +33,45 @@ const DriveView = () => {
   const userId = session?.user?.id as string;
 
   // Fetch folders LS
-  const { folders, isLoading: isFoldersLoading } = useNonRootFolders(userRole);
+  const {
+    folders,
+    isLoading: isFoldersLoading,
+    mutate: revalidateNonRootFolders,
+  } = useNonRootFolders(userRole);
   // Fetch folders Client
-  const { folders: foldersByUserId, isLoading: isFoldersByIdLoading } =
-    useFoldersByUserId(userId, userRole);
+  const {
+    folders: foldersByUserId,
+    isLoading: isFoldersByIdLoading,
+    mutate: revalidateFoldersByUserId,
+  } = useFoldersByUserId(userId, userRole);
   // Fetch folders Auditor
-  const { folders: foldersProjects } = useFoldersProjects(userRole);
+  const { folders: foldersProjects, mutate: revalidateFoldersProject } =
+    useFoldersProjects(userRole);
 
   // Fetch documents LS
-  const { documents, isLoading: isLoadingDocuments } =
-    useRootDocuments(userRole);
+  const {
+    documents,
+    isLoading: isLoadingDocuments,
+    mutate: revalidateRootDocuments,
+  } = useRootDocuments(userRole);
   //Fetch documents Client
-  const { documents: documentsByUserId, isLoading: isDocumentsRootLoading } =
-    useRootDocumentsByUserId(userId, userRole);
+  const {
+    documents: documentsByUserId,
+    isLoading: isDocumentsRootLoading,
+    mutate: revalidateDocumentsByUserId,
+  } = useRootDocumentsByUserId(userId, userRole);
 
   const handleViewDocument = (document: any) => {
     setSelectedDocument(document);
     setIsViewDialogOpen(true);
+  };
+
+  const handleSuccess = () => {
+    revalidateNonRootFolders();
+    revalidateFoldersByUserId();
+    revalidateFoldersProject();
+    revalidateRootDocuments();
+    revalidateDocumentsByUserId();
   };
 
   const loadingDocuments = isLoadingDocuments || isDocumentsRootLoading;
@@ -124,6 +146,7 @@ const DriveView = () => {
                     key={document.id}
                     document={document}
                     onViewDocument={handleViewDocument}
+                    onSuccess={handleSuccess}
                   />
                 ))}
               </div>
@@ -145,6 +168,7 @@ const DriveView = () => {
                     key={document.id}
                     document={document}
                     onViewDocument={handleViewDocument}
+                    onSuccess={handleSuccess}
                   />
                 ))}
               </div>
