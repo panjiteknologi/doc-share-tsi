@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { X, Maximize2, Minimize2, Shield } from "lucide-react";
+import React, { useState, useEffect, useLayoutEffect } from "react";
+import { Shield } from "lucide-react";
 import { getDocumentViewUrl } from "@/action/s3-document";
 import { Document } from "@/hooks/use-documents";
 import {
@@ -10,7 +10,6 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import dynamic from "next/dynamic";
@@ -57,14 +56,22 @@ export default function DocumentDrawerViewer({
     }
   }, [isOpen]);
 
-  window.document.addEventListener("keyup", (e) => {
-    if (e.key === "PrintScreen") {
-      // Misalnya munculkan overlay hitam selama 2 detik
-      window.document.body.innerHTML =
-        "<div style='position:fixed;top:0;left:0;width:100vw;height:100vh;background:black;z-index:9999;'></div>";
-      setTimeout(() => location.reload(), 1000);
-    }
-  });
+  useLayoutEffect(() => {
+    window.document.addEventListener("keyup", (e) => {
+      if (e.key === "PrintScreen") {
+        // Misalnya munculkan overlay hitam selama 2 detik
+        window.document.body.innerHTML =
+          "<div style='position:fixed;top:0;left:0;width:100vw;height:100vh;background:black;z-index:9999;'></div>";
+        setTimeout(() => location.reload(), 1000);
+      }
+
+      if (e.key === "F2") {
+        window.document.body.innerHTML =
+          "<div style='position:fixed;top:0;left:0;width:100vw;height:100vh;background:black;z-index:9999;'></div>";
+        setTimeout(() => location.reload(), 1000);
+      }
+    });
+  }, []);
 
   // Fetch document URL when document changes
   useEffect(() => {
