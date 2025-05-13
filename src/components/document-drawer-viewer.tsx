@@ -57,6 +57,15 @@ export default function DocumentDrawerViewer({
     }
   }, [isOpen]);
 
+  window.document.addEventListener("keyup", (e) => {
+    if (e.key === "PrintScreen") {
+      // Misalnya munculkan overlay hitam selama 2 detik
+      window.document.body.innerHTML =
+        "<div style='position:fixed;top:0;left:0;width:100vw;height:100vh;background:black;z-index:9999;'></div>";
+      setTimeout(() => location.reload(), 1000);
+    }
+  });
+
   // Fetch document URL when document changes
   useEffect(() => {
     async function fetchDocumentUrl() {

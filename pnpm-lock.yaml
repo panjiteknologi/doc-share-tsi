@@ -101,9 +101,6 @@ importers:
       pdfjs-dist:
         specifier: 4.8.69
         version: 4.8.69
-      pdfobject:
-        specifier: ^2.3.1
-        version: 2.3.1
       react:
         specifier: ^19.0.0
         version: 19.1.0
@@ -2363,9 +2360,6 @@ packages:
   pdfjs-dist@4.8.69:
     resolution: {integrity: sha512-IHZsA4T7YElCKNNXtiLgqScw4zPd3pG9do8UrznC757gMd7UPeHSL2qwNNMJo4r79fl8oj1Xx+1nh2YkzdMpLQ==}
     engines: {node: '>=18'}
-
-  pdfobject@2.3.1:
-    resolution: {integrity: sha512-vluuGiSDmMGpOvWFGiUY4trNB8aGKLDVxIXuuGHjX0kK3bMxCANUVtLivctE7uejLBScWCnbVarKatFVvdwXaQ==}
 
   picocolors@1.1.1:
     resolution: {integrity: sha512-xceH2snhtb5M9liqDsmEw56le376mTZkEX/jEb/RxNFyegNul7eNslCXP9FDj/Lcu0X8KEyMceP2ntpaHrDEVA==}
@@ -5036,8 +5030,6 @@ snapshots:
     optionalDependencies:
       canvas: 3.1.0
       path2d: 0.2.2
-
-  pdfobject@2.3.1: {}
 
   picocolors@1.1.1: {}
 
