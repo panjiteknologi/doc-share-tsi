@@ -13,7 +13,6 @@ import {
   List,
   Search,
   Filter,
-  Settings2,
 } from "lucide-react";
 import {
   Card,
@@ -113,7 +112,7 @@ const FolderDetailView: React.FC<FolderDetailViewProps> = ({ folderId }) => {
     setIsViewDialogOpen(true);
   };
 
-  const handleAddDocumentSuccess = () => {
+  const handleRevalidateSuccess = () => {
     mutate();
   };
 
@@ -293,6 +292,7 @@ const FolderDetailView: React.FC<FolderDetailViewProps> = ({ folderId }) => {
                   key={document.id}
                   document={document}
                   onViewDocument={handleViewDocument}
+                  onSuccess={handleRevalidateSuccess}
                 />
               ))}
             </div>
@@ -307,7 +307,7 @@ const FolderDetailView: React.FC<FolderDetailViewProps> = ({ folderId }) => {
         isOpen={isAddDocumentOpen}
         onClose={() => setIsAddDocumentOpen(false)}
         folderId={folderId}
-        onSuccess={handleAddDocumentSuccess}
+        onSuccess={handleRevalidateSuccess}
       />
 
       {/* View Document Dialog */}
