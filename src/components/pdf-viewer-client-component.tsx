@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -21,6 +21,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ url }) => {
   const [pageNumber, setPageNumber] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [scale, setScale] = useState(1.2);
 
   const options = useMemo(
     () => ({
@@ -54,6 +55,19 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ url }) => {
     if (numPages) {
       setPageNumber((prev) => Math.min(prev + 1, numPages));
     }
+  };
+
+  // Zoom Controls
+  const zoomIn = () => {
+    setScale((prevScale) => Math.min(prevScale + 0.2, 3.0));
+  };
+
+  const zoomOut = () => {
+    setScale((prevScale) => Math.max(prevScale - 0.2, 0.6));
+  };
+
+  const resetZoom = () => {
+    setScale(1.2);
   };
 
   if (error) {
@@ -97,6 +111,38 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ url }) => {
         >
           <ChevronRight className="h-4 w-4" />
         </Button>
+
+        <div className="flex items-center gap-1">
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
+            onClick={zoomOut}
+            disabled={loading || scale <= 0.6}
+          >
+            <ZoomOut className="h-4 w-4" />
+          </Button>
+
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 text-xs"
+            onClick={resetZoom}
+            disabled={loading}
+          >
+            {Math.round(scale * 100)}%
+          </Button>
+
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
+            onClick={zoomIn}
+            disabled={loading || scale >= 3.0}
+          >
+            <ZoomIn className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
 
       {/* PDF viewer */}
@@ -130,7 +176,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ url }) => {
             pageNumber={pageNumber}
             renderTextLayer={false}
             renderAnnotationLayer={false}
-            scale={1.2}
+            scale={scale}
             loading={<Skeleton className="h-[600px] w-[450px]" />}
           />
         </PDFDocument>
