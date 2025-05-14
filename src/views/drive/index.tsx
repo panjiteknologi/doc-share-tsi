@@ -20,11 +20,14 @@ import FolderTable from "./folder-table";
 import DocumentCard from "./document-card";
 import DocumentTable from "./document-table";
 import DocumentDrawerViewer from "@/components/document-drawer-viewer";
+import DialogCreateFolder from "./dialog-create-folder";
 
 const DriveView = () => {
   const { data: session } = useSession();
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
+  const [isCreateFolderDialogOpen, setIsCreateFolderDialogOpen] =
+    useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [selectedDocument, setSelectedDocument] = useState<any>(null);
 
@@ -74,6 +77,11 @@ const DriveView = () => {
     revalidateDocumentsByUserId();
   };
 
+  // Open create folder dialog
+  const handleOpenCreateFolder = () => {
+    setIsCreateFolderDialogOpen(true);
+  };
+
   const loadingDocuments = isLoadingDocuments || isDocumentsRootLoading;
   const loadingFolders = isFoldersLoading || isFoldersByIdLoading;
 
@@ -107,7 +115,7 @@ const DriveView = () => {
             </Tabs>
           </div>
           {userRole !== "auditor" && (
-            <Button>
+            <Button onClick={handleOpenCreateFolder}>
               <FolderPlus className="h-4 w-4 mr-2" />
               Create Folder
             </Button>
@@ -248,6 +256,11 @@ const DriveView = () => {
       </div>
 
       {/* Create Folder Dialog */}
+      <DialogCreateFolder
+        isOpen={isCreateFolderDialogOpen}
+        onClose={() => setIsCreateFolderDialogOpen(false)}
+        onSuccess={handleSuccess}
+      />
 
       {/* View Document Dialog */}
       <DocumentDrawerViewer
