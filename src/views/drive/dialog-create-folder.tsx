@@ -96,7 +96,7 @@ export default function DialogCreateFolder({
   const { data: session } = useSession();
   const [isLoading, setIsLoading] = useState(false);
   const userRole = session?.user?.roleCode || "";
-  const userId = session?.user?.id;
+  const userId = session?.user?.id as string;
 
   // For surveyor role, we need to fetch clients to select
   const { clients, isLoading: isLoadingClients } = useClients({
@@ -153,6 +153,7 @@ export default function DialogCreateFolder({
       const result = await createFolder({
         name: data.name,
         userId: finalUserId,
+        createdById: userId,
         isRoot: false,
         startDate: new Date(data.startDate),
         endDate: new Date(data.endDate),
