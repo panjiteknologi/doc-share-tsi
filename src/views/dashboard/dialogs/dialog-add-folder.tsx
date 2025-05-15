@@ -70,6 +70,7 @@ interface AddFolderDialogProps {
 
 export function DialogAddFolder({ onSuccess }: AddFolderDialogProps) {
   const { data: session } = useSession();
+  const userId = session?.user.id as string;
   const { isOpen, dialogType, closeDialog, isLoading, setLoading } =
     useDashboardDialog();
   const isDialogOpen = isOpen && dialogType === "folder";
@@ -117,6 +118,7 @@ export function DialogAddFolder({ onSuccess }: AddFolderDialogProps) {
       const result = await createFolder({
         name: data.name,
         userId: data.clientId, // Use client ID instead of session user ID
+        createdById: userId,
         isRoot: false,
         startDate: new Date(data.startDate),
         endDate: new Date(data.endDate),
