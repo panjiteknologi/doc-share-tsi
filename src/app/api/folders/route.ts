@@ -69,6 +69,7 @@ export async function GET(request: NextRequest) {
       createdAt: folder.createdAt,
       documentCount: folder.documents.length,
       createdByName: folder.createdBy?.name,
+      createdBy: folder.createdBy,
       owner: folder.user.name,
       userId: folder.userId,
       hasProject: folder.project !== null,
