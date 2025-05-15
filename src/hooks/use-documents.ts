@@ -14,6 +14,8 @@ export interface Document {
   folder?: {
     id: string;
     name: string;
+    createdById: string;
+    userId: string;
   };
   uploadedBy?: string;
   uploadedById?: string;

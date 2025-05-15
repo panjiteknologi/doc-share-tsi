@@ -180,13 +180,25 @@ export async function deleteDocument(formData: FormData) {
 
     const existingDocument = await prisma.document.findUnique({
       where: { id },
+      select: {
+        folder: {
+          select: {
+            createdById: true,
+            userId: true,
+          },
+        },
+        folderId: true,
+      },
     });
 
     if (!existingDocument) {
       return { success: false, error: "Document not found" };
     }
 
-    if (existingDocument.userId !== session.user.id) {
+    if (
+      (existingDocument.folder.createdById ||
+        existingDocument.folder.userId) !== session.user.id
+    ) {
       return { success: false, error: "Unauthorized operation" };
     }
 

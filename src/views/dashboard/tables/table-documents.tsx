@@ -42,6 +42,7 @@ import {
   formatTimeRemaining,
   getExpiryStatusColor,
 } from "@/lib/cron";
+import { useSession } from "next-auth/react";
 
 interface TableDocumentsProps {
   folderId?: string;
@@ -52,6 +53,9 @@ export function TableDocuments({
   folderId,
   showFolderColumn = true,
 }: TableDocumentsProps) {
+  const { data: session } = useSession();
+  const userId = session?.user.id as string;
+
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -127,6 +131,8 @@ export function TableDocuments({
         return <FileText className="h-4 w-4 text-gray-500" />;
     }
   };
+
+  console.log("Documents : ", documents);
 
   return (
     <div className="space-y-4">
@@ -234,45 +240,52 @@ export function TableDocuments({
                     })()}
                   </TableCell>
                   <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">Open menu</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          onClick={() => handleViewDocument(document)}
-                          disabled={isLoadingActions[document.id]?.view}
-                        >
-                          {isLoadingActions[document.id]?.view ? (
-                            <>
-                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                              Preparing...
-                            </>
-                          ) : (
-                            <>
-                              <Eye className="h-4 w-4 mr-2" />
-                              View
-                            </>
-                          )}
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => handleOpenEditDialog(document)}
-                        >
-                          <FolderOpen className="h-4 w-4 mr-2" />
-                          Move
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => handleOpenDeleteDialog(document)}
-                          className="text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    {(document.folder?.createdById === userId ||
+                      document.folder?.userId === userId) && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                          >
+                            <MoreHorizontal className="h-4 w-4" />
+                            <span className="sr-only">Open menu</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            onClick={() => handleViewDocument(document)}
+                            disabled={isLoadingActions[document.id]?.view}
+                          >
+                            {isLoadingActions[document.id]?.view ? (
+                              <>
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                Preparing...
+                              </>
+                            ) : (
+                              <>
+                                <Eye className="h-4 w-4 mr-2" />
+                                View
+                              </>
+                            )}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleOpenEditDialog(document)}
+                          >
+                            <FolderOpen className="h-4 w-4 mr-2" />
+                            Move
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleOpenDeleteDialog(document)}
+                            className="text-destructive"
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
                   </TableCell>
                 </TableRow>
               ))

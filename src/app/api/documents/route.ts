@@ -68,6 +68,8 @@ export async function GET(request: NextRequest) {
           select: {
             id: true,
             name: true,
+            createdById: true,
+            userId: true,
           },
         },
         user: {
@@ -126,6 +128,8 @@ export async function GET(request: NextRequest) {
         folder: {
           id: doc.folder.id,
           name: doc.folder.name,
+          createdById: doc.folder.createdById,
+          userId: doc.folder.userId,
         },
         uploadedBy: doc.user.name,
         uploadedById: doc.user.id,
