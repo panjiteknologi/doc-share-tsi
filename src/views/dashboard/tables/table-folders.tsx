@@ -48,8 +48,6 @@ export function TableFolders() {
     sortOrder: "desc",
   });
 
-  console.log("folders : ", folders);
-
   // Handle search
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
