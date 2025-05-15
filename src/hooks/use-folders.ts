@@ -25,14 +25,16 @@ export interface Folder {
   createdAt: string;
   documentCount: number;
   createdByName: string;
+  owner: string;
   userId: string;
   hasProject: boolean;
   documents: Document[];
   user: User;
+  createdBy: User;
 }
 
 export interface DetailedFolder
-  extends Omit<Folder, "documentCount" | "createdByName"> {
+  extends Omit<Folder, "documentCount" | "createdByName" | "owner"> {
   documents: Document[];
   documentCount: number;
   owner: {
@@ -74,20 +76,6 @@ const fetcher = async (url: string) => {
       throw new Error(errorMessage || "Failed to fetch data");
     }
     // For non-Axios errors, just throw the original error
-    throw error;
-  }
-};
-
-// POST request fetcher for batch operations
-const postFetcher = async (url: string, data: any) => {
-  try {
-    const response = await axios.post(url, data);
-    return response.data;
-  } catch (error) {
-    if (axios.isAxiosError(error) && error.response) {
-      const errorMessage = error.response.data?.error || error.message;
-      throw new Error(errorMessage || "Failed to fetch data");
-    }
     throw error;
   }
 };

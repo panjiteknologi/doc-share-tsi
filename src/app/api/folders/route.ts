@@ -38,6 +38,9 @@ export async function GET(request: NextRequest) {
             id: true,
           },
         },
+        createdBy: {
+          select: { id: true, name: true, email: true },
+        },
         user: {
           select: {
             name: true,
@@ -65,7 +68,8 @@ export async function GET(request: NextRequest) {
       endDate: folder.endDate,
       createdAt: folder.createdAt,
       documentCount: folder.documents.length,
-      createdByName: folder.user.name,
+      createdByName: folder.createdBy?.name,
+      owner: folder.user.name,
       userId: folder.userId,
       hasProject: folder.project !== null,
     }));

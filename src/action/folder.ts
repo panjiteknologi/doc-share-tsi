@@ -16,6 +16,7 @@ const FolderSchema = z
           "Folder name can only contain letters, numbers, spaces, hyphens, and underscores",
       }),
     userId: z.string().min(1, "User ID is required"),
+    createdById: z.string().min(1, "Created By ID is required"),
     isRoot: z.boolean().default(false),
     startDate: z.date(),
     endDate: z.date(),
@@ -71,7 +72,10 @@ export async function createFolder(data: FolderFormData) {
     const result = await prisma.$transaction(async (tx) => {
       // Create the folder
       const folder = await tx.folder.create({
-        data: validatedData,
+        data: {
+          ...validatedData,
+          createdById: session.user.id,
+        },
       });
 
       // Create the project for this folder

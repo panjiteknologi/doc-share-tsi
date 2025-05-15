@@ -74,20 +74,21 @@ model Authenticator {
 }
 
 model User {
-  id             String     @id @default(cuid())
-  name           String?
-  hashedPassword String
-  email          String?    @unique
-  emailVerified  DateTime?
-  image          String?
-  roleId         String     @default(cuid()) // Default role, dapat disesuaikan
-  role           Role       @relation(fields: [roleId], references: [id])
-  folders        Folder[]
-  documents      Document[]
-  projects       Project[]
-  sessions       Session[]
-  accounts       Account[]
-  Authenticator  Authenticator[]
+  id                String     @id @default(cuid())
+  name              String?
+  hashedPassword    String
+  email             String?    @unique
+  emailVerified     DateTime?
+  image             String?
+  roleId            String     @default(cuid()) // Default role, dapat disesuaikan
+  role              Role       @relation(fields: [roleId], references: [id])
+  folders           Folder[]
+  documents         Document[]
+  projects          Project[]
+  sessions          Session[]
+  accounts          Account[]
+  Authenticator     Authenticator[]
+  createdFolders    Folder[] @relation("FolderCreator")
 }
 
 model Role {
@@ -98,26 +99,28 @@ model Role {
 }
 
 model Folder {
-  id        String     @id @default(cuid())
-  createdAt DateTime   @default(now())
-  name      String
-  userId    String
-  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  isRoot    Boolean
-  startDate DateTime   @default(now())
-  endDate   DateTime   @default(now())
-  documents Document[]
-  project   Project?
+  id          String     @id @default(cuid())
+  createdAt   DateTime   @default(now())
+  name        String
+  userId      String
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  isRoot      Boolean
+  startDate   DateTime   @default(now())
+  endDate     DateTime   @default(now())
+  documents   Document[]
+  project     Project?
+  createdById String? 
+  createdBy   User?     @relation("FolderCreator", fields: [createdById], references: [id])
 }
 
 model Document {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  url       String
-  folder    Folder   @relation(fields: [folderId], references: [id], onDelete: Cascade)
-  folderId  String
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  url         String
+  folder      Folder   @relation(fields: [folderId], references: [id], onDelete: Cascade)
+  folderId    String
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Project {

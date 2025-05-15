@@ -44,6 +44,8 @@ export function TableFolders() {
     sortOrder: "desc",
   });
 
+  console.log("folders : ", folders);
+
   // Handle search
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
@@ -90,6 +92,7 @@ export function TableFolders() {
               <TableHead>Type</TableHead>
               <TableHead>Documents</TableHead>
               <TableHead>Period</TableHead>
+              <TableHead>Owner</TableHead>
               <TableHead>Created By</TableHead>
               <TableHead className="w-[100px]">Actions</TableHead>
             </TableRow>
@@ -109,6 +112,9 @@ export function TableFolders() {
                   </TableCell>
                   <TableCell>
                     <Skeleton className="h-5 w-[120px]" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-5 w-[100px]" />
                   </TableCell>
                   <TableCell>
                     <Skeleton className="h-5 w-[100px]" />
@@ -143,6 +149,9 @@ export function TableFolders() {
                         {new Date(folder.endDate).toLocaleDateString()}
                       </span>
                     </div>
+                  </TableCell>
+                  <TableCell className="truncate max-w-[125px]">
+                    {folder.owner}
                   </TableCell>
                   <TableCell>{folder.createdByName}</TableCell>
                   <TableCell>
