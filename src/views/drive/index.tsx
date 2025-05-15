@@ -65,8 +65,6 @@ const DriveView = () => {
     mutate: revalidateDocumentsByUserId,
   } = useRootDocumentsByUserId(userId, userRole);
 
-  console.log("FOLDERS ADMIN : ", folders);
-
   const handleViewDocument = (document: any) => {
     setSelectedDocument(document);
     setIsViewDialogOpen(true);

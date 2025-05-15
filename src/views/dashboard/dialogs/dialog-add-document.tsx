@@ -27,7 +27,7 @@ import {
 } from "@/components/ui/select";
 import { FileUpload } from "@/components/file-upload";
 import { useDashboardDialog } from "@/store/store-dashboard-dialog";
-import { useFolders } from "@/hooks/use-folders";
+import { useFolders, useFoldersByCreator } from "@/hooks/use-folders";
 import { useDocuments } from "@/hooks/use-documents";
 import { useDirectUpload } from "@/hooks/use-direct-upload";
 
@@ -48,6 +48,7 @@ type FormData = z.infer<typeof FormSchema>;
 
 export function DialogAddDocument() {
   const { data: session, status } = useSession();
+  const userId = session?.user.id as string;
   const { isOpen, dialogType, closeDialog, isLoading, setLoading } =
     useDashboardDialog();
   const isDialogOpen = isOpen && dialogType === "document";
@@ -75,7 +76,7 @@ export function DialogAddDocument() {
   });
 
   // Safe access to userId - only pass it when session is available
-  const { folders, isLoading: foldersLoading } = useFolders({});
+  const { folders, isLoading: foldersLoading } = useFoldersByCreator(userId);
 
   const {
     handleSubmit,
