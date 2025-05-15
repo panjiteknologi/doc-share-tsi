@@ -274,3 +274,24 @@ export function useFoldersByUserId(userId: string, userRole: string) {
     mutate,
   };
 }
+
+// Hook for fetching all folders by Creator/Admin ID
+export function useFoldersByCreator(creatorId: string | null) {
+  const { data, error, isLoading, mutate } = useSWR<{ folders: Folder[] }>(
+    creatorId ? `/api/folders/created/${creatorId}` : null,
+    fetcher,
+    {
+      onError: (err) => {
+        toast.error(err.message || "Failed to fetch created folders");
+      },
+      revalidateOnFocus: false,
+    }
+  );
+
+  return {
+    folders: data?.folders || [],
+    isLoading,
+    error,
+    mutate,
+  };
+}

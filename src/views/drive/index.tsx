@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { useSession } from "next-auth/react";
 import {
+  useFoldersByCreator,
   useFoldersByUserId,
   useFoldersProjects,
   useNonRootFolders,
@@ -40,7 +41,7 @@ const DriveView = () => {
     folders,
     isLoading: isFoldersLoading,
     mutate: revalidateNonRootFolders,
-  } = useNonRootFolders(userRole);
+  } = useFoldersByCreator(userId);
   // Fetch folders Client
   const {
     folders: foldersByUserId,
@@ -63,6 +64,8 @@ const DriveView = () => {
     isLoading: isDocumentsRootLoading,
     mutate: revalidateDocumentsByUserId,
   } = useRootDocumentsByUserId(userId, userRole);
+
+  console.log("FOLDERS ADMIN : ", folders);
 
   const handleViewDocument = (document: any) => {
     setSelectedDocument(document);
