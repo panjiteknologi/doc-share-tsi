@@ -345,7 +345,7 @@ export default function UploadPage() {
                   "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
                     [".docx"],
                 }}
-                maxSize={20971520} // 20MB
+                maxSize={52428800} // 50MB
                 disabled={isUploading}
                 progress={uploadProgress}
               />
@@ -505,7 +505,7 @@ export default function UploadPage() {
               <ul className="space-y-2">
                 <li className="flex items-center gap-2">
                   <Info className="h-4 w-4 text-blue-500" />
-                  <span>Maximum file size: 20MB</span>
+                  <span>Maximum file size: 50MB</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <Info className="h-4 w-4 text-blue-500" />

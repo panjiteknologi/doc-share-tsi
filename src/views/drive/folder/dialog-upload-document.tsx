@@ -23,8 +23,8 @@ import { useDirectUpload } from "@/hooks/use-direct-upload";
 const formSchema = z.object({
   file: z
     .instanceof(File, { message: "Please upload a document" })
-    .refine((file) => file.size <= 20 * 1024 * 1024, {
-      message: "File size must be less than 20MB",
+    .refine((file) => file.size <= 50 * 1024 * 1024, {
+      message: "File size must be less than 50MB",
     })
     .refine((file) => ["application/pdf"].includes(file.type), {
       message: "File type not supported. Please upload PDF files only.",
@@ -109,7 +109,7 @@ export default function DialogUploadDocument({
             <DialogTitle>Upload Document</DialogTitle>
             <DialogDescription>
               Upload a document to the current folder. Supported format: PDF
-              (max 20MB).
+              (max 50MB).
             </DialogDescription>
           </DialogHeader>
 
