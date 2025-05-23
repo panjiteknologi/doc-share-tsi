@@ -59,24 +59,21 @@ export default function DocumentDrawerViewer({
   
   useEffect(() => {
     window.document.addEventListener("keyup", (e) => {
+      const keyCombo = `${e.metaKey ? 'Meta+' : ''}${e.ctrlKey ? 'Ctrl+' : ''}${e.shiftKey ? 'Shift+' : ''}${e.key}`;
       console.log("e.key:", e.key);
       console.log("e.code:", e.code);
       console.log("e.keyCode:", e.keyCode);
-      const keyCombo = `${e.metaKey ? 'Meta+' : ''}${e.ctrlKey ? 'Ctrl+' : ''}${e.shiftKey ? 'Shift+' : ''}${e.key}`;
-
       console.log("Detected key combo:", keyCombo);
 
-      // Cegah kombinasi umum untuk screenshot/snipping
       const blockedCombos = [
         "Meta+Shift+S",    // Windows snipping tool
         "Ctrl+Shift+S",    // Browser screen capture shortcut
-        "PrintScreen",     // Standard screenshot (jika bisa)
-        "Meta",            // Cmd or Windows key alone
-        "Escape",            // Cmd or Windows key alone
+        "PrintScreen",     // Jika terdeteksi
+        "Meta",            // Tombol Windows atau Cmd
+        "Escape",          // Escape jika ingin diblokir
       ];
 
       if (blockedCombos.includes(keyCombo)) {
-        // Tampilkan overlay
         window.document.body.innerHTML =
           "<div style='position:fixed;top:0;left:0;width:100vw;height:100vh;background:black;z-index:9999;'></div>";
         setTimeout(() => location.reload(), 1000);
