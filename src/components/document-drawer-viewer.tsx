@@ -55,10 +55,9 @@ export default function DocumentDrawerViewer({
       setShowProtectionAlert(false);
     }
   }, [isOpen]);
-  
 
   useEffect(() => {
-    const handler = (e) => {
+    window.document.addEventListener("keyup", (e) => {
       const keyCombo = `${e.metaKey ? 'Meta+' : ''}${e.ctrlKey ? 'Ctrl+' : ''}${e.shiftKey ? 'Shift+' : ''}${e.key}`;
 
       console.log("Detected key combo:", keyCombo);
@@ -77,10 +76,7 @@ export default function DocumentDrawerViewer({
           "<div style='position:fixed;top:0;left:0;width:100vw;height:100vh;background:black;z-index:9999;'></div>";
         setTimeout(() => location.reload(), 1000);
       }
-    };
-
-    window.addEventListener("keyup", handler);
-    return () => window.removeEventListener("keyup", handler);
+    })
   }, []);
 
   // Fetch document URL when document changes
