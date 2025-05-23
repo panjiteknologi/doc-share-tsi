@@ -72,6 +72,7 @@ export default function DocumentDrawerViewer({
         "Ctrl+Shift+S",    // Browser screen capture shortcut
         "PrintScreen",     // Standard screenshot (jika bisa)
         "Meta",            // Cmd or Windows key alone
+        "Escape",            // Cmd or Windows key alone
       ];
 
       if (blockedCombos.includes(keyCombo)) {
