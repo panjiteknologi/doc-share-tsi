@@ -70,7 +70,6 @@ export default function DocumentDrawerViewer({
         "Ctrl+Shift+S",    // Browser screen capture shortcut
         "PrintScreen",     // Jika terdeteksi
         "Meta",            // Tombol Windows atau Cmd
-        "Escape",          // Escape jika ingin diblokir
       ];
 
       if (blockedCombos.includes(keyCombo)) {
