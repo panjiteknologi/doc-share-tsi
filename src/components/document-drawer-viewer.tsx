@@ -55,22 +55,32 @@ export default function DocumentDrawerViewer({
       setShowProtectionAlert(false);
     }
   }, [isOpen]);
+  
 
-  useLayoutEffect(() => {
-    window.document.addEventListener("keyup", (e) => {
-      if (e.key === "PrintScreen") {
-        // Misalnya munculkan overlay hitam selama 2 detik
+  useEffect(() => {
+    const handler = (e) => {
+      const keyCombo = `${e.metaKey ? 'Meta+' : ''}${e.ctrlKey ? 'Ctrl+' : ''}${e.shiftKey ? 'Shift+' : ''}${e.key}`;
+
+      console.log("Detected key combo:", keyCombo);
+
+      // Cegah kombinasi umum untuk screenshot/snipping
+      const blockedCombos = [
+        "Meta+Shift+S",    // Windows snipping tool
+        "Ctrl+Shift+S",    // Browser screen capture shortcut
+        "PrintScreen",     // Standard screenshot (jika bisa)
+        "Meta",            // Cmd or Windows key alone
+      ];
+
+      if (blockedCombos.includes(keyCombo)) {
+        // Tampilkan overlay
         window.document.body.innerHTML =
           "<div style='position:fixed;top:0;left:0;width:100vw;height:100vh;background:black;z-index:9999;'></div>";
         setTimeout(() => location.reload(), 1000);
       }
+    };
 
-      if (e.key === "F2") {
-        window.document.body.innerHTML =
-          "<div style='position:fixed;top:0;left:0;width:100vw;height:100vh;background:black;z-index:9999;'></div>";
-        setTimeout(() => location.reload(), 1000);
-      }
-    });
+    window.addEventListener("keyup", handler);
+    return () => window.removeEventListener("keyup", handler);
   }, []);
 
   // Fetch document URL when document changes
@@ -99,6 +109,19 @@ export default function DocumentDrawerViewer({
 
     fetchDocumentUrl();
   }, [document, isOpen]);
+  useEffect(() => {
+    const handleGlobalContextMenu = (e: MouseEvent) => {
+      e.preventDefault();
+      setShowProtectionAlert(true);
+      setTimeout(() => setShowProtectionAlert(false), 3000);
+    };
+  
+    window.addEventListener("contextmenu", handleGlobalContextMenu);
+  
+    return () => {
+      window.removeEventListener("contextmenu", handleGlobalContextMenu);
+    };
+  }, []);
 
   const handleContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -199,6 +222,19 @@ export default function DocumentDrawerViewer({
     </div>
   );
 
+  const mapFileType = (type: string): string => {
+    switch (type.toUpperCase()) {
+      case "WORD":
+        return "DOCX";
+      case "EXCEL":
+        return "XLSX";
+      default:
+        return type.toUpperCase();
+    }
+  };
+  
+  const normalizedType = mapFileType(document?.fileType || "");
+
   if (!document) return null;
 
   return (
@@ -266,8 +302,29 @@ export default function DocumentDrawerViewer({
                   <p className="text-sm text-muted-foreground">{error}</p>
                 </div>
               </div>
-            ) : documentUrl && document.fileType === "PDF" ? (
-              <EnhancedPdfViewer url={documentUrl} />
+            ) : documentUrl && normalizedType === "PDF" ? (
+            <EnhancedPdfViewer url={documentUrl} />
+            ) : documentUrl && ["DOC", "DOCX"].includes(normalizedType) ? (
+              <div
+                onContextMenu={handleContextMenu} // mencegah klik kanan di div ini dan anaknya
+                style={{ width: "100%", height: "100%" }}
+              >
+                <iframe
+                  src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(documentUrl)}`}
+                  width="100%"
+                  height="100%"
+                  onContextMenu={handleContextMenu} // juga cegah klik kanan di iframe
+                  title="Office Document"
+                />
+              </div>
+            ) : documentUrl && ["XLS", "XLSX"].includes(normalizedType) ? (
+                  <iframe
+                      src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(documentUrl)}`}
+                      width="100%"
+                      height="100%"
+                      frameBorder="0"
+                      title="Excel Viewer"
+                    />
             ) : (
               <div className="flex h-full w-full items-center justify-center p-6">
                 <div className="flex flex-col items-center gap-4">
