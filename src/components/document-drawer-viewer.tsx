@@ -55,9 +55,13 @@ export default function DocumentDrawerViewer({
       setShowProtectionAlert(false);
     }
   }, [isOpen]);
-
+  
+  
   useEffect(() => {
     window.document.addEventListener("keyup", (e) => {
+      console.log("e.key:", e.key);
+      console.log("e.code:", e.code);
+      console.log("e.keyCode:", e.keyCode);
       const keyCombo = `${e.metaKey ? 'Meta+' : ''}${e.ctrlKey ? 'Ctrl+' : ''}${e.shiftKey ? 'Shift+' : ''}${e.key}`;
 
       console.log("Detected key combo:", keyCombo);
