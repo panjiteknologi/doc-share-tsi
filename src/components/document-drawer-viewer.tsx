@@ -152,7 +152,7 @@ export default function DocumentDrawerViewer({
         padding: 20px;
         z-index: 9999;
       ">
-        Mohon maaf, akses melalui perangkat mobile tidak didukung.
+        Mohon maaf, demi menjaga keamanan dokumen, akses melalui perangkat mobile tidak dapat kami fasilitasi. Terima kasih atas pengertiannya !
       </div>
     `;
   }
