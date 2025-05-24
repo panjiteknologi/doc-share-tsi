@@ -56,69 +56,106 @@ export default function DocumentDrawerViewer({
     }
   }, [isOpen]);
 
-  useEffect(() => {
-    const overlayId = "tab-blur-overlay";
+  // useEffect(() => {
+  //   const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  //   if (!isMobile) return; // hanya untuk mobile
 
-    // Buat elemen overlay
-    const overlay = window.document.createElement("div");
-    overlay.id = overlayId;
-    Object.assign(overlay.style, {
-      position: "fixed",
-      top: "0",
-      left: "0",
-      width: "100vw",
-      height: "100vh",
-      backgroundColor: "rgba(0, 0, 0, 0.9)",
-      zIndex: "999999",
-      display: "none",
-      justifyContent: "center",
-      alignItems: "center",
-      color: "white",
-      fontSize: "1.5rem",
-      userSelect: "none",
-    });
-    overlay.textContent = "Halaman diblokir saat tidak aktif";
+  //   const overlayId = "mobile-screenshot-block-overlay";
 
-    window.document.body.appendChild(overlay);
+  //   // Buat overlay div
+  //   const overlay = window.document.createElement("div");
+  //   overlay.id = overlayId;
+  //   overlay.style.position = "fixed";
+  //   overlay.style.top = "0";
+  //   overlay.style.left = "0";
+  //   overlay.style.width = "100vw";
+  //   overlay.style.height = "100vh";
+  //   overlay.style.backgroundColor = "black";
+  //   overlay.style.zIndex = "999999";
+  //   overlay.style.display = "none"; // awalnya sembunyi
 
-    const showOverlay = () => {
-      overlay.style.display = "flex";
-    };
+  //   window.document.body.appendChild(overlay);
 
-    const hideOverlay = () => {
-      overlay.style.display = "none";
-    };
+  //   const showOverlay = () => {
+  //     overlay.style.display = "block";
+  //   };
 
-    const handleVisibilityChange = () => {
-      if (window.document.hidden) {
-        showOverlay();
-      } else {
-        hideOverlay();
-      }
-    };
+  //   const hideOverlay = () => {
+  //     overlay.style.display = "none";
+  //   };
 
-    const handleBlur = () => {
-      showOverlay();
-    };
+  //   const blockActions = (e: KeyboardEvent) => {
+  //     // Blok shortcut keyboard, misal PrintScreen (kalau keyboard ada)
+  //     if (
+  //       e.key.toLowerCase() === "printscreen" ||
+  //       e.key === "F12" ||
+  //       (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "s")
+  //     ) {
+  //       showOverlay();
+  //       setTimeout(() => {
+  //         hideOverlay();
+  //       }, 1500);
+  //     }
+  //   };
 
-    const handleFocus = () => {
-      hideOverlay();
-    };
+  //   const onVisibilityChange = () => {
+  //     if (window.document.hidden) {
+  //       showOverlay();
+  //       setTimeout(() => {
+  //         hideOverlay();
+  //       }, 1500);
+  //     }
+  //   };
 
-    window.document.addEventListener("visibilitychange", handleVisibilityChange);
-    window.addEventListener("blur", handleBlur);
-    window.addEventListener("focus", handleFocus);
+  //   const onBlur = () => {
+  //     showOverlay();
+  //     setTimeout(() => {
+  //       hideOverlay();
+  //     }, 1500);
+  //   };
 
-    // Cleanup saat unmount
-    return () => {
-      window.document.removeEventListener("visibilitychange", handleVisibilityChange);
-      window.removeEventListener("blur", handleBlur);
-      window.removeEventListener("focus", handleFocus);
-      const el = window.document.getElementById(overlayId);
-      if (el) el.remove();
-    };
-  })
-  
+  //   window.addEventListener("keydown", blockActions);
+  //   window.document.addEventListener("visibilitychange", onVisibilityChange);
+  //   window.addEventListener("blur", onBlur);
+
+  //   // Cegah seleksi dan klik kanan (opsional)
+  //   const preventDefault = (e: Event) => e.preventDefault();
+  //   window.document.addEventListener("contextmenu", preventDefault);
+  //   window.document.addEventListener("selectstart", preventDefault);
+
+  //   return () => {
+  //     window.removeEventListener("keydown", blockActions);
+  //     window.document.removeEventListener("visibilitychange", onVisibilityChange);
+  //     window.removeEventListener("blur", onBlur);
+  //     window.document.removeEventListener("contextmenu", preventDefault);
+  //     window.document.removeEventListener("selectstart", preventDefault);
+
+  //     const el = window.document.getElementById(overlayId);
+  //     if (el) el.remove();
+  //   };
+  // })
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+  if (isMobile) {
+    window.document.body.innerHTML = `
+      <div style="
+        position: fixed;
+        top: 0; left: 0;
+        width: 100vw; height: 100vh;
+        background: #000;
+        color: #fff;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 1.5rem;
+        text-align: center;
+        padding: 20px;
+        z-index: 9999;
+      ">
+        Mohon maaf, akses melalui perangkat mobile tidak didukung.
+      </div>
+    `;
+  }
   
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
