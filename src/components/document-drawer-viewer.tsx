@@ -55,6 +55,69 @@ export default function DocumentDrawerViewer({
       setShowProtectionAlert(false);
     }
   }, [isOpen]);
+
+  useEffect(() => {
+    const overlayId = "tab-blur-overlay";
+
+    // Buat elemen overlay
+    const overlay = window.document.createElement("div");
+    overlay.id = overlayId;
+    Object.assign(overlay.style, {
+      position: "fixed",
+      top: "0",
+      left: "0",
+      width: "100vw",
+      height: "100vh",
+      backgroundColor: "rgba(0, 0, 0, 0.9)",
+      zIndex: "999999",
+      display: "none",
+      justifyContent: "center",
+      alignItems: "center",
+      color: "white",
+      fontSize: "1.5rem",
+      userSelect: "none",
+    });
+    overlay.textContent = "Halaman diblokir saat tidak aktif";
+
+    window.document.body.appendChild(overlay);
+
+    const showOverlay = () => {
+      overlay.style.display = "flex";
+    };
+
+    const hideOverlay = () => {
+      overlay.style.display = "none";
+    };
+
+    const handleVisibilityChange = () => {
+      if (window.document.hidden) {
+        showOverlay();
+      } else {
+        hideOverlay();
+      }
+    };
+
+    const handleBlur = () => {
+      showOverlay();
+    };
+
+    const handleFocus = () => {
+      hideOverlay();
+    };
+
+    window.document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("blur", handleBlur);
+    window.addEventListener("focus", handleFocus);
+
+    // Cleanup saat unmount
+    return () => {
+      window.document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("blur", handleBlur);
+      window.removeEventListener("focus", handleFocus);
+      const el = window.document.getElementById(overlayId);
+      if (el) el.remove();
+    };
+  })
   
   
   useEffect(() => {
