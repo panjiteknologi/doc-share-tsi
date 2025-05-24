@@ -58,27 +58,41 @@ export default function DocumentDrawerViewer({
   
   
   useEffect(() => {
-    window.document.addEventListener("keyup", (e) => {
-      const keyCombo = `${e.metaKey ? 'Meta+' : ''}${e.ctrlKey ? 'Ctrl+' : ''}${e.shiftKey ? 'Shift+' : ''}${e.key}`;
-      console.log("e.key:", e.key);
-      console.log("e.code:", e.code);
-      console.log("e.keyCode:", e.keyCode);
-      console.log("Detected key combo:", keyCombo);
-
+    const handler = (e: KeyboardEvent) => {
+      const keyCombo = `${e.metaKey ? 'Meta+' : ''}${e.ctrlKey ? 'Ctrl+' : ''}${e.shiftKey ? 'Shift+' : ''}${e.altKey ? 'Alt+' : ''}${e.key}`;
+  
+      const key = e.key.toLowerCase();
+  
       const blockedCombos = [
-        "Meta+Shift+S",    // Windows snipping tool
-        "Ctrl+Shift+S",    // Browser screen capture shortcut
-        "PrintScreen",     // Jika terdeteksi
-        "Meta",            // Tombol Windows atau Cmd
+        "Meta+Shift+S",
+        "Ctrl+Shift+S",
+        "PrintScreen",
+        "Meta",
+        "Meta+S",
+        "Ctrl+S",
+        "Ctrl+Alt+S",
+        "Ctrl+Shift+I",
+        "F12",
+        "Meta+Option+I",
       ];
-
-      if (blockedCombos.includes(keyCombo)) {
-        window.document.body.innerHTML =
-          "<div style='position:fixed;top:0;left:0;width:100vw;height:100vh;background:black;z-index:9999;'></div>";
+  
+      const isPrintScreen = key === "printscreen" || e.keyCode === 44 || e.code.toLowerCase().includes("printscreen");
+  
+      if (blockedCombos.includes(keyCombo) || isPrintScreen) {
+        window.document.body.innerHTML = "<div style='position:fixed;top:0;left:0;width:100vw;height:100vh;background:black;z-index:9999;'></div>";
         setTimeout(() => location.reload(), 1000);
       }
-    })
+    };
+  
+    window.document.addEventListener("keydown", handler);
+    window.document.addEventListener("keyup", handler);
+  
+    return () => {
+      window.document.removeEventListener("keydown", handler);
+      window.document.removeEventListener("keyup", handler);
+    };
   }, []);
+  
 
   // Fetch document URL when document changes
   useEffect(() => {
