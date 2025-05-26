@@ -139,9 +139,11 @@ export default function DocumentDrawerViewer({
   //     if (el) el.remove();
   //   };
   // })
-  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 913;
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  const isTablet = window.innerWidth >= 768 && window.innerWidth < 1100; // Deteksi tablet (antara 768px - 1100px)
+  const isMobileDevice = isMobile && !isTablet; // Cek perangkat mobile, bukan tablet
 
-  if (isMobile) {
+  if (isMobileDevice || isTablet) {
     window.document.body.innerHTML = `
       <div style="
         position: fixed;
@@ -157,10 +159,12 @@ export default function DocumentDrawerViewer({
         padding: 20px;
         z-index: 9999;
       ">
-        Mohon maaf, demi menjaga keamanan dokumen, akses melalui perangkat mobile tidak dapat kami fasilitasi. Terima kasih atas pengertiannya!
+        Mohon maaf, demi menjaga keamanan dokumen, akses melalui perangkat mobile atau tablet tidak dapat kami fasilitasi. Terima kasih atas pengertiannya!
       </div>
     `;
   }
+
+
 
   
   useEffect(() => {
