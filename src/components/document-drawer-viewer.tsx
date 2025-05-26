@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useLayoutEffect } from "react";
+import React, { useState, useEffect, useLayoutEffect, useRef } from "react";
 import { Shield } from "lucide-react";
 import { getDocumentViewUrl } from "@/action/s3-document";
 import { Document } from "@/hooks/use-documents";
@@ -16,6 +16,11 @@ import dynamic from "next/dynamic";
 
 // Dynamically import EnhancedPdfViewer with no SSR
 const EnhancedPdfViewer = dynamic(() => import("./enhanced-pdf-viewer"), {
+  ssr: false,
+  loading: () => <LoadingState />,
+});
+
+const EnhancedExcelViewer = dynamic(() => import("./enhanced-excel-viewer"), {
   ssr: false,
   loading: () => <LoadingState />,
 });
@@ -134,7 +139,7 @@ export default function DocumentDrawerViewer({
   //     if (el) el.remove();
   //   };
   // })
-  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
 
   if (isMobile) {
     window.document.body.innerHTML = `
@@ -152,10 +157,11 @@ export default function DocumentDrawerViewer({
         padding: 20px;
         z-index: 9999;
       ">
-        Mohon maaf, demi menjaga keamanan dokumen, akses melalui perangkat mobile tidak dapat kami fasilitasi. Terima kasih atas pengertiannya !
+        Mohon maaf, demi menjaga keamanan dokumen, akses melalui perangkat mobile tidak dapat kami fasilitasi. Terima kasih atas pengertiannya!
       </div>
     `;
   }
+
   
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -220,6 +226,30 @@ export default function DocumentDrawerViewer({
 
     fetchDocumentUrl();
   }, [document, isOpen]);
+
+  const iframeRef = useRef<HTMLIFrameElement | null>(null);
+  const overlayRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const overlay = overlayRef.current;
+
+    if (!overlay) return;
+
+    const onWheel = (e: WheelEvent) => {
+      if (iframeRef.current?.contentWindow) {
+        iframeRef.current.contentWindow.postMessage(
+          { type: "scroll", deltaY: e.deltaY },
+          "*"
+        );
+      }
+    };
+
+    overlay.addEventListener("wheel", onWheel);
+    return () => {
+      overlay.removeEventListener("wheel", onWheel);
+    };
+  }, []);
+
   useEffect(() => {
     const handleGlobalContextMenu = (e: MouseEvent) => {
       e.preventDefault();
@@ -416,26 +446,24 @@ export default function DocumentDrawerViewer({
             ) : documentUrl && normalizedType === "PDF" ? (
             <EnhancedPdfViewer url={documentUrl} />
             ) : documentUrl && ["DOC", "DOCX"].includes(normalizedType) ? (
-              <div
-                onContextMenu={handleContextMenu} // mencegah klik kanan di div ini dan anaknya
-                style={{ width: "100%", height: "100%" }}
-              >
-                <iframe
-                  src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(documentUrl)}`}
-                  width="100%"
-                  height="100%"
-                  onContextMenu={handleContextMenu} // juga cegah klik kanan di iframe
-                  title="Office Document"
-                />
-              </div>
-            ) : documentUrl && ["XLS", "XLSX"].includes(normalizedType) ? (
+                <div
+                  onContextMenu={(e) => e.preventDefault()}
+                  style={{ width: "100%", height: "100%", userSelect: "none" }}
+                >
                   <iframe
-                      src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(documentUrl)}`}
-                      width="100%"
-                      height="100%"
-                      frameBorder="0"
-                      title="Excel Viewer"
-                    />
+                    src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(documentUrl)}`}
+                    style={{ width: "100%", height: "100%" }}
+                    frameBorder="0"
+                    title="Word Document Viewer"
+                  />
+                </div>
+            ) : documentUrl && ["XLS", "XLSX"].includes(normalizedType) ? (
+              <div
+                onContextMenu={handleContextMenu} // cegah klik kanan
+                style={{ width: "100%", height: "100%", userSelect: "none" }} // cegah seleksi teks dari luar komponen
+              >
+                <EnhancedExcelViewer url={documentUrl} />
+              </div>
             ) : (
               <div className="flex h-full w-full items-center justify-center p-6">
                 <div className="flex flex-col items-center gap-4">
