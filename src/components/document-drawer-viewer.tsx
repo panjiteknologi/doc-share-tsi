@@ -139,7 +139,7 @@ export default function DocumentDrawerViewer({
   //     if (el) el.remove();
   //   };
   // })
-  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 913;
 
   if (isMobile) {
     window.document.body.innerHTML = `
