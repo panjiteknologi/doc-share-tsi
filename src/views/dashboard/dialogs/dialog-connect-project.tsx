@@ -57,7 +57,10 @@ export default function DialogConnectProject({
   });
 
   const availableFolders = folders.filter(
-    (folder) => !folder.isRoot && !projectFolderIds.includes(folder.id)
+  (folder) =>
+    !folder.isRoot &&
+    folder.userId == clientId // filter berdasarkan client yang dipilih
+    // !projectFolderIds.includes(folder.id) &&
   );
 
   const getProject = (folderId: string) => {
