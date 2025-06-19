@@ -61,84 +61,84 @@ export default function DocumentDrawerViewer({
     }
   }, [isOpen]);
 
-  // useEffect(() => {
-  //   const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-  //   if (!isMobile) return; // hanya untuk mobile
+  useEffect(() => {
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    if (!isMobile) return; // hanya untuk mobile
 
-  //   const overlayId = "mobile-screenshot-block-overlay";
+    const overlayId = "mobile-screenshot-block-overlay";
 
-  //   // Buat overlay div
-  //   const overlay = window.document.createElement("div");
-  //   overlay.id = overlayId;
-  //   overlay.style.position = "fixed";
-  //   overlay.style.top = "0";
-  //   overlay.style.left = "0";
-  //   overlay.style.width = "100vw";
-  //   overlay.style.height = "100vh";
-  //   overlay.style.backgroundColor = "black";
-  //   overlay.style.zIndex = "999999";
-  //   overlay.style.display = "none"; // awalnya sembunyi
+    // Buat overlay div
+    const overlay = window.document.createElement("div");
+    overlay.id = overlayId;
+    overlay.style.position = "fixed";
+    overlay.style.top = "0";
+    overlay.style.left = "0";
+    overlay.style.width = "100vw";
+    overlay.style.height = "100vh";
+    overlay.style.backgroundColor = "black";
+    overlay.style.zIndex = "999999";
+    overlay.style.display = "none"; // awalnya sembunyi
 
-  //   window.document.body.appendChild(overlay);
+    window.document.body.appendChild(overlay);
 
-  //   const showOverlay = () => {
-  //     overlay.style.display = "block";
-  //   };
+    const showOverlay = () => {
+      overlay.style.display = "block";
+    };
 
-  //   const hideOverlay = () => {
-  //     overlay.style.display = "none";
-  //   };
+    const hideOverlay = () => {
+      overlay.style.display = "none";
+    };
 
-  //   const blockActions = (e: KeyboardEvent) => {
-  //     // Blok shortcut keyboard, misal PrintScreen (kalau keyboard ada)
-  //     if (
-  //       e.key.toLowerCase() === "printscreen" ||
-  //       e.key === "F12" ||
-  //       (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "s")
-  //     ) {
-  //       showOverlay();
-  //       setTimeout(() => {
-  //         hideOverlay();
-  //       }, 1500);
-  //     }
-  //   };
+    const blockActions = (e: KeyboardEvent) => {
+      // Blok shortcut keyboard, misal PrintScreen (kalau keyboard ada)
+      if (
+        e.key.toLowerCase() === "printscreen" ||
+        e.key === "F12" ||
+        (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "s")
+      ) {
+        showOverlay();
+        setTimeout(() => {
+          hideOverlay();
+        }, 1500);
+      }
+    };
 
-  //   const onVisibilityChange = () => {
-  //     if (window.document.hidden) {
-  //       showOverlay();
-  //       setTimeout(() => {
-  //         hideOverlay();
-  //       }, 1500);
-  //     }
-  //   };
+    const onVisibilityChange = () => {
+      if (window.document.hidden) {
+        showOverlay();
+        setTimeout(() => {
+          hideOverlay();
+        }, 1500);
+      }
+    };
 
-  //   const onBlur = () => {
-  //     showOverlay();
-  //     setTimeout(() => {
-  //       hideOverlay();
-  //     }, 1500);
-  //   };
+    const onBlur = () => {
+      showOverlay();
+      setTimeout(() => {
+        hideOverlay();
+      }, 1500);
+    };
 
-  //   window.addEventListener("keydown", blockActions);
-  //   window.document.addEventListener("visibilitychange", onVisibilityChange);
-  //   window.addEventListener("blur", onBlur);
+    window.addEventListener("keydown", blockActions);
+    window.document.addEventListener("visibilitychange", onVisibilityChange);
+    window.addEventListener("blur", onBlur);
 
-  //   // Cegah seleksi dan klik kanan (opsional)
-  //   const preventDefault = (e: Event) => e.preventDefault();
-  //   window.document.addEventListener("contextmenu", preventDefault);
-  //   window.document.addEventListener("selectstart", preventDefault);
+    // Cegah seleksi dan klik kanan (opsional)
+    const preventDefault = (e: Event) => e.preventDefault();
+    window.document.addEventListener("contextmenu", preventDefault);
+    window.document.addEventListener("selectstart", preventDefault);
 
-  //   return () => {
-  //     window.removeEventListener("keydown", blockActions);
-  //     window.document.removeEventListener("visibilitychange", onVisibilityChange);
-  //     window.removeEventListener("blur", onBlur);
-  //     window.document.removeEventListener("contextmenu", preventDefault);
-  //     window.document.removeEventListener("selectstart", preventDefault);
+    return () => {
+      window.removeEventListener("keydown", blockActions);
+      window.document.removeEventListener("visibilitychange", onVisibilityChange);
+      window.removeEventListener("blur", onBlur);
+      window.document.removeEventListener("contextmenu", preventDefault);
+      window.document.removeEventListener("selectstart", preventDefault);
 
-  //     const el = window.document.getElementById(overlayId);
-  //     if (el) el.remove();
-  //   };
-  // })
+      const el = window.document.getElementById(overlayId);
+      if (el) el.remove();
+    };
+  })
   const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
   const isTablet = window.innerWidth >= 768 && window.innerWidth < 1100; // Deteksi tablet (antara 768px - 1100px)
   const isMobileDevice = isMobile && !isTablet; // Cek perangkat mobile, bukan tablet
@@ -202,6 +202,7 @@ export default function DocumentDrawerViewer({
       window.document.removeEventListener("keyup", handler);
     };
   }, []);
+  
   
 
   // Fetch document URL when document changes
