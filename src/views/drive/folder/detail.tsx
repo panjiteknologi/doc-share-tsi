@@ -44,7 +44,7 @@ const FolderDetailView: React.FC<FolderDetailViewProps> = ({ folderId }) => {
   const { data: session } = useSession();
   const userRole = session?.user.roleCode;
 
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [viewMode, setViewMode] = useState<"grid" | "list">("list");
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddDocumentOpen, setIsAddDocumentOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
@@ -161,7 +161,7 @@ const FolderDetailView: React.FC<FolderDetailViewProps> = ({ folderId }) => {
             <div className="space-y-4">
               <div>
                 <h3 className="text-sm font-medium text-muted-foreground">
-                  Date Range
+                  Audit Date Range
                 </h3>
                 <div className="flex items-center mt-1">
                   <Calendar className="h-4 w-4 mr-2 text-primary" />
@@ -170,7 +170,7 @@ const FolderDetailView: React.FC<FolderDetailViewProps> = ({ folderId }) => {
               </div>
               <div>
                 <h3 className="text-sm font-medium text-muted-foreground">
-                  Created By
+                  Client Name
                 </h3>
                 <div className="flex items-center mt-1">
                   <User className="h-4 w-4 mr-2 text-primary" />
@@ -179,7 +179,7 @@ const FolderDetailView: React.FC<FolderDetailViewProps> = ({ folderId }) => {
               </div>
               <div>
                 <h3 className="text-sm font-medium text-muted-foreground">
-                  Created
+                  Folder Created
                 </h3>
                 <div className="flex items-center mt-1">
                   <Clock className="h-4 w-4 mr-2 text-primary" />

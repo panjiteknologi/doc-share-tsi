@@ -153,12 +153,12 @@ export function TableDocuments({
         <Table>
           <TableHeader className="sticky top-0 z-10 bg-muted">
             <TableRow>
-              <TableHead>Name</TableHead>
+              <TableHead>Document Name</TableHead>
               <TableHead>Type</TableHead>
               {showFolderColumn && <TableHead>Folder</TableHead>}
               <TableHead>Size</TableHead>
-              <TableHead>Uploaded By</TableHead>
-              <TableHead>Date</TableHead>
+              <TableHead>Upload By</TableHead>
+              <TableHead>Upload Date</TableHead>
               <TableHead>Auto-Delete</TableHead>
               <TableHead className="w-[100px]">Actions</TableHead>
             </TableRow>
@@ -197,10 +197,14 @@ export function TableDocuments({
               ))
             ) : documents.length > 0 ? (
               documents.map((document) => (
-                <TableRow key={document.id}>
+                <TableRow
+                  key={document.id}
+                  onClick={() => handleViewDocument(document)} // Menambahkan event onClick di sini
+                  className="cursor-pointer" // Menambahkan kelas untuk memberi indikasi bahwa ini bisa diklik
+                >
                   <TableCell className="font-medium flex items-center">
                     {getDocumentIcon(document.fileType)}
-                    <span className="ml-2 truncate max-w-[200px]">
+                    <span className="ml-2 truncate">
                       {document.fileName}
                     </span>
                   </TableCell>
@@ -240,53 +244,57 @@ export function TableDocuments({
                     })()}
                   </TableCell>
                   <TableCell>
-                    {(document.folder?.createdById === userId ||
-                      document.folder?.userId === userId) && (
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8"
-                          >
-                            <MoreHorizontal className="h-4 w-4" />
-                            <span className="sr-only">Open menu</span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem
-                            onClick={() => handleViewDocument(document)}
-                            disabled={isLoadingActions[document.id]?.view}
-                          >
-                            {isLoadingActions[document.id]?.view ? (
-                              <>
-                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                Preparing...
-                              </>
-                            ) : (
-                              <>
-                                <Eye className="h-4 w-4 mr-2" />
-                                View
-                              </>
-                            )}
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => handleOpenEditDialog(document)}
-                          >
-                            <FolderOpen className="h-4 w-4 mr-2" />
-                            Move
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => handleOpenDeleteDialog(document)}
-                            className="text-destructive"
-                          >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    )}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                        >
+                          <MoreHorizontal className="h-4 w-4" />
+                          <span className="sr-only">Open menu</span>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem
+                          onClick={() => handleViewDocument(document)}
+                          disabled={isLoadingActions[document.id]?.view}
+                        >
+                          {isLoadingActions[document.id]?.view ? (
+                            <>
+                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                              Preparing...
+                            </>
+                          ) : (
+                            <>
+                              <Eye className="h-4 w-4 mr-2" />
+                              View
+                            </>
+                          )}
+                        </DropdownMenuItem>
+
+                        {(document.folder?.createdById === userId ||
+                          document.folder?.userId === userId) && (
+                          <>
+                            <DropdownMenuItem
+                              onClick={() => handleOpenEditDialog(document)}
+                            >
+                              <FolderOpen className="h-4 w-4 mr-2" />
+                              Move
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => handleOpenDeleteDialog(document)}
+                              className="text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Delete
+                            </DropdownMenuItem>
+                          </>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </TableCell>
+
                 </TableRow>
               ))
             ) : (
