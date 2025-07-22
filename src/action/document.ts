@@ -187,6 +187,7 @@ export async function deleteDocument(formData: FormData) {
             userId: true,
           },
         },
+        userId: true,
         folderId: true,
       },
     });
@@ -195,9 +196,11 @@ export async function deleteDocument(formData: FormData) {
       return { success: false, error: "Document not found" };
     }
 
+    const userId = session?.user.id as string;
+    const userRole = session?.user.roleCode;
+
     if (
-      (existingDocument.folder.createdById ||
-        existingDocument.folder.userId) !== session.user.id
+      (userRole !== "surveyor" && userId !== existingDocument.userId)
     ) {
       return { success: false, error: "Unauthorized operation" };
     }

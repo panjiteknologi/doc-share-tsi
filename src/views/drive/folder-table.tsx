@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Folder as FolderType } from "@/hooks/use-folders";
 import {
   Table,
@@ -18,14 +18,38 @@ import {
 import { Folder, MoreHorizontal, Calendar } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import Link from "next/link";
+import { useFolders } from "@/hooks/use-folders";
+import DialogDeleteFolder from "../dashboard/dialogs/dialog-delete-folder";
 
 interface FolderTableProps {
-  folders: FolderType[];
+  folders: any[]; // atau ganti dengan tipe folder kamu kalau sudah ada
+  onMutate?: () => void; // ← tambahkan ini
 }
 
-const FolderTable: React.FC<FolderTableProps> = ({ folders }) => {
+const FolderTable: React.FC<FolderTableProps> = ({ folders, onMutate }) => {
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedFolder, setSelectedFolder] = useState<FolderType | null>(null);
+
+  // Get mutate function for refreshing data
+  const { mutate } = useFolders({
+    sortBy: "createdAt",
+    sortOrder: "desc",
+  });
+
+  const handleOpenDeleteDialog = (folder: FolderType) => {
+    setSelectedFolder(folder);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleSuccess = () => {
+    mutate(); // lokal
+    onMutate?.(); // ⬅️ trigger mutate global
+    setDeleteDialogOpen(false);
+    setSelectedFolder(null);
+  };
+
   return (
-    <div className={`${folders.length > 0 && "rounded-md border"}`}>
+    <div  key={folders.length} className={`${folders.length > 0 && "rounded-md border"}`}>
       <Table>
         <TableHeader>
           {folders.length > 0 && (
@@ -41,11 +65,9 @@ const FolderTable: React.FC<FolderTableProps> = ({ folders }) => {
         </TableHeader>
         <TableBody>
           {folders.map((folder) => {
-            // Format dates for display
             const startDate = new Date(folder.startDate);
             const endDate = new Date(folder.endDate);
             const createdAt = new Date(folder.createdAt);
-
             const dateRange = `${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()}`;
             const createdTimeAgo = formatDistanceToNow(createdAt, {
               addSuffix: true,
@@ -87,10 +109,15 @@ const FolderTable: React.FC<FolderTableProps> = ({ folders }) => {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem>Open</DropdownMenuItem>
-                      <DropdownMenuItem>Rename</DropdownMenuItem>
-                      <DropdownMenuItem>Share</DropdownMenuItem>
-                      <DropdownMenuItem className="text-destructive">
+                      <DropdownMenuItem asChild>
+                        <Link href={`/drive/${folder.id}`}>Open</Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem disabled>Rename</DropdownMenuItem>
+                      <DropdownMenuItem disabled>Share</DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => handleOpenDeleteDialog(folder)}
+                        className="text-destructive"
+                      >
                         Delete
                       </DropdownMenuItem>
                     </DropdownMenuContent>
@@ -101,6 +128,21 @@ const FolderTable: React.FC<FolderTableProps> = ({ folders }) => {
           })}
         </TableBody>
       </Table>
+
+      {/* Delete Dialog */}
+      {selectedFolder && (
+        <DialogDeleteFolder
+          isOpen={deleteDialogOpen}
+          onClose={() => {
+            setDeleteDialogOpen(false);
+            setSelectedFolder(null);
+          }}
+          folderId={selectedFolder.id}
+          folderName={selectedFolder.name}
+          documentCount={selectedFolder.documents.length}
+          onSuccess={handleSuccess}
+        />
+      )}
     </div>
   );
 };

@@ -52,7 +52,7 @@ export default function UploadPage() {
   // States for the multi-step process
   const [step, setStep] = useState(1);
   const [selectedFolderId, setSelectedFolderId] = useState("");
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File[] | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadedDoc, setUploadedDoc] = useState<{
@@ -78,15 +78,14 @@ export default function UploadPage() {
   const handleFolderChange = (value: string) => {
     setSelectedFolderId(value);
   };
-
-  // Handle file selection
-  const handleFileChange = (file: File | null) => {
+  const handleFileChange = (file: File[] | null) => {
     setSelectedFile(file);
     // Reset states when file changes
     setUploadProgress(0);
     setError("");
     setUploadedDoc(null);
   };
+
 
   // Move to next step
   const goToNextStep = () => {
@@ -123,16 +122,19 @@ export default function UploadPage() {
     setIsUploading(true);
     setError("");
     setUploadProgress(0);
+    
 
     try {
       // Create FormData for file upload
-      const result = await uploadFile(selectedFile, selectedFolderId);
+      for (const file of selectedFile) {
+        const result = await uploadFile(file, selectedFolderId); // Upload satu file per iterasi
+        setUploadedDoc(result.document);
+      }
 
       toast.success("Document uploaded successfully!", {
         description: "Your document has been uploaded and is now available.",
       });
 
-      setUploadedDoc(result.document);
 
       // Move to success step
       setStep(3);
@@ -327,7 +329,7 @@ export default function UploadPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <UploadCloud className="h-5 w-5 text-primary" />
-              Upload Document
+              Upload Documentssss
             </CardTitle>
             <CardDescription>
               Selected Folder:{" "}
@@ -336,19 +338,20 @@ export default function UploadPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <FileUpload
+              {/* <FileUpload
                 value={selectedFile}
                 onChange={handleFileChange}
                 accept={{
                   "application/pdf": [".pdf"],
-                  "application/msword": [".doc"],
-                  "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
-                    [".docx"],
+                  // "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [".docx"],
+                  // "application/msword": [".doc"],
+                  // "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"],
+                  // "application/vnd.ms-excel": [".xls"],
                 }}
                 maxSize={52428800} // 50MB
                 disabled={isUploading}
                 progress={uploadProgress}
-              />
+              /> */}
 
               {error && (
                 <Alert variant="destructive">
@@ -358,15 +361,18 @@ export default function UploadPage() {
               )}
 
               {selectedFile && !isUploading && uploadProgress === 0 && (
-                <Alert>
-                  <Info className="h-4 w-4" />
-                  <AlertDescription>
-                    Ready to upload:{" "}
-                    <span className="font-medium">{selectedFile.name}</span> (
-                    {(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
-                  </AlertDescription>
-                </Alert>
+                selectedFile.map((selectedFileVal, index) => (
+                  <Alert key={index}>
+                    <Info className="h-4 w-4" />
+                    <AlertDescription>
+                      Ready to upload:{" "}
+                      <span className="font-medium">{selectedFileVal.name}</span> (
+                      {(selectedFileVal.size / 1024 / 1024).toFixed(2)} MB)
+                    </AlertDescription>
+                  </Alert>
+                ))
               )}
+
 
               {isUploading && (
                 <div className="space-y-2">
@@ -432,30 +438,33 @@ export default function UploadPage() {
           </CardHeader>
           <CardContent>
             <div className="bg-muted p-4 rounded-md">
-              <div className="flex items-start gap-3">
-                <div className="bg-primary/10 p-2 rounded-md">
-                  {getFileTypeIcon(selectedFile)}
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-medium">{selectedFile?.name}</h3>
-                  <div className="grid grid-cols-2 gap-2 mt-2 text-sm">
-                    <div>
-                      <span className="text-muted-foreground">Size:</span>{" "}
-                      {((selectedFile?.size ?? 0) / 1024 / 1024).toFixed(2)} MB
-                    </div>
-                    <div>
-                      <span className="text-muted-foreground">Type:</span>{" "}
-                      {selectedFile?.type}
-                    </div>
-                    <div className="col-span-2">
-                      <span className="text-muted-foreground">Folder:</span>{" "}
-                      {getSelectedFolderName()}
+              {selectedFile?.map((file, index) => (
+                <div key={index} className="flex items-start gap-3">
+                  <div className="bg-primary/10 p-2 rounded-md">
+                    {getFileTypeIcon(file)}
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-medium">{file.name}</h3>
+                    <div className="grid grid-cols-2 gap-2 mt-2 text-sm">
+                      <div>
+                        <span className="text-muted-foreground">Size:</span>{" "}
+                        {((file.size ?? 0) / 1024 / 1024).toFixed(2)} MB
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Type:</span>{" "}
+                        {file.type}
+                      </div>
+                      <div className="col-span-2">
+                        <span className="text-muted-foreground">Folder:</span>{" "}
+                        {getSelectedFolderName()}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
+              ))}
             </div>
           </CardContent>
+
           <CardFooter className="flex justify-center gap-4">
             <Button variant="outline" onClick={resetForm}>
               Upload Another Document
@@ -484,7 +493,7 @@ export default function UploadPage() {
                 </li>
                 <li className="flex items-center gap-2">
                   <FileText className="h-4 w-4 text-blue-500" />
-                  <span>Word Documents (.doc, .docx)</span>
+                  <span>Word Documents  (Coming soon)</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <FileText className="h-4 w-4 text-green-500" />

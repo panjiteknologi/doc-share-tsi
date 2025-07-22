@@ -35,6 +35,8 @@ import {
 } from "@/lib/cron";
 import DialogEditDocument from "../dashboard/dialogs/dialog-edit-document";
 import DialogDeleteDocument from "../dashboard/dialogs/dialog-delete-document";
+import { useSession } from "next-auth/react";
+
 
 interface DocumentCardProps {
   document: Document;
@@ -51,6 +53,9 @@ const DocumentCard: React.FC<DocumentCardProps> = ({
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedDocument, setSelectedDocument] = useState<any>(null);
+  const { data: session } = useSession();
+  const userId = session?.user.id as string;
+  const userRole = session?.user.roleCode;
 
   // Format date for display
   const createdAt = new Date(document.createdAt);
@@ -99,6 +104,7 @@ const DocumentCard: React.FC<DocumentCardProps> = ({
     setSelectedDocument(document);
     setDeleteDialogOpen(true);
   };
+  
 
   return (
     <>
@@ -129,17 +135,31 @@ const DocumentCard: React.FC<DocumentCardProps> = ({
                 <Eye className="h-4 w-4 mr-2" />
                 View
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleMove}>
-                <FolderOpen className="h-4 w-4 mr-2" />
-                Move
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={handleDelete}
-                className="text-destructive"
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Delete
-              </DropdownMenuItem>
+              {(userRole === "surveyor" || userId === document?.uploadedById) && (
+                <>
+                    <DropdownMenuItem
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete;
+                      }}
+                      className="text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Delete
+                    </DropdownMenuItem>
+                </>
+               )}
+               {(userRole === "surveyor") && (
+                 <DropdownMenuItem
+                   onClick={(e) => {
+                     e.stopPropagation();
+                     handleMove;
+                   }}
+                 >
+                   <FolderOpen className="h-4 w-4 mr-2" />
+                   Move
+                 </DropdownMenuItem>
+               )}
             </DropdownMenuContent>
           </DropdownMenu>
         </CardHeader>

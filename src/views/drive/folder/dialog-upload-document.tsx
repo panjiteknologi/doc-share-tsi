@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -18,17 +19,32 @@ import {
 } from "@/components/ui/dialog";
 import { FileUpload } from "@/components/file-upload";
 import { useDirectUpload } from "@/hooks/use-direct-upload";
+import { useDocuments } from "@/hooks/use-documents"; // ✅ Tambahkan ini
 
-// Form validation schema
 const formSchema = z.object({
-  file: z
-    .instanceof(File, { message: "Please upload a document" })
-    .refine((file) => file.size <= 50 * 1024 * 1024, {
-      message: "File size must be less than 50MB",
-    })
-    .refine((file) => ["application/pdf"].includes(file.type), {
-      message: "File type not supported. Please upload PDF files only.",
-    }),
+  files: z
+    .array(
+      z
+        .instanceof(File)
+        .refine((file) => file.size <= 50 * 1024 * 1024, {
+          message: "File size must be less than 50MB",
+        })
+        .refine(
+          (file) =>
+            [
+              "application/pdf",
+              // "application/msword",
+              "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+              // "application/vnd.ms-excel",
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            ].includes(file.type),
+          {
+            message:
+              "File type not supported. Please upload PDF files only.",
+          }
+        )
+    )
+    .min(1, "Please upload at least one file"),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -48,16 +64,18 @@ export default function DialogUploadDocument({
 }: DialogUploadDocumentProps) {
   const { data: session } = useSession();
 
+  const { mutate } = useDocuments({ // ✅ untuk re-fetch table setelah upload
+    sortBy: "createdAt",
+    sortOrder: "desc",
+  });
+
   const { uploadFile, isUploading, progress } = useDirectUpload({
     onSuccess: () => {
-      toast.success("Document uploaded successfully");
-      reset();
-      if (onSuccess) onSuccess();
-      handleClose();
+      // kosong — kita handle semuanya di bawah setelah selesai upload semua file
     },
     onError: (error) => {
       console.error("Upload error:", error);
-      toast.error("Failed to upload document. Please try again.");
+      toast.error("Failed to upload one or more documents.");
     },
   });
 
@@ -69,63 +87,102 @@ export default function DialogUploadDocument({
     formState: { errors },
   } = useForm<FormData>({
     resolver: zodResolver(formSchema),
+    defaultValues: {
+      files: [],
+    },
   });
 
-  const fileValue = watch("file");
+  const fileValues = watch("files");
 
-  const handleFileChange = (file: File | null) => {
-    setValue("file", file as File, {
+  const handleFileChange = (files: File[] | null) => {
+    const existingFiles = fileValues || []; // Pastikan fileValues tidak null
+  
+    setValue("files", [...existingFiles, ...(files || [])], {
       shouldValidate: true,
       shouldDirty: true,
       shouldTouch: true,
     });
   };
 
+  // Fungsi untuk menghapus file dari daftar
+  const handleRemoveFile = (file: File) => {
+    const updatedFiles = fileValues.filter((item) => item !== file);
+    setValue("files", updatedFiles, {
+      shouldValidate: true,
+      shouldDirty: true,
+      shouldTouch: true,
+    });
+  };
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const onSubmit = async (data: FormData) => {
     if (!session?.user?.id) {
       toast.error("Authentication required");
       return;
     }
-
+  
+    setIsSubmitting(true); // ✅ Mulai loading
+  
     try {
-      await uploadFile(data.file, folderId);
+      for (const file of data.files) {
+        await uploadFile(file, folderId);
+      }
+  
+      await mutate(); // Refresh documents
+      toast.success("Documents uploaded successfully");
+  
+      reset();
+      if (onSuccess) onSuccess();
+      handleClose();
     } catch (error) {
-      // Error handling is done in the hook
+      console.error("Upload failed:", error);
+      toast.error("Upload failed. Please try again.");
+    } finally {
+      setIsSubmitting(false); // ✅ Hanya dilepas saat close selesai
     }
   };
+  
+  
 
   const handleClose = () => {
-    if (!isUploading) {
+    if (!isSubmitting && !isUploading) {
       reset();
       onClose();
     }
   };
+  
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[525px]">
         <form onSubmit={handleSubmit(onSubmit)}>
           <DialogHeader>
-            <DialogTitle>Upload Document</DialogTitle>
+            <DialogTitle>Upload Documents</DialogTitle>
             <DialogDescription>
-              Upload a document to the current folder. Supported format: PDF
-              (max 50MB).
+              Upload one or more documents to the current folder. Supported formats: PDF (max 50MB each).
             </DialogDescription>
           </DialogHeader>
 
           <div className="grid gap-6 py-4">
             <FileUpload
               onChange={handleFileChange}
-              value={fileValue}
+              value={fileValues}
+              multiple
               accept={{
                 "application/pdf": [".pdf"],
+                // "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [".docx"],
+                // "application/msword": [".doc"],
+                // "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"],
+                // "application/vnd.ms-excel": [".xls"],
               }}
               disabled={isUploading}
               progress={progress}
+              handleRemoveFile={handleRemoveFile}
             />
-            {errors.file && (
+            {errors.files && (
               <p className="text-sm font-medium text-destructive">
-                {errors.file.message}
+                {errors.files.message}
               </p>
             )}
           </div>
@@ -139,16 +196,19 @@ export default function DialogUploadDocument({
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isUploading || !fileValue}>
-              {isUploading ? (
+            <Button
+              type="submit"
+              disabled={isSubmitting || fileValues.length === 0}
+            >
+              {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Uploading... {progress}%
+                  Uploading...
                 </>
               ) : (
                 <>
                   <FileUp className="mr-2 h-4 w-4" />
-                  Upload Document
+                  Upload Documents
                 </>
               )}
             </Button>

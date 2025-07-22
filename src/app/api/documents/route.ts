@@ -53,10 +53,9 @@ export async function GET(request: NextRequest) {
 
     // Add search filter
     if (search) {
-      // Based on your database structure, we search in the URL because documents don't have a name field
+      // Search in URL, no need for `mode: "insensitive"`
       where.url = {
-        contains: search,
-        mode: "insensitive" as any,
+        contains: search,  // Prisma will handle case insensitivity automatically
       };
     }
 

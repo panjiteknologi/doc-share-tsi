@@ -1,11 +1,15 @@
 "use client";
 
 import React, { useState } from "react";
+import {
+  Search,
+} from "lucide-react";
 import { useSession } from "next-auth/react";
 import {
   useFoldersByCreator,
   useFoldersByUserId,
   useFoldersProjects,
+  useFolder,
   useNonRootFolders,
 } from "@/hooks/use-folders";
 import {
@@ -22,16 +26,24 @@ import DocumentCard from "./document-card";
 import DocumentTable from "./document-table";
 import DocumentDrawerViewer from "@/components/document-drawer-viewer";
 import DialogCreateFolder from "./dialog-create-folder";
+import { Input } from "@/components/ui/input";
 
-const DriveView = () => {
+interface FolderDetailViewProps {
+  folderId: string;
+  onMutate?: () => void;
+}
+
+const DriveView: React.FC<FolderDetailViewProps> = ({ folderId }) => {
   const { data: session } = useSession();
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [searchQuery, setSearchQuery] = useState(""); // State untuk pencarian folder
+  const [isCreateFolderDialogOpen, setIsCreateFolderDialogOpen] = useState(false);
 
-  const [isCreateFolderDialogOpen, setIsCreateFolderDialogOpen] =
-    useState(false);
-  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
-  const [selectedDocument, setSelectedDocument] = useState<any>(null);
-
+  const handleMutateAll = () => {
+    revalidateNonRootFolders(undefined, { revalidate: true });
+    revalidateFoldersByUserId(undefined, { revalidate: true });
+    revalidateFoldersProject(undefined, { revalidate: true });
+  };
   // Determine user role
   const userRole = session?.user?.roleCode || "";
   const userId = session?.user?.id as string;
@@ -42,55 +54,57 @@ const DriveView = () => {
     isLoading: isFoldersLoading,
     mutate: revalidateNonRootFolders,
   } = useFoldersByCreator(userId);
+  
   // Fetch folders Client
   const {
     folders: foldersByUserId,
     isLoading: isFoldersByIdLoading,
     mutate: revalidateFoldersByUserId,
   } = useFoldersByUserId(userId, userRole);
+
   // Fetch folders Auditor
-  const { folders: foldersProjects, mutate: revalidateFoldersProject } =
-    useFoldersProjects(userRole);
+  const { folders: foldersProjects, mutate: revalidateFoldersProject } = useFoldersProjects(userRole);
 
-  // Fetch documents LS
-  const {
-    documents,
-    isLoading: isLoadingDocuments,
-    mutate: revalidateRootDocuments,
-  } = useRootDocuments(userRole);
-  //Fetch documents Client
-  const {
-    documents: documentsByUserId,
-    isLoading: isDocumentsRootLoading,
-    mutate: revalidateDocumentsByUserId,
-  } = useRootDocumentsByUserId(userId, userRole);
-
-  const handleViewDocument = (document: any) => {
-    setSelectedDocument(document);
-    setIsViewDialogOpen(true);
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value); // Update search query state
   };
 
-  const handleSuccess = () => {
-    revalidateNonRootFolders();
-    revalidateFoldersByUserId();
-    revalidateFoldersProject();
-    revalidateRootDocuments();
-    revalidateDocumentsByUserId();
-  };
+  // Filter folders based on search query
+  // const filteredFolders = [
+  //   ...folders.filter((folder) =>
+  //     folder.name.toLowerCase().includes(searchQuery.toLowerCase())
+  //   ),
+  //   ...foldersByUserId.filter((folder) =>
+  //     folder.name.toLowerCase().includes(searchQuery.toLowerCase())
+  //   ),
+  //   ...foldersProjects.filter((folder) =>
+  //     folder.name.toLowerCase().includes(searchQuery.toLowerCase())
+  //   ),
+  // ];
 
-  // Open create folder dialog
+  // Gabungkan semua folder dari berbagai sumber
+  const allFolders = [
+    ...folders.map((f) => ({ ...f, source: "creator" })),
+    ...foldersByUserId.map((f) => ({ ...f, source: "client" })),
+    ...foldersProjects.map((f) => ({ ...f, source: "auditor" })),
+  ];
+
+  // Hilangkan duplikat berdasarkan ID
+  const uniqueFoldersMap = new Map();
+  allFolders.forEach((folder) => {
+    uniqueFoldersMap.set(folder.id, folder); // folder.id akan overwrite duplikat
+  });
+
+  // Ubah kembali ke array & filter berdasarkan pencarian
+  const filteredFolders = Array.from(uniqueFoldersMap.values()).filter((folder) =>
+    folder.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   const handleOpenCreateFolder = () => {
     setIsCreateFolderDialogOpen(true);
   };
 
-  const loadingDocuments = isLoadingDocuments || isDocumentsRootLoading;
   const loadingFolders = isFoldersLoading || isFoldersByIdLoading;
-
-  const noDocumentsFound = documents.length === 0;
-  const noFoldersFound =
-    folders.length === 0 &&
-    foldersByUserId.length === 0 &&
-    foldersProjects.length === 0;
 
   return (
     <div className="px-6 py-4 space-y-6">
@@ -124,87 +138,31 @@ const DriveView = () => {
         </div>
       </div>
 
-      {/* ================================= | FILE / DOCUMENTS | ================================= */}
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-medium">Documents</h2>
-      </div>
-
-      <div className={cn("w-full", loadingDocuments && "opacity-70")}>
-        {loadingDocuments && (
-          <div className="flex items-center justify-center h-40">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          </div>
-        )}
-
-        {!loadingDocuments && noDocumentsFound && (
-          <div className="flex flex-col items-center justify-center h-40 border rounded-lg border-dashed border-muted-foreground/50 p-6">
-            <File className="h-10 w-10 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-medium mb-1">No documents found</h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              There are no documents available in your drive
-            </p>
-          </div>
-        )}
-
-        {!loadingDocuments && userRole === "surveyor" && (
-          <>
-            {viewMode === "grid" ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {documents.map((document) => (
-                  <DocumentCard
-                    key={document.id}
-                    document={document}
-                    onViewDocument={handleViewDocument}
-                    onSuccess={handleSuccess}
-                  />
-                ))}
-              </div>
-            ) : (
-              <DocumentTable
-                documents={documents}
-                onViewDocument={handleViewDocument}
-              />
-            )}
-          </>
-        )}
-
-        {!loadingDocuments && userRole === "client" && (
-          <>
-            {viewMode === "grid" ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {documentsByUserId.map((document) => (
-                  <DocumentCard
-                    key={document.id}
-                    document={document}
-                    onViewDocument={handleViewDocument}
-                    onSuccess={handleSuccess}
-                  />
-                ))}
-              </div>
-            ) : (
-              <DocumentTable
-                documents={documents}
-                onViewDocument={handleViewDocument}
-              />
-            )}
-          </>
-        )}
-      </div>
-
-      {/* ================================= | FOLDER | ================================= */}
+      {/* Folder Search */}
       <div className="flex items-center justify-between pt-4">
         <h2 className="text-lg font-medium">Folders</h2>
+        <div className="relative w-full max-w-sm">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            type="search"
+            placeholder="Search Folder..."
+            className="pl-8"
+            value={searchQuery}
+            onChange={handleSearch}
+          />
+        </div>
       </div>
 
-      <div className={cn("w-full", isFoldersLoading && "opacity-70")}>
+      {/* Folders Grid or Table View */}
+      <div className={cn("w-full", loadingFolders && "opacity-70")}>
         {loadingFolders && (
           <div className="flex items-center justify-center h-40">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
           </div>
         )}
 
-        {!loadingFolders && noFoldersFound && (
-          <div className="flex flex-col items-center justify-center h-40 border rounded-lg border-dashed border-muted-foreground/50 p-6">
+        {!loadingFolders && filteredFolders.length === 0 && (
+          <div  key={filteredFolders.length} className="flex flex-col items-center justify-center h-40 border rounded-lg border-dashed border-muted-foreground/50 p-6">
             <FolderPlus className="h-10 w-10 text-muted-foreground mb-4" />
             <h3 className="text-lg font-medium mb-1">No folders found</h3>
             <p className="text-sm text-muted-foreground mb-4">
@@ -216,13 +174,13 @@ const DriveView = () => {
         {!loadingFolders && userRole === "surveyor" && (
           <>
             {viewMode === "grid" ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {folders.map((folder) => (
-                  <FolderCard key={folder.id} folder={folder} />
+              <div  key={filteredFolders.length} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {filteredFolders.map((folder) => (
+                  <FolderCard key={folder.id} folder={folder} onMutate={handleMutateAll}/>
                 ))}
               </div>
             ) : (
-              <FolderTable folders={folders} />
+              <FolderTable folders={filteredFolders} onMutate={handleMutateAll}/>
             )}
           </>
         )}
@@ -230,13 +188,13 @@ const DriveView = () => {
         {!loadingFolders && userRole === "client" && (
           <>
             {viewMode === "grid" ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {foldersByUserId.map((folder) => (
-                  <FolderCard key={folder.id} folder={folder} />
+              <div  key={filteredFolders.length} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {filteredFolders.map((folder) => (
+                  <FolderCard key={folder.id} folder={folder} onMutate={handleMutateAll}/>
                 ))}
               </div>
             ) : (
-              <FolderTable folders={foldersByUserId} />
+              <FolderTable folders={filteredFolders} onMutate={handleMutateAll} />
             )}
           </>
         )}
@@ -244,13 +202,13 @@ const DriveView = () => {
         {!loadingFolders && userRole === "auditor" && (
           <>
             {viewMode === "grid" ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {foldersProjects.map((folder) => (
-                  <FolderCard key={folder.id} folder={folder} />
+              <div  key={filteredFolders.length} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {filteredFolders.map((folder) => (
+                  <FolderCard key={folder.id} folder={folder} onMutate={handleMutateAll}/>
                 ))}
               </div>
             ) : (
-              <FolderTable folders={foldersProjects} />
+              <FolderTable folders={filteredFolders} onMutate={handleMutateAll}/>
             )}
           </>
         )}
@@ -260,14 +218,7 @@ const DriveView = () => {
       <DialogCreateFolder
         isOpen={isCreateFolderDialogOpen}
         onClose={() => setIsCreateFolderDialogOpen(false)}
-        onSuccess={handleSuccess}
-      />
-
-      {/* View Document Dialog */}
-      <DocumentDrawerViewer
-        isOpen={isViewDialogOpen}
-        onClose={() => setIsViewDialogOpen(false)}
-        document={selectedDocument}
+        onSuccess={handleMutateAll}
       />
     </div>
   );

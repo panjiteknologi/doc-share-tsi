@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import {
   Search,
   FileText,
@@ -11,6 +11,7 @@ import {
   FolderIcon,
   Loader2,
   Clock,
+  HardDriveDownload
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -47,17 +48,20 @@ import { useSession } from "next-auth/react";
 interface TableDocumentsProps {
   folderId?: string;
   showFolderColumn?: boolean;
+  onMutate?: () => void; // ← tambahkan ini
 }
 
 export function TableDocuments({
   folderId,
   showFolderColumn = true,
+  onMutate
 }: TableDocumentsProps) {
   const { data: session } = useSession();
   const userId = session?.user.id as string;
-
-  const [searchQuery, setSearchQuery] = useState("");
+  const userRole = session?.user.roleCode;
+  const [searchQuery, setSearchQuery] = useState(""); // State untuk pencarian
   const [currentPage, setCurrentPage] = useState(1);
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
@@ -68,19 +72,26 @@ export function TableDocuments({
 
   const itemsPerPage = 10;
 
+  // Fetch documents
   const { documents, pagination, isLoading, mutate } = useDocuments({
     folderId,
     page: currentPage,
     limit: itemsPerPage,
-    search: searchQuery,
+    search: searchQuery, // Kirim searchQuery ke API untuk filter
     sortBy: "createdAt",
     sortOrder: "desc",
   });
 
+  // Handle search input
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
-    setCurrentPage(1);
+    setCurrentPage(1); // Reset halaman ke 1 saat pencarian dilakukan
   };
+
+  // Filter documents based on search query
+  const filteredDocuments = documents.filter((document) =>
+    document.fileName.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const handleOpenEditDialog = (document: any) => {
     setSelectedDocument(document);
@@ -90,6 +101,31 @@ export function TableDocuments({
   const handleOpenDeleteDialog = (document: any) => {
     setSelectedDocument(document);
     setDeleteDialogOpen(true);
+  };
+
+  const handleDownloadDocument = async (doc: any) => {
+    try {
+      setIsLoadingActions((prev) => ({
+        ...prev,
+        [doc.id]: { ...prev[doc.id], download: true },
+      }));
+
+      const downloadUrl = `/api/documents/${doc.id}/download?operation=download`;
+      const link = document.createElement("a");
+      link.href = downloadUrl;
+      link.target = "_blank"; // Open in new tab
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error("Download error:", error);
+      toast.error("Failed to download document.");
+    } finally {
+      setIsLoadingActions((prev) => ({
+        ...prev,
+        [doc.id]: { ...prev[doc.id], download: false },
+      }));
+    }
   };
 
   const handleViewDocument = async (document: any) => {
@@ -113,7 +149,8 @@ export function TableDocuments({
   };
 
   const handleSuccess = () => {
-    mutate();
+    mutate(); // Re-fetch the data after action is successful
+    onMutate?.();
   };
 
   // Get document icon based on file type
@@ -132,10 +169,9 @@ export function TableDocuments({
     }
   };
 
-  console.log("Documents : ", documents);
-
   return (
     <div className="space-y-4">
+      {/* Search bar remains outside of grid/table */}
       <div className="flex items-center justify-between">
         <div className="relative w-full max-w-sm">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -144,12 +180,13 @@ export function TableDocuments({
             placeholder="Search documents..."
             className="pl-8"
             value={searchQuery}
-            onChange={handleSearch}
+            onChange={handleSearch} // Update search query
           />
         </div>
       </div>
 
-      <div className="rounded-md border">
+      {/* Table or Grid based on viewMode */}
+      <div  key={filteredDocuments.length} className="rounded-md border">
         <Table>
           <TableHeader className="sticky top-0 z-10 bg-muted">
             <TableRow>
@@ -195,18 +232,16 @@ export function TableDocuments({
                   </TableCell>
                 </TableRow>
               ))
-            ) : documents.length > 0 ? (
-              documents.map((document) => (
+            ) : filteredDocuments.length > 0 ? (
+              filteredDocuments.map((document) => (
                 <TableRow
                   key={document.id}
-                  onClick={() => handleViewDocument(document)} // Menambahkan event onClick di sini
-                  className="cursor-pointer" // Menambahkan kelas untuk memberi indikasi bahwa ini bisa diklik
+                  onClick={() => handleViewDocument(document)}
+                  className="cursor-pointer"
                 >
                   <TableCell className="font-medium flex items-center">
                     {getDocumentIcon(document.fileType)}
-                    <span className="ml-2 truncate">
-                      {document.fileName}
-                    </span>
+                    <span className="ml-2 truncate">{document.fileName}</span>
                   </TableCell>
                   <TableCell>
                     <Badge variant="outline">{document.fileType}</Badge>
@@ -220,20 +255,17 @@ export function TableDocuments({
                     </TableCell>
                   )}
                   <TableCell>{document.fileSize}</TableCell>
-                  <TableCell className="truncate max-w-[150px]">
-                    {document.uploadedBy}
-                  </TableCell>
-                  <TableCell>
-                    {new Date(document.createdAt).toLocaleDateString()}
-                  </TableCell>
+                  <TableCell className="truncate max-w-[150px]">{document.uploadedBy}</TableCell>
+                  <TableCell>{new Date(document.createdAt).toLocaleDateString("id-ID", {
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                    })}</TableCell>
                   <TableCell>
                     {(() => {
-                      const expiryDate = calculateExpiryDate(
-                        document.createdAt
-                      );
+                      const expiryDate = calculateExpiryDate(document.createdAt);
                       const timeRemaining = formatTimeRemaining(expiryDate);
-                      const expiryStatusClass =
-                        getExpiryStatusColor(expiryDate);
+                      const expiryStatusClass = getExpiryStatusColor(expiryDate);
 
                       return (
                         <Badge className={expiryStatusClass}>
@@ -246,44 +278,32 @@ export function TableDocuments({
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8"
-                        >
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
                           <MoreHorizontal className="h-4 w-4" />
                           <span className="sr-only">Open menu</span>
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          onClick={() => handleViewDocument(document)}
-                          disabled={isLoadingActions[document.id]?.view}
-                        >
-                          {isLoadingActions[document.id]?.view ? (
-                            <>
-                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                              Preparing...
-                            </>
-                          ) : (
-                            <>
-                              <Eye className="h-4 w-4 mr-2" />
-                              View
-                            </>
-                          )}
+                        <DropdownMenuItem onClick={() => handleViewDocument(document)}>
+                          <Eye className="h-4 w-4 mr-2" />
+                          View
                         </DropdownMenuItem>
-
-                        {(document.folder?.createdById === userId ||
-                          document.folder?.userId === userId) && (
+                        {(userRole === "surveyor" || userId === document?.uploadedById) && (
                           <>
                             <DropdownMenuItem
-                              onClick={() => handleOpenEditDialog(document)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDownloadDocument(document);
+                              }}
                             >
-                              <FolderOpen className="h-4 w-4 mr-2" />
-                              Move
+                              <HardDriveDownload className="h-4 w-4 mr-2" />
+                              Download
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                              onClick={() => handleOpenDeleteDialog(document)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleOpenDeleteDialog(document);
+                              }}
                               className="text-destructive"
                             >
                               <Trash2 className="h-4 w-4 mr-2" />
@@ -291,18 +311,25 @@ export function TableDocuments({
                             </DropdownMenuItem>
                           </>
                         )}
+                        {(userRole === "surveyor") && (
+                          <DropdownMenuItem
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleOpenEditDialog(document);
+                            }}
+                          >
+                            <FolderOpen className="h-4 w-4 mr-2" />
+                            Move
+                          </DropdownMenuItem>
+                        )}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
-
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell
-                  colSpan={showFolderColumn ? 7 : 6}
-                  className="h-24 text-center"
-                >
+                <TableCell colSpan={showFolderColumn ? 7 : 6} className="h-24 text-center">
                   No documents found.
                 </TableCell>
               </TableRow>

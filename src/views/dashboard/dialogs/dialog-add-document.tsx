@@ -35,13 +35,14 @@ import { useDirectUpload } from "@/hooks/use-direct-upload";
 const FormSchema = z.object({
   folderId: z.string().min(1, "Please select a folder"),
   file: z
-    .instanceof(File, { message: "Please upload a document" })
-    .refine((file) => file.size <= 50 * 1024 * 1024, {
+    .array(z.instanceof(File).refine((file) => file.size <= 50 * 1024 * 1024, {
       message: "File size must be less than 50MB",
+    }))
+    .refine((files) => files.every((file) =>
+      ["application/pdf"].includes(file.type)
+    ), {
+      message: "Invalid file types. Only PDF are allowed.",
     })
-    .refine((file) => ["application/pdf"].includes(file.type), {
-      message: "File type not supported. Please upload PDF files only.",
-    }),
 });
 
 type FormData = z.infer<typeof FormSchema>;
@@ -75,7 +76,6 @@ export function DialogAddDocument() {
     },
   });
 
-  // Safe access to userId - only pass it when session is available
   const { folders, isLoading: foldersLoading } = useFoldersByCreator(userId);
 
   const {
@@ -88,35 +88,56 @@ export function DialogAddDocument() {
     resolver: zodResolver(FormSchema),
     defaultValues: {
       folderId: "",
+      file: [],
     },
   });
 
   const fileValue = watch("file");
   const selectedFolderId = watch("folderId");
 
-  const handleFileChange = (file: File | null) => {
-    setValue("file", file as File, {
+  const handleFileChange = (files: File[] | null) => {
+    // Handle file change by setting the array of files
+    if (files && files.length > 0) {
+      setValue("file", files, {
+        shouldValidate: true,
+        shouldDirty: true,
+        shouldTouch: true,
+      });
+    } else {
+      setValue("file", [], {
+        shouldValidate: true,
+        shouldDirty: true,
+        shouldTouch: true,
+      });
+    }
+  };
+
+  const handleRemoveFile = (file: File) => {
+    const updatedFiles = fileValue.filter((item) => item !== file); // Menghapus file yang dipilih
+    setValue("file", updatedFiles, {
       shouldValidate: true,
       shouldDirty: true,
       shouldTouch: true,
     });
   };
-
+  
   const onSubmit = async (data: FormData) => {
     if (!session?.user?.id) {
       toast.error("Authentication required");
       return;
     }
-
+  
     setLoading(true);
-
+  
     try {
-      await uploadFile(data.file, data.folderId);
+      for (const file of data.file) {
+        await uploadFile(file, data.folderId); // Upload satu file per iterasi
+      }
     } catch (error) {
       // Error handling is done in the hook
     }
   };
-
+  
   const handleClose = () => {
     if (!isLoading) {
       reset();
@@ -186,12 +207,17 @@ export function DialogAddDocument() {
               </Label>
               <FileUpload
                 onChange={handleFileChange}
-                value={fileValue}
+                value={fileValue || []} // Ensure it's an array or empty array
                 accept={{
                   "application/pdf": [".pdf"],
+                  // "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [".docx"],
+                  // "application/msword": [".doc"],
+                  // "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"],
+                  // "application/vnd.ms-excel": [".xls"],
                 }}
                 disabled={isLoading}
                 progress={progress || null}
+                handleRemoveFile={handleRemoveFile} 
               />
               {errors.file && (
                 <p className="text-sm font-medium text-destructive">
@@ -216,7 +242,7 @@ export function DialogAddDocument() {
                 status === "loading" ||
                 foldersLoading ||
                 !selectedFolderId ||
-                !fileValue
+                !fileValue || fileValue.length === 0
               }
             >
               {isLoading ? (
@@ -227,7 +253,7 @@ export function DialogAddDocument() {
               ) : (
                 <>
                   <FileUp className="mr-2 h-4 w-4" />
-                  Upload Document
+                  Upload Document 
                 </>
               )}
             </Button>

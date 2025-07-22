@@ -9,6 +9,7 @@ import {
   User,
   Clock,
   UploadCloud,
+  Loader2,
   Grid3x3,
   List,
   Search,
@@ -38,9 +39,10 @@ import { useSession } from "next-auth/react";
 
 interface FolderDetailViewProps {
   folderId: string;
+  onMutate?: () => void; // ← tambahkan ini
 }
 
-const FolderDetailView: React.FC<FolderDetailViewProps> = ({ folderId }) => {
+const FolderDetailView: React.FC<FolderDetailViewProps> = ({ folderId, onMutate }) => {
   const { data: session } = useSession();
   const userRole = session?.user.roleCode;
 
@@ -49,6 +51,8 @@ const FolderDetailView: React.FC<FolderDetailViewProps> = ({ folderId }) => {
   const [isAddDocumentOpen, setIsAddDocumentOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [selectedDocument, setSelectedDocument] = useState<any>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isRefreshingDocuments, setIsRefreshingDocuments] = useState(false);
 
   const { folder, isLoading: isFolderLoading, mutate } = useFolder(folderId);
 
@@ -96,15 +100,29 @@ const FolderDetailView: React.FC<FolderDetailViewProps> = ({ folderId }) => {
   }
 
   // Format dates for display
+  // Format dates for display
   const startDate = new Date(folder.startDate);
   const endDate = new Date(folder.endDate);
   const createdAt = new Date(folder.createdAt);
 
-  const dateRange = `${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()}`;
+  const start = `${startDate.toLocaleDateString("id-ID", {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric",
+                  })}`
+
+  const end   = `${endDate.toLocaleDateString("id-ID", {
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
+                })}`                  
+
+  const dateRange = `${start} - ${end}`;
   const createdTimeAgo = formatDistanceToNow(createdAt, { addSuffix: true });
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
+    setCurrentPage(1);
   };
 
   const handleViewDocument = (document: any) => {
@@ -112,10 +130,15 @@ const FolderDetailView: React.FC<FolderDetailViewProps> = ({ folderId }) => {
     setIsViewDialogOpen(true);
   };
 
-  const handleRevalidateSuccess = () => {
-    mutate();
+  const handleRevalidateSuccess = async () => {
+    setIsRefreshingDocuments(true); // Mulai loading
+    await mutate(); // ⬅️ pastikan ini selesai
+    setIsAddDocumentOpen(false); // baru close
+    setIsRefreshingDocuments(false); // Selesai loading
+    onMutate?.(); // Trigger optional global mutate jika ada
   };
-
+  
+  const isDocumentsReady = !isFolderLoading && !isRefreshingDocuments && folder.documents;
   return (
     <div className="px-6 py-4 space-y-6">
       {/* Header with back button and title */}
@@ -265,12 +288,22 @@ const FolderDetailView: React.FC<FolderDetailViewProps> = ({ folderId }) => {
           </div>
         </div>
 
-        {/* Documents display */}
-        <div className={cn(isFolderLoading && "opacity-70")}>
-          {isFolderLoading ? (
-            <div className="flex items-center justify-center h-40">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            </div>
+        {/* Documents display */}  
+        <div>
+        {isFolderLoading || isRefreshingDocuments ? (
+            viewMode === "grid" ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <Skeleton key={i} className="h-36 w-full rounded-xl" />
+                ))}
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Skeleton key={i} className="h-10 w-full rounded-md" />
+                ))}
+              </div>
+            )
           ) : folder.documents?.length === 0 ? (
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-8">
@@ -279,14 +312,19 @@ const FolderDetailView: React.FC<FolderDetailViewProps> = ({ folderId }) => {
                 <p className="text-muted-foreground text-center max-w-md mb-4">
                   This folder is empty. Upload documents to get started.
                 </p>
-                <Button onClick={() => setIsAddDocumentOpen(true)}>
-                  <UploadCloud className="h-4 w-4 mr-2" />
-                  Upload Document
+                <Button disabled={isRefreshingDocuments} onClick={() => setIsAddDocumentOpen(true)}>
+                  {isRefreshingDocuments ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <UploadCloud className="h-4 w-4 mr-2" />
+                  )}
+                  Upload
                 </Button>
+
               </CardContent>
             </Card>
           ) : viewMode === "grid" ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <div key={folder.documents.map(doc => doc.id).join("-")} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {folder.documents.map((document) => (
                 <DocumentCard
                   key={document.id}
@@ -297,9 +335,15 @@ const FolderDetailView: React.FC<FolderDetailViewProps> = ({ folderId }) => {
               ))}
             </div>
           ) : (
-            <TableDocuments folderId={folder.id} showFolderColumn={false} />
+            <TableDocuments
+              key={folder.documents.map(doc => doc.id).join("-")}
+              folderId={folder.id}
+              showFolderColumn={false}
+            />
           )}
         </div>
+
+
       </div>
 
       {/* Add Document Dialog */}

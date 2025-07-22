@@ -91,11 +91,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         url: "/drive",
         icon: IconFolderShare,
       });
-      navItems.documents.push({
-        name: "Upload",
-        url: "/upload",
-        icon: IconCloudUpload,
-      });
+      // navItems.documents.push({
+      //   name: "Upload",
+      //   url: "/upload",
+      //   icon: IconCloudUpload,
+      // });
     }
 
     // Only surveyor and client roles have access to Upload

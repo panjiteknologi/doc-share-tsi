@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Folder, MoreHorizontal, FileText, Calendar, User } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { Folder as FolderType } from "@/hooks/use-folders";
@@ -17,12 +17,15 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
+import { useFolders } from "@/hooks/use-folders";
+import DialogDeleteFolder from "../dashboard/dialogs/dialog-delete-folder";
 
 interface FolderCardProps {
-  folder: FolderType;
+  folder: any;
+  onMutate?: () => void; // tambahkan ini
 }
 
-const FolderCard: React.FC<FolderCardProps> = ({ folder }) => {
+const FolderCard: React.FC<FolderCardProps> = ({ folder, onMutate }) => {
   // Format dates for display
   const startDate = new Date(folder.startDate);
   const endDate = new Date(folder.endDate);
@@ -31,7 +34,29 @@ const FolderCard: React.FC<FolderCardProps> = ({ folder }) => {
   const dateRange = `${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()}`;
   const createdTimeAgo = formatDistanceToNow(createdAt, { addSuffix: true });
 
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedFolder, setSelectedFolder] = useState<FolderType | null>(null);
+
+  // Get mutate function for refreshing data
+  const { folders, mutate } = useFolders({
+    sortBy: "createdAt",
+    sortOrder: "desc",
+  });
+
+  const handleOpenDeleteDialog = (folder: FolderType) => {
+    setSelectedFolder(folder);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleSuccess = () => {
+    mutate(); // Refresh folders from API
+    onMutate?.(); // ⬅️ trigger mutate global
+    setDeleteDialogOpen(false); // Close dialog
+    setSelectedFolder(null); // Clear selected
+  };
+
   return (
+    <>
     <Card className="overflow-hidden hover:border-primary/50 transition-colors">
       <CardHeader className="px-4 flex flex-row items-start justify-between">
         <div className="flex items-center gap-2">
@@ -63,7 +88,10 @@ const FolderCard: React.FC<FolderCardProps> = ({ folder }) => {
             <DropdownMenuItem>Open</DropdownMenuItem>
             <DropdownMenuItem>Rename</DropdownMenuItem>
             <DropdownMenuItem>Share</DropdownMenuItem>
-            <DropdownMenuItem className="text-destructive">
+            <DropdownMenuItem
+              onClick={() => handleOpenDeleteDialog(folder)}
+              className="text-destructive"
+            >
               Delete
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -92,6 +120,22 @@ const FolderCard: React.FC<FolderCardProps> = ({ folder }) => {
         <span className="ml-auto">{createdTimeAgo}</span>
       </CardFooter>
     </Card>
+
+     {/* Delete Dialog */}
+     {selectedFolder && (
+      <DialogDeleteFolder
+        isOpen={deleteDialogOpen}
+        onClose={() => {
+          setDeleteDialogOpen(false);
+          setSelectedFolder(null);
+        }}
+        folderId={selectedFolder.id}
+        folderName={selectedFolder.name}
+        documentCount={selectedFolder.documents.length}
+        onSuccess={handleSuccess}
+      />
+    )}
+    </>
   );
 };
 

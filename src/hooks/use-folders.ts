@@ -132,6 +132,8 @@ export function useFolder(folderId: string | null) {
         toast.error(err.message || "Failed to fetch folder details");
       },
       revalidateOnFocus: false,
+      revalidateOnMount: true,     // ⬅️ Tambah ini
+      revalidateIfStale: true,     // ⬅️ Tambah ini
     }
   );
 

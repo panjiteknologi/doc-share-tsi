@@ -2,7 +2,7 @@ import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { Metadata } from "next";
 import LayoutDashboard from "@/layout/LayoutDashboard";
-import UploadPage from "@/views/upload";
+// import UploadPage from "@/views/upload";
 
 export const metadata: Metadata = {
   title: "Upload Documents | TSI Audit Document Share",
@@ -19,9 +19,9 @@ export default async function Upload() {
     redirect("/");
   }
 
-  return (
-    <LayoutDashboard>
-      <UploadPage />
-    </LayoutDashboard>
-  );
+  // return (
+  //   <LayoutDashboard>
+  //     <UploadPage />
+  //   </LayoutDashboard>
+  // );
 }
