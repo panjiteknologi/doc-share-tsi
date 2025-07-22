@@ -28,12 +28,7 @@ import DocumentDrawerViewer from "@/components/document-drawer-viewer";
 import DialogCreateFolder from "./dialog-create-folder";
 import { Input } from "@/components/ui/input";
 
-interface FolderDetailViewProps {
-  folderId: string;
-  onMutate?: () => void;
-}
-
-const DriveView: React.FC<FolderDetailViewProps> = ({ folderId }) => {
+const DriveView = () => {
   const { data: session } = useSession();
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [searchQuery, setSearchQuery] = useState(""); // State untuk pencarian folder
@@ -45,8 +40,9 @@ const DriveView: React.FC<FolderDetailViewProps> = ({ folderId }) => {
     revalidateFoldersProject(undefined, { revalidate: true });
   };
   // Determine user role
-  const userRole = session?.user?.roleCode || "";
-  const userId = session?.user?.id as string;
+  const userRole = session?.user?.roleCode ?? "";
+  const userId = session?.user?.id ?? "";
+  
 
   // Fetch folders LS
   const {
