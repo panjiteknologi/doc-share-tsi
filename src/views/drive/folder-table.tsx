@@ -20,6 +20,7 @@ import { formatDistanceToNow } from "date-fns";
 import Link from "next/link";
 import { useFolders } from "@/hooks/use-folders";
 import DialogDeleteFolder from "../dashboard/dialogs/dialog-delete-folder";
+import { useSession } from "next-auth/react";
 
 interface FolderTableProps {
   folders: any[]; // atau ganti dengan tipe folder kamu kalau sudah ada
@@ -29,7 +30,8 @@ interface FolderTableProps {
 const FolderTable: React.FC<FolderTableProps> = ({ folders, onMutate }) => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedFolder, setSelectedFolder] = useState<FolderType | null>(null);
-
+  const { data: session } = useSession();
+  const userId = session?.user.id as string;
   // Get mutate function for refreshing data
   const { mutate } = useFolders({
     sortBy: "createdAt",
@@ -48,6 +50,9 @@ const FolderTable: React.FC<FolderTableProps> = ({ folders, onMutate }) => {
     setSelectedFolder(null);
   };
 
+  console.log(userId)
+  console.log(folders)
+
   return (
     <div  key={folders.length} className={`${folders.length > 0 && "rounded-md border"}`}>
       <Table>
@@ -57,7 +62,7 @@ const FolderTable: React.FC<FolderTableProps> = ({ folders, onMutate }) => {
               <TableHead>Name</TableHead>
               <TableHead>Documents</TableHead>
               <TableHead>Date Range</TableHead>
-              <TableHead>Created By</TableHead>
+              <TableHead>Client</TableHead>
               <TableHead>Created</TableHead>
               <TableHead className="w-[80px]">Actions</TableHead>
             </TableRow>
@@ -68,7 +73,20 @@ const FolderTable: React.FC<FolderTableProps> = ({ folders, onMutate }) => {
             const startDate = new Date(folder.startDate);
             const endDate = new Date(folder.endDate);
             const createdAt = new Date(folder.createdAt);
-            const dateRange = `${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()}`;
+          
+            const start = `${startDate.toLocaleDateString("id-ID", {
+                              day: "numeric",
+                              month: "long",
+                              year: "numeric",
+                            })}`
+          
+            const end   = `${endDate.toLocaleDateString("id-ID", {
+                            day: "numeric",
+                            month: "long",
+                            year: "numeric",
+                          })}`                  
+          
+            const dateRange = `${start} - ${end}`;
             const createdTimeAgo = formatDistanceToNow(createdAt, {
               addSuffix: true,
             });
@@ -102,6 +120,7 @@ const FolderTable: React.FC<FolderTableProps> = ({ folders, onMutate }) => {
                 <TableCell>{createdTimeAgo}</TableCell>
                 <TableCell>
                   <DropdownMenu>
+               
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" size="icon" className="h-8 w-8">
                         <MoreHorizontal className="h-4 w-4" />
@@ -112,15 +131,20 @@ const FolderTable: React.FC<FolderTableProps> = ({ folders, onMutate }) => {
                       <DropdownMenuItem asChild>
                         <Link href={`/drive/${folder.id}`}>Open</Link>
                       </DropdownMenuItem>
-                      <DropdownMenuItem disabled>Rename</DropdownMenuItem>
-                      <DropdownMenuItem disabled>Share</DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => handleOpenDeleteDialog(folder)}
-                        className="text-destructive"
-                      >
-                        Delete
-                      </DropdownMenuItem>
+                      {folder.createdById === userId && (
+                        <>
+                          <DropdownMenuItem disabled>Rename</DropdownMenuItem>
+                          <DropdownMenuItem disabled>Share</DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleOpenDeleteDialog(folder)}
+                            className="text-destructive"
+                          >
+                            Delete
+                          </DropdownMenuItem>
+                        </>
+                      )}
                     </DropdownMenuContent>
+                    
                   </DropdownMenu>
                 </TableCell>
               </TableRow>

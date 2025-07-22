@@ -52,8 +52,7 @@ export async function GET(
     // Add search filter if provided
     if (search) {
       where.url = {
-        contains: search,
-        mode: "insensitive" as any,
+        contains: search
       };
     }
 

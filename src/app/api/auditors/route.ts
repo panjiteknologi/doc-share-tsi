@@ -36,8 +36,8 @@ export async function GET(request: NextRequest) {
       roleId: auditorRole.id,
       OR: search
         ? [
-            { name: { contains: search, mode: "insensitive" as any } },
-            { email: { contains: search, mode: "insensitive" as any } },
+            { name: { contains: search} },
+            { email: { contains: search} },
           ]
         : undefined,
     };

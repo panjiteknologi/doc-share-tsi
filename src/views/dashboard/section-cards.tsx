@@ -53,18 +53,18 @@ export function SectionCards() {
       icon: IconFolderPlus,
       buttonText: "Create Folder",
     },
-    {
-      id: "document",
-      title: "Add Document",
-      description:
-        "Upload new documents to be shared, reviewed, and audited in the system.",
-      icon: IconFileUpload,
-      buttonText: "Upload Document",
-    },
+    // {
+    //   id: "document",
+    //   title: "Add Document",
+    //   description:
+    //     "Upload new documents to be shared, reviewed, and audited in the system.",
+    //   icon: IconFileUpload,
+    //   buttonText: "Upload Document",
+    // },
   ];
 
   return (
-    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
       {sections.map((section) => (
         <Card key={section.id} className="flex flex-col h-full">
           <CardHeader>

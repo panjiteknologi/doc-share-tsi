@@ -14,7 +14,7 @@ export function DashboardTabs() {
         <TabsTrigger value="auditors">Auditors</TabsTrigger>
         <TabsTrigger value="clients">Clients</TabsTrigger>
         <TabsTrigger value="folders">Folders</TabsTrigger>
-        <TabsTrigger value="documents">Documents</TabsTrigger>
+        {/* <TabsTrigger value="documents">Documents</TabsTrigger> */}
       </TabsList>
       <TabsContent value="auditors">
         <TableAuditors />
@@ -25,9 +25,9 @@ export function DashboardTabs() {
       <TabsContent value="folders">
         <TableFolders />
       </TabsContent>
-      <TabsContent value="documents">
+      {/* <TabsContent value="documents">
         <TableDocuments />
-      </TabsContent>
+      </TabsContent> */}
     </Tabs>
   );
 }

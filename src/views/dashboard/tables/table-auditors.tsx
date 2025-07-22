@@ -87,6 +87,8 @@ export function TableAuditors() {
     mutate();
   };
 
+  console.log('auditor', auditors)
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -109,7 +111,7 @@ export function TableAuditors() {
               <TableHead>Name</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Password</TableHead>
-              <TableHead>Clients</TableHead>
+              <TableHead>Connected</TableHead>
               <TableHead>Connect</TableHead>
               <TableHead className="w-[100px]">Actions</TableHead>
             </TableRow>
@@ -154,7 +156,7 @@ export function TableAuditors() {
                   <TableCell>
                     <Badge variant="secondary">
                       {auditor.projectCount}{" "}
-                      {auditor.projectCount <= 1 ? "client" : "clients"}
+                      {auditor.projectCount <= 1 ? "folder client" : "folder clients"}
                     </Badge>
                   </TableCell>
                   <TableCell align="left" className="flex items-center gap-2">

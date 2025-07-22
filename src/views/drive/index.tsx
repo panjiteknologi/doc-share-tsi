@@ -125,7 +125,7 @@ const DriveView = () => {
               </TabsList>
             </Tabs>
           </div>
-          {userRole !== "auditor" && (
+          {userRole !== "auditor" && userRole !== "client" && (
             <Button onClick={handleOpenCreateFolder}>
               <FolderPlus className="h-4 w-4 mr-2" />
               Create Folder

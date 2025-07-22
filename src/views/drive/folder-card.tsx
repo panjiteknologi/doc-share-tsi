@@ -19,6 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { useFolders } from "@/hooks/use-folders";
 import DialogDeleteFolder from "../dashboard/dialogs/dialog-delete-folder";
+import { useSession } from "next-auth/react";
 
 interface FolderCardProps {
   folder: any;
@@ -27,11 +28,26 @@ interface FolderCardProps {
 
 const FolderCard: React.FC<FolderCardProps> = ({ folder, onMutate }) => {
   // Format dates for display
+  const { data: session } = useSession();
+  const userId = session?.user.id as string;
+  
   const startDate = new Date(folder.startDate);
   const endDate = new Date(folder.endDate);
   const createdAt = new Date(folder.createdAt);
 
-  const dateRange = `${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()}`;
+  const start = `${startDate.toLocaleDateString("id-ID", {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric",
+                  })}`
+
+  const end   = `${endDate.toLocaleDateString("id-ID", {
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
+                })}`                  
+
+  const dateRange = `${start} - ${end}`;
   const createdTimeAgo = formatDistanceToNow(createdAt, { addSuffix: true });
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -86,14 +102,18 @@ const FolderCard: React.FC<FolderCardProps> = ({ folder, onMutate }) => {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem>Open</DropdownMenuItem>
-            <DropdownMenuItem>Rename</DropdownMenuItem>
-            <DropdownMenuItem>Share</DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => handleOpenDeleteDialog(folder)}
-              className="text-destructive"
-            >
-              Delete
-            </DropdownMenuItem>
+            {folder.createdById === userId && (
+              <>
+                <DropdownMenuItem disabled>Rename</DropdownMenuItem>
+                <DropdownMenuItem disabled>Share</DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => handleOpenDeleteDialog(folder)}
+                  className="text-destructive"
+                >
+                  Delete
+                </DropdownMenuItem>
+              </>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       </CardHeader>

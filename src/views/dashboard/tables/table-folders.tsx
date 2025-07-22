@@ -94,7 +94,7 @@ export function TableFolders() {
               <TableHead>Type</TableHead>
               <TableHead>Documents</TableHead>
               <TableHead>Period</TableHead>
-              <TableHead>Owner</TableHead>
+              <TableHead>Client</TableHead>
               <TableHead>Created By</TableHead>
               <TableHead className="w-[100px]">Actions</TableHead>
             </TableRow>
