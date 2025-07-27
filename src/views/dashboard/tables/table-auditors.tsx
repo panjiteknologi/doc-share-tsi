@@ -87,7 +87,7 @@ export function TableAuditors() {
     mutate();
   };
 
-  console.log('auditor', auditors)
+  // console.log('auditor', auditors)
 
   return (
     <div className="space-y-4">

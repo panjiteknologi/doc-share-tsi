@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
     });
 
     // Log for debugging
-    console.log(`Found ${expiredDocuments.length} expired documents`);
+    // console.log(`Found ${expiredDocuments.length} expired documents`);
 
     // Delete each document from S3 and the database
     const results = await Promise.allSettled(

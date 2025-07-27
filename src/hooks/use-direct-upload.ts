@@ -26,7 +26,7 @@ export function useDirectUpload(options: UploadOptions = {}) {
 
       const { presignedUrl, url } = presignedResponse.data;
 
-      console.log("presignedUrl : ", presignedUrl);
+      // console.log("presignedUrl : ", presignedUrl);
 
       // Step 2: Upload file directly to S3
       await axios.put(presignedUrl, file, {

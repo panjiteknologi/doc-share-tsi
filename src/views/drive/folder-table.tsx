@@ -50,8 +50,8 @@ const FolderTable: React.FC<FolderTableProps> = ({ folders, onMutate }) => {
     setSelectedFolder(null);
   };
 
-  console.log(userId)
-  console.log(folders)
+  // console.log(userId)
+  // console.log(folders)
 
   return (
     <div  key={folders.length} className={`${folders.length > 0 && "rounded-md border"}`}>
