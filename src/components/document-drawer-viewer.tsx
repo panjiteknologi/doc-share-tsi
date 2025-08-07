@@ -40,14 +40,12 @@ interface DocumentDrawerViewerProps {
   isOpen: boolean;
   onClose: () => void;
   document: Document | null;
-  client: Document | void;
 }
 
 export default function DocumentDrawerViewer({
   isOpen,
   onClose,
   document,
-  client
 }: DocumentDrawerViewerProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [documentUrl, setDocumentUrl] = useState<string | null>(null);
