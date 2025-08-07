@@ -13,7 +13,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import dynamic from "next/dynamic";
-
+import AntiScreenshotOverlay from "./AntiScreenshotOverlay";
 // Dynamically import EnhancedPdfViewer with no SSR
 const EnhancedPdfViewer = dynamic(() => import("./enhanced-pdf-viewer"), {
   ssr: false,
@@ -40,19 +40,21 @@ interface DocumentDrawerViewerProps {
   isOpen: boolean;
   onClose: () => void;
   document: Document | null;
+  client: Document | void;
 }
 
 export default function DocumentDrawerViewer({
   isOpen,
   onClose,
   document,
+  client
 }: DocumentDrawerViewerProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [documentUrl, setDocumentUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showProtectionAlert, setShowProtectionAlert] = useState(false);
-
+  // console.log(client);
   // Reset expanded state when drawer closes
   useEffect(() => {
     if (!isOpen) {
@@ -167,41 +169,41 @@ export default function DocumentDrawerViewer({
 
 
   
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      const keyCombo = `${e.metaKey ? 'Meta+' : ''}${e.ctrlKey ? 'Ctrl+' : ''}${e.shiftKey ? 'Shift+' : ''}${e.altKey ? 'Alt+' : ''}${e.key}`;
+  // useEffect(() => {
+  //   const handler = (e: KeyboardEvent) => {
+  //     const keyCombo = `${e.metaKey ? 'Meta+' : ''}${e.ctrlKey ? 'Ctrl+' : ''}${e.shiftKey ? 'Shift+' : ''}${e.altKey ? 'Alt+' : ''}${e.key}`;
   
-      const key = e.key.toLowerCase();
+  //     const key = e.key.toLowerCase();
   
-      const blockedCombos = [
-        "Meta+Shift+S",
-        "Ctrl+Shift+S",
-        "PrintScreen",
-        "Meta",
-        "Meta+S",
-        "Ctrl+S",
-        "Ctrl+Alt+S",
-        "Ctrl+Shift+I",
-        "F12",
-        "Meta+Option+I",
-      ];
+  //     const blockedCombos = [
+  //       "Meta+Shift+S",
+  //       "Ctrl+Shift+S",
+  //       "PrintScreen",
+  //       "Meta",
+  //       "Meta+S",
+  //       "Ctrl+S",
+  //       "Ctrl+Alt+S",
+  //       "Ctrl+Shift+I",
+  //       "F12",
+  //       "Meta+Option+I",
+  //     ];
   
-      const isPrintScreen = key === "printscreen" || e.keyCode === 44 || e.code.toLowerCase().includes("printscreen");
+  //     const isPrintScreen = key === "printscreen" || e.keyCode === 44 || e.code.toLowerCase().includes("printscreen");
   
-      if (blockedCombos.includes(keyCombo) || isPrintScreen) {
-        window.document.body.innerHTML = "<div style='position:fixed;top:0;left:0;width:100vw;height:100vh;background:black;z-index:9999;'></div>";
-        setTimeout(() => location.reload(), 1000);
-      }
-    };
+  //     if (blockedCombos.includes(keyCombo) || isPrintScreen) {
+  //       window.document.body.innerHTML = "<div style='position:fixed;top:0;left:0;width:100vw;height:100vh;background:black;z-index:9999;'></div>";
+  //       setTimeout(() => location.reload(), 1000);
+  //     }
+  //   };
   
-    window.document.addEventListener("keydown", handler);
-    window.document.addEventListener("keyup", handler);
+  //   window.document.addEventListener("keydown", handler);
+  //   window.document.addEventListener("keyup", handler);
   
-    return () => {
-      window.document.removeEventListener("keydown", handler);
-      window.document.removeEventListener("keyup", handler);
-    };
-  }, []);
+  //   return () => {
+  //     window.document.removeEventListener("keydown", handler);
+  //     window.document.removeEventListener("keyup", handler);
+  //   };
+  // }, []);
   
   
 
@@ -382,20 +384,20 @@ export default function DocumentDrawerViewer({
   const normalizedType = mapFileType(document?.fileType || "");
 
   if (!document) return null;
-
+// console.log(document)
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <SheetContent
         side="right"
         className={cn(
-          "p-0 overflow-hidden",
-          isExpanded ? "sm:max-w-[85%] w-[85%]" : "sm:max-w-[50%] w-[80%]"
+          "p-0 overflow-hidden sm:max-w-[100%] w-[100%]",
+          // isExpanded ? "sm:max-w-[85%] w-[85%]" : "sm:max-w-[50%] w-[80%]"
         )}
         style={{
           transition: "max-width 0.3s ease-in-out, width 0.3s ease-in-out",
         }}
       >
-        <ResizeHandle />
+        {/* <ResizeHandle /> */}
 
         <div className="flex h-full flex-col">
           <SheetHeader className="flex flex-row items-center border-b px-4 py-3 bg-background">
@@ -449,7 +451,10 @@ export default function DocumentDrawerViewer({
                 </div>
               </div>
             ) : documentUrl && normalizedType === "PDF" ? (
-            <EnhancedPdfViewer url={documentUrl} />
+              <>
+                <AntiScreenshotOverlay watermarkText={""} />
+                <EnhancedPdfViewer url={documentUrl} />
+              </>
             ) : documentUrl && ["DOC", "DOCX"].includes(normalizedType) ? (
                 <div
                   onContextMenu={(e) => e.preventDefault()}
