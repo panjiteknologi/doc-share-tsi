@@ -33,6 +33,8 @@ const formSchema = z.object({
           (file) =>
             [
               "application/pdf",
+              "image/jpeg",
+              "image/png",
               // "application/msword",
               "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
               // "application/vnd.ms-excel",
@@ -171,6 +173,8 @@ export default function DialogUploadDocument({
               multiple
               accept={{
                 "application/pdf": [".pdf"],
+                "image/jpeg": [".jpg", ".jpeg"],
+                "image/png": [".png"],
                 // "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [".docx"],
                 // "application/msword": [".doc"],
                 // "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"],

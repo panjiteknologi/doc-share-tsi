@@ -40,12 +40,14 @@ interface DocumentDrawerViewerProps {
   isOpen: boolean;
   onClose: () => void;
   document: Document | null;
+  // client: string
 }
 
 export default function DocumentDrawerViewer({
   isOpen,
   onClose,
   document,
+  // client
 }: DocumentDrawerViewerProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [documentUrl, setDocumentUrl] = useState<string | null>(null);
@@ -378,8 +380,36 @@ export default function DocumentDrawerViewer({
         return type.toUpperCase();
     }
   };
+
+  const getNormalizedType = (fileType: string, fileName?: string): string => {
+  if (!fileType && !fileName) return "";
+
+  // Cek dari ekstensi fileName lebih dulu
+  if (fileName) {
+    const ext = fileName.split(".").pop()?.toUpperCase();
+    if (ext) {
+      return ext;
+    }
+  }
+
+  // Fallback dari mime-type
+  const mimeMap: Record<string, string> = {
+    "application/pdf": "PDF",
+    "application/msword": "DOC",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "DOCX",
+    "application/vnd.ms-excel": "XLS",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": "XLSX",
+    "image/jpeg": "JPG",
+    "image/png": "PNG",
+  };
+
+  return mimeMap[fileType.toLowerCase()] ?? fileType.toUpperCase();
+};
+
   
-  const normalizedType = mapFileType(document?.fileType || "");
+  // const normalizedType = mapFileType(document?.fileType || "");
+    const normalizedType = getNormalizedType(document?.fileType || "", document?.fileName);
+
 
   if (!document) return null;
 // console.log(document)
@@ -450,27 +480,40 @@ export default function DocumentDrawerViewer({
               </div>
             ) : documentUrl && normalizedType === "PDF" ? (
               <>
-                <AntiScreenshotOverlay watermarkText={""} />
+                <AntiScreenshotOverlay watermarkText={client ?? ''} />
                 <EnhancedPdfViewer url={documentUrl} />
               </>
             ) : documentUrl && ["DOC", "DOCX"].includes(normalizedType) ? (
-                <div
-                  onContextMenu={(e) => e.preventDefault()}
-                  style={{ width: "100%", height: "100%", userSelect: "none" }}
-                >
-                  <iframe
-                    src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(documentUrl)}`}
-                    style={{ width: "100%", height: "100%" }}
-                    frameBorder="0"
-                    title="Word Document Viewer"
-                  />
-                </div>
+              <div
+                onContextMenu={(e) => e.preventDefault()}
+                style={{ width: "100%", height: "100%", userSelect: "none" }}
+              >
+                <iframe
+                  src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(documentUrl)}`}
+                  style={{ width: "100%", height: "100%" }}
+                  frameBorder="0"
+                  title="Word Document Viewer"
+                />
+              </div>
             ) : documentUrl && ["XLS", "XLSX"].includes(normalizedType) ? (
               <div
-                onContextMenu={handleContextMenu} // cegah klik kanan
-                style={{ width: "100%", height: "100%", userSelect: "none" }} // cegah seleksi teks dari luar komponen
+                onContextMenu={handleContextMenu}
+                style={{ width: "100%", height: "100%", userSelect: "none" }}
               >
                 <EnhancedExcelViewer url={documentUrl} />
+              </div>
+            ) : documentUrl && ["JPG", "JPEG", "PNG"].includes(normalizedType) ? (
+              <div
+                onContextMenu={handleContextMenu}
+                className="flex items-center justify-center w-full h-full bg-black"
+                style={{ userSelect: "none" }}
+              >
+                <img
+                  src={documentUrl}
+                  alt={document?.fileName || "Image Preview"}
+                  className="max-h-full max-w-full object-contain"
+                  draggable={false}
+                />
               </div>
             ) : (
               <div className="flex h-full w-full items-center justify-center p-6">
