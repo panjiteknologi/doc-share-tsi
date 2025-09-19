@@ -480,7 +480,7 @@ export default function DocumentDrawerViewer({
               </div>
             ) : documentUrl && normalizedType === "PDF" ? (
               <>
-                <AntiScreenshotOverlay watermarkText={client ?? ''} />
+                {/* <AntiScreenshotOverlay watermarkText={client ?? ''} /> */}
                 <EnhancedPdfViewer url={documentUrl} />
               </>
             ) : documentUrl && ["DOC", "DOCX"].includes(normalizedType) ? (
