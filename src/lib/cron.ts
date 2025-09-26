@@ -1,7 +1,8 @@
 export function calculateExpiryDate(createdAt: string | Date): Date {
   const created = new Date(createdAt);
   const expiryDate = new Date(created);
-  expiryDate.setDate(expiryDate.getDate() + 30); // 30 days from creation
+  // expiryDate.setDate(expiryDate.getDate() + 30); // 30 days from creation
+  expiryDate.setDate(expiryDate.getDate() + 60); // 60 days from creation
   return expiryDate;
 }
 
