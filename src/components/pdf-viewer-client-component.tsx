@@ -1,7 +1,13 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  ZoomIn,
+  ZoomOut,
+  RotateCw,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -22,6 +28,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ url }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [scale, setScale] = useState(1.2);
+  const [rotation, setRotation] = useState(0);
 
   const options = useMemo(
     () => ({
@@ -68,6 +75,11 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ url }) => {
 
   const resetZoom = () => {
     setScale(1.2);
+  };
+
+  // Rotation control
+  const toggleRotation = () => {
+    setRotation((prevRotation) => (prevRotation === 0 ? 90 : 0));
   };
 
   if (error) {
@@ -143,6 +155,16 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ url }) => {
             <ZoomIn className="h-4 w-4" />
           </Button>
         </div>
+
+        <Button
+          variant="outline"
+          size="icon"
+          className="h-8 w-8"
+          onClick={toggleRotation}
+          disabled={loading}
+        >
+          <RotateCw className="h-4 w-4" />
+        </Button>
       </div>
 
       {/* PDF viewer */}
@@ -178,6 +200,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ url }) => {
             renderAnnotationLayer={false}
             scale={scale}
             loading={<Skeleton className="h-[600px] w-[450px]" />}
+            rotate={rotation}
           />
         </PDFDocument>
       </div>
