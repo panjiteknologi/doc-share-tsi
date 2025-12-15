@@ -46,14 +46,14 @@ export default function DialogConnectProject({
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const { auditor } = useAuditor(auditorId);
-  const { mutate } = useAuditors({ page: 1, limit: 100 });
+  const { mutate } = useAuditors({ page: 1, limit: 1000 });
   const projectFolderIds =
     auditor?.projects?.map((project) => project.folderId) || [];
 
-  const { clients } = useClients({ page: 1, limit: 100 });
+  const { clients } = useClients({ page: 1, limit: 1000 });
 
   const { folders } = useFolders({
-    limit: 100,
+    limit: 1000,
   });
 
   const availableFolders = folders.filter(
