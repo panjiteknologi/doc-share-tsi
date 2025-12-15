@@ -78,7 +78,7 @@ export function DialogAddFolder({ onSuccess }: AddFolderDialogProps) {
   const { mutate } = useFolders({ page: 1, limit: 10 });
   const { clients, isLoading: isLoadingClients } = useClients({
     page: 1,
-    limit: 100, // Load more clients to ensure we get all
+    limit: 1000, // Load more clients to ensure we get all
   });
 
   const today = new Date().toISOString().split("T")[0];
