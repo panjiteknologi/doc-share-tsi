@@ -28,6 +28,7 @@ function driveFolderToTreeFolder(folder: any): TreeFolder {
     createdByName: folder.createdBy?.name || "-",
     createdById: folder.createdById ?? null,
     userId: folder.userId,
+    parentId: null,
   };
 }
 

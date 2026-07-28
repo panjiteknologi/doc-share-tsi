@@ -83,9 +83,15 @@ export interface TreeFolder {
   createdByName: string;
   createdById: string | null;
   userId: string;
+  // The folder this one is nested under, so its cache can be refreshed after
+  // an edit/delete; null for top-level (root) folders.
+  parentId: string | null;
 }
 
-function subfolderToTreeFolder(folder: SubfolderSummary): TreeFolder {
+function subfolderToTreeFolder(
+  folder: SubfolderSummary,
+  parentId: string
+): TreeFolder {
   return {
     id: folder.id,
     name: folder.name,
@@ -100,6 +106,7 @@ function subfolderToTreeFolder(folder: SubfolderSummary): TreeFolder {
     createdByName: folder.createdBy?.name || "-",
     createdById: folder.createdById,
     userId: folder.userId,
+    parentId,
   };
 }
 
@@ -1030,7 +1037,7 @@ function FolderNodeChildren({
       {folder.children.map((child) => (
         <FolderNode
           key={child.id}
-          folder={subfolderToTreeFolder(child)}
+          folder={subfolderToTreeFolder(child, folderId)}
           depth={depth}
           userId={userId}
           role={role}
@@ -1196,6 +1203,11 @@ export function FolderTreeBrowser({
   };
 
   const handleSuccess = () => {
+    // Refresh the parent's children cache so an edited/deleted subfolder
+    // updates immediately without needing a full page reload
+    if (selectedFolder?.parentId) {
+      globalMutate(`/api/folders/${selectedFolder.parentId}`);
+    }
     onMutateTopLevel?.();
   };
 

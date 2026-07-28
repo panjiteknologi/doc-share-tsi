@@ -45,6 +45,7 @@ export function TableFolders() {
     createdByName: folder.createdByName,
     createdById: folder.createdBy?.id ?? null,
     userId: folder.userId,
+    parentId: null,
   }));
 
   return (
