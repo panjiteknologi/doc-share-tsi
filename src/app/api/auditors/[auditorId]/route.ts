@@ -2,6 +2,22 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 
+// Collects ancestor folder names (root-most first), skipping the client's root folder
+function getParentPath(folder: {
+  parent?: { name: string; isRoot: boolean; parent?: unknown } | null;
+}): string[] {
+  const names: string[] = [];
+  let current = folder.parent as
+    | { name: string; isRoot: boolean; parent?: unknown }
+    | null
+    | undefined;
+  while (current) {
+    if (!current.isRoot) names.push(current.name);
+    current = current.parent as typeof current;
+  }
+  return names.reverse();
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ auditorId: string }> }
@@ -37,6 +53,31 @@ export async function GET(
                 name: true,
                 startDate: true,
                 endDate: true,
+                user: {
+                  select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                  },
+                },
+                parent: {
+                  select: {
+                    name: true,
+                    isRoot: true,
+                    parent: {
+                      select: {
+                        name: true,
+                        isRoot: true,
+                        parent: {
+                          select: {
+                            name: true,
+                            isRoot: true,
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
               },
             },
           },
@@ -56,13 +97,22 @@ export async function GET(
       );
     }
 
-    // Format data to include project count
+    // Format data to include project count and each folder's parent path
     const formattedAuditor = {
       id: auditor.id,
       name: auditor.name,
       email: auditor.email,
       role: auditor.role,
-      projects: auditor.projects,
+      projects: auditor.projects.map((project) => {
+        const { parent, ...folderRest } = project.folder;
+        return {
+          ...project,
+          folder: {
+            ...folderRest,
+            parentPath: getParentPath({ parent }),
+          },
+        };
+      }),
       projectCount: auditor.projects.length,
     };
 

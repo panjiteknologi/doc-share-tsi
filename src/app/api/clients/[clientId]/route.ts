@@ -2,6 +2,22 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 
+// Collects ancestor folder names (root-most first), skipping the client's root folder
+function getParentPath(folder: {
+  parent?: { name: string; isRoot: boolean; parent?: unknown } | null;
+}): string[] {
+  const names: string[] = [];
+  let current = folder.parent as
+    | { name: string; isRoot: boolean; parent?: unknown }
+    | null
+    | undefined;
+  while (current) {
+    if (!current.isRoot) names.push(current.name);
+    current = current.parent as typeof current;
+  }
+  return names.reverse();
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ clientId: string }> }
@@ -28,6 +44,42 @@ export async function GET(
             code: true,
           },
         },
+        folders: {
+          select: {
+            id: true,
+            name: true,
+            parent: {
+              select: {
+                name: true,
+                isRoot: true,
+                parent: {
+                  select: {
+                    name: true,
+                    isRoot: true,
+                    parent: {
+                      select: {
+                        name: true,
+                        isRoot: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            project: {
+              select: {
+                id: true,
+                auditors: {
+                  select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                  },
+                },
+              },
+            },
+          },
+        },
       },
     });
 
@@ -43,7 +95,19 @@ export async function GET(
       );
     }
 
-    return NextResponse.json({ client });
+    // Attach each folder's parent path, dropping the raw parent chain from the payload
+    const formattedClient = {
+      ...client,
+      folders: client.folders.map((folder) => {
+        const { parent, ...folderRest } = folder;
+        return {
+          ...folderRest,
+          parentPath: getParentPath({ parent }),
+        };
+      }),
+    };
+
+    return NextResponse.json({ client: formattedClient });
   } catch (error) {
     console.error("Error fetching client:", error);
     return NextResponse.json(

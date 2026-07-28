@@ -18,6 +18,23 @@ export interface Client {
     code: string;
   };
   projects: Project;
+  auditorCount: number;
+}
+
+export interface DetailedClient extends Client {
+  folders: Array<{
+    id: string;
+    name: string;
+    parentPath: string[];
+    project: {
+      id: string;
+      auditors: Array<{
+        id: string;
+        name: string | null;
+        email: string | null;
+      }>;
+    } | null;
+  }>;
 }
 
 export interface PaginatedResponse<T> {
@@ -74,13 +91,11 @@ export function useClients({
 }
 
 export function useClient(id: string) {
-  const { data, error, isLoading, mutate } = useSWR<{ client: Client }>(
-    id ? `/api/clients/${id}` : null,
-    fetcher,
-    {
-      revalidateOnFocus: false,
-    }
-  );
+  const { data, error, isLoading, mutate } = useSWR<{
+    client: DetailedClient;
+  }>(id ? `/api/clients/${id}` : null, fetcher, {
+    revalidateOnFocus: false,
+  });
 
   return {
     client: data?.client,

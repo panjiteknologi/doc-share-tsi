@@ -58,6 +58,19 @@ export async function GET(request: NextRequest) {
           },
         },
         projects: true,
+        folders: {
+          select: {
+            project: {
+              select: {
+                auditors: {
+                  select: {
+                    id: true,
+                  },
+                },
+              },
+            },
+          },
+        },
       },
       orderBy: {
         createdAt: "desc",
@@ -66,11 +79,26 @@ export async function GET(request: NextRequest) {
       take: limit,
     });
 
+    // Count distinct auditors connected across all of this client's folders
+    const formattedClients = clients.map(({ folders, ...client }) => {
+      const auditorIds = new Set<string>();
+      folders.forEach((folder) => {
+        folder.project?.auditors.forEach((auditor) =>
+          auditorIds.add(auditor.id)
+        );
+      });
+
+      return {
+        ...client,
+        auditorCount: auditorIds.size,
+      };
+    });
+
     // Get total count for pagination
     const total = await prisma.user.count({ where });
 
     return NextResponse.json({
-      clients,
+      clients: formattedClients,
       pagination: {
         total,
         page,

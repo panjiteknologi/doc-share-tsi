@@ -27,6 +27,12 @@ export interface DetailedAuditor extends Auditor {
       name: string;
       startDate: string;
       endDate: string;
+      parentPath: string[];
+      user: {
+        id: string;
+        name: string | null;
+        email: string | null;
+      };
     };
   }>;
 }
