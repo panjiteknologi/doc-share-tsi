@@ -13,7 +13,6 @@ import {
 import { cn } from "@/lib/utils";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import dynamic from "next/dynamic";
-import AntiScreenshotOverlay from "./AntiScreenshotOverlay";
 // Dynamically import EnhancedPdfViewer with no SSR
 const EnhancedPdfViewer = dynamic(() => import("./enhanced-pdf-viewer"), {
   ssr: false,
@@ -47,14 +46,14 @@ export default function DocumentDrawerViewer({
   isOpen,
   onClose,
   document,
-  // client
 }: DocumentDrawerViewerProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [documentUrl, setDocumentUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showProtectionAlert, setShowProtectionAlert] = useState(false);
-  // console.log(client);
+  const [isMobileBlocked, setIsMobileBlocked] = useState(false);
+
   // Reset expanded state when drawer closes
   useEffect(() => {
     if (!isOpen) {
@@ -63,11 +62,24 @@ export default function DocumentDrawerViewer({
     }
   }, [isOpen]);
 
+  // Detect mobile/tablet once on mount (rendered conditionally below —
+  // never mutate the DOM directly during render, that corrupts React).
   useEffect(() => {
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    if (!isMobile) return; // hanya untuk mobile
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+      navigator.userAgent
+    );
+    const isTablet = window.innerWidth >= 768 && window.innerWidth < 1100;
+    setIsMobileBlocked(isMobile || isTablet);
+  }, []);
 
-    const overlayId = "mobile-screenshot-block-overlay";
+  // Flash a full-screen blackout when a screenshot/devtools shortcut is
+  // pressed, or when the window loses focus (e.g. the OS screenshot tool
+  // takes focus) — a deterrent heuristic, not a guarantee, since true
+  // OS-level screenshots aren't visible to the page at all.
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const overlayId = "screenshot-block-overlay";
 
     // Buat overlay div
     const overlay = window.document.createElement("div");
@@ -92,12 +104,18 @@ export default function DocumentDrawerViewer({
     };
 
     const blockActions = (e: KeyboardEvent) => {
-      // Blok shortcut keyboard, misal PrintScreen (kalau keyboard ada)
-      if (
-        e.key.toLowerCase() === "printscreen" ||
-        e.key === "F12" ||
-        (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "s")
-      ) {
+      const key = e.key.toLowerCase();
+      const isDevTools =
+        key === "f12" ||
+        (e.ctrlKey && e.shiftKey && ["i", "j", "c"].includes(key)) ||
+        (e.metaKey && e.altKey && key === "i");
+      const isPrintScreen =
+        key === "printscreen" ||
+        Boolean(e.code?.toLowerCase().includes("printscreen"));
+      const isSnipShortcut =
+        (e.ctrlKey || e.metaKey) && e.shiftKey && key === "s";
+
+      if (isDevTools || isPrintScreen || isSnipShortcut) {
         showOverlay();
         setTimeout(() => {
           hideOverlay();
@@ -121,7 +139,10 @@ export default function DocumentDrawerViewer({
       }, 1500);
     };
 
+    // PrintScreen is inconsistent across browsers/OS: some only fire
+    // keyup for it (never keydown), so listen on both.
     window.addEventListener("keydown", blockActions);
+    window.addEventListener("keyup", blockActions);
     window.document.addEventListener("visibilitychange", onVisibilityChange);
     window.addEventListener("blur", onBlur);
 
@@ -132,6 +153,7 @@ export default function DocumentDrawerViewer({
 
     return () => {
       window.removeEventListener("keydown", blockActions);
+      window.removeEventListener("keyup", blockActions);
       window.document.removeEventListener("visibilitychange", onVisibilityChange);
       window.removeEventListener("blur", onBlur);
       window.document.removeEventListener("contextmenu", preventDefault);
@@ -140,72 +162,7 @@ export default function DocumentDrawerViewer({
       const el = window.document.getElementById(overlayId);
       if (el) el.remove();
     };
-  })
-  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-  const isTablet = window.innerWidth >= 768 && window.innerWidth < 1100; // Deteksi tablet (antara 768px - 1100px)
-  const isMobileDevice = isMobile && !isTablet; // Cek perangkat mobile, bukan tablet
-
-  if (isMobileDevice || isTablet) {
-    window.document.body.innerHTML = `
-      <div style="
-        position: fixed;
-        top: 0; left: 0;
-        width: 100vw; height: 100vh;
-        background: #000;
-        color: #fff;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        font-size: 1.5rem;
-        text-align: center;
-        padding: 20px;
-        z-index: 9999;
-      ">
-        Mohon maaf, demi menjaga keamanan dokumen, akses melalui perangkat mobile atau tablet tidak dapat kami fasilitasi. Terima kasih atas pengertiannya!
-      </div>
-    `;
-  }
-
-
-
-  
-  // useEffect(() => {
-  //   const handler = (e: KeyboardEvent) => {
-  //     const keyCombo = `${e.metaKey ? 'Meta+' : ''}${e.ctrlKey ? 'Ctrl+' : ''}${e.shiftKey ? 'Shift+' : ''}${e.altKey ? 'Alt+' : ''}${e.key}`;
-  
-  //     const key = e.key.toLowerCase();
-  
-  //     const blockedCombos = [
-  //       "Meta+Shift+S",
-  //       "Ctrl+Shift+S",
-  //       "PrintScreen",
-  //       "Meta",
-  //       "Meta+S",
-  //       "Ctrl+S",
-  //       "Ctrl+Alt+S",
-  //       "Ctrl+Shift+I",
-  //       "F12",
-  //       "Meta+Option+I",
-  //     ];
-  
-  //     const isPrintScreen = key === "printscreen" || e.keyCode === 44 || e.code.toLowerCase().includes("printscreen");
-  
-  //     if (blockedCombos.includes(keyCombo) || isPrintScreen) {
-  //       window.document.body.innerHTML = "<div style='position:fixed;top:0;left:0;width:100vw;height:100vh;background:black;z-index:9999;'></div>";
-  //       setTimeout(() => location.reload(), 1000);
-  //     }
-  //   };
-  
-  //   window.document.addEventListener("keydown", handler);
-  //   window.document.addEventListener("keyup", handler);
-  
-  //   return () => {
-  //     window.document.removeEventListener("keydown", handler);
-  //     window.document.removeEventListener("keyup", handler);
-  //   };
-  // }, []);
-  
-  
+  }, [isOpen]);
 
   // Fetch document URL when document changes
   useEffect(() => {
@@ -412,7 +369,21 @@ export default function DocumentDrawerViewer({
 
 
   if (!document) return null;
-// console.log(document)
+
+  if (isMobileBlocked) {
+    return (
+      <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
+        <SheetContent side="right" className="p-0 sm:max-w-[100%] w-[100%]">
+          <div className="flex h-full w-full items-center justify-center bg-black p-6 text-center text-white">
+            Mohon maaf, demi menjaga keamanan dokumen, akses melalui perangkat
+            mobile atau tablet tidak dapat kami fasilitasi. Terima kasih atas
+            pengertiannya!
+          </div>
+        </SheetContent>
+      </Sheet>
+    );
+  }
+
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <SheetContent
@@ -448,7 +419,7 @@ export default function DocumentDrawerViewer({
           )}
 
           <div
-            className="flex-1 overflow-hidden"
+            className="relative flex-1 overflow-hidden"
             onContextMenu={handleContextMenu}
           >
             {loading ? (
@@ -479,10 +450,7 @@ export default function DocumentDrawerViewer({
                 </div>
               </div>
             ) : documentUrl && normalizedType === "PDF" ? (
-              <>
-                {/* <AntiScreenshotOverlay watermarkText={client ?? ''} /> */}
-                <EnhancedPdfViewer url={documentUrl} />
-              </>
+              <EnhancedPdfViewer url={documentUrl} />
             ) : documentUrl && ["DOC", "DOCX"].includes(normalizedType) ? (
               <div
                 onContextMenu={(e) => e.preventDefault()}
