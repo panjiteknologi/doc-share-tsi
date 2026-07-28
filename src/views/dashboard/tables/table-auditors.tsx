@@ -1,6 +1,7 @@
 "use client";
 
 import { Fragment, useState } from "react";
+import Link from "next/link";
 import { toast } from "sonner";
 import {
   Search,
@@ -8,10 +9,10 @@ import {
   UserCog,
   RefreshCcw,
   RefreshCwOff,
-  ChevronDown,
   ChevronRight,
   Folder as FolderIcon,
   Building2,
+  FileText,
   Loader2,
   AlertTriangle,
 } from "lucide-react";
@@ -177,7 +178,7 @@ function AuditorConnectionsDetail({
                     </div>
                   </TableCell>
                   <TableCell className="whitespace-normal break-words">
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <FolderIcon className="h-4 w-4 shrink-0 text-primary" />
                       <span>
                         {project.folder.parentPath.length > 0 && (
@@ -185,8 +186,40 @@ function AuditorConnectionsDetail({
                             {project.folder.parentPath.join(" / ")} /{" "}
                           </span>
                         )}
-                        {project.folder.name}
+                        <Link
+                          href={`/drive/${project.folderId}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="hover:underline"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {project.folder.name}
+                        </Link>
                       </span>
+                      {project.folder.childrenCount > 0 && (
+                        <Badge
+                          variant="outline"
+                          className="shrink-0 gap-1 border-orange-500/30 bg-orange-500/10 text-[10px] text-orange-600"
+                          title={`${project.folder.childrenCount} subfolder${
+                            project.folder.childrenCount > 1 ? "s" : ""
+                          }`}
+                        >
+                          <FolderIcon className="h-3 w-3" />
+                          {project.folder.childrenCount}
+                        </Badge>
+                      )}
+                      {project.folder.documentCount > 0 && (
+                        <Badge
+                          variant="outline"
+                          className="shrink-0 gap-1 border-blue-500/30 bg-blue-500/10 text-[10px] text-blue-600"
+                          title={`${project.folder.documentCount} document${
+                            project.folder.documentCount > 1 ? "s" : ""
+                          }`}
+                        >
+                          <FileText className="h-3 w-3" />
+                          {project.folder.documentCount}
+                        </Badge>
+                      )}
                     </div>
                   </TableCell>
                   <TableCell>
@@ -347,9 +380,9 @@ export function TableAuditors() {
         </div>
       </div>
 
-      <div className="rounded-md border">
+      <div className="overflow-hidden rounded-xl border shadow-sm">
         <Table>
-          <TableHeader className="sticky top-0 z-10">
+          <TableHeader className="sticky top-0 z-10 bg-gradient-to-r from-[#0a1f44] to-[#16326e] [&_th]:text-[11px] [&_th]:uppercase [&_th]:tracking-wider">
             <TableRow>
               <TableHead className="w-[40px]" />
               <TableHead>Name</TableHead>
@@ -393,7 +426,7 @@ export function TableAuditors() {
                 return (
                 <Fragment key={auditor.id}>
                 <TableRow
-                  className="cursor-pointer"
+                  className="cursor-pointer transition-colors duration-150 hover:bg-blue-50/70 dark:hover:bg-blue-950/20"
                   onClick={() => toggleExpanded(auditor.id)}
                 >
                   <TableCell>
@@ -403,17 +436,19 @@ export function TableAuditors() {
                       className="h-7 w-7 hover:cursor-pointer"
                       tabIndex={-1}
                     >
-                      {isExpanded ? (
-                        <ChevronDown className="h-4 w-4" />
-                      ) : (
-                        <ChevronRight className="h-4 w-4" />
-                      )}
+                      <ChevronRight
+                        className={`h-4 w-4 transition-transform duration-200 ${
+                          isExpanded ? "rotate-90" : ""
+                        }`}
+                      />
                       <span className="sr-only">Toggle details</span>
                     </Button>
                   </TableCell>
                   <TableCell className="font-medium">
                     <div className="flex items-center gap-2">
-                      <UserCog className="h-4 w-4 text-muted-foreground" />
+                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-blue-100 dark:bg-blue-900/40">
+                        <UserCog className="h-3.5 w-3.5 text-blue-600 dark:text-blue-300" />
+                      </span>
                       {auditor.name}
                     </div>
                   </TableCell>
@@ -422,7 +457,10 @@ export function TableAuditors() {
                     <CopyButton value={auditor.hashedPassword} />
                   </TableCell>
                   <TableCell>
-                    <Badge variant="secondary">
+                    <Badge
+                      variant="outline"
+                      className="gap-1 border-blue-500/30 bg-blue-500/10 text-blue-600"
+                    >
                       {auditor.projectCount}{" "}
                       {auditor.projectCount <= 1 ? "folder client" : "folder clients"}
                     </Badge>

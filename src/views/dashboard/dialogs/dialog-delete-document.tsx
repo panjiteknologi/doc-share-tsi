@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import axios from "axios";
 import { Loader2, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 
@@ -13,7 +14,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { deleteDocument } from "@/action/document";
 import { Document } from "@/hooks/use-documents";
 
 interface DialogDeleteDocumentProps {
@@ -39,21 +39,20 @@ export default function DialogDeleteDocument({
     setIsLoading(true);
 
     try {
-      const formData = new FormData();
-      formData.append("id", document.id);
+      // Uses the API route (not a server action) so deleting a document doesn't
+      // trigger Next.js's automatic route refresh, which would reset client-side
+      // UI state like expanded folder tree rows.
+      await axios.delete(`/api/documents/${document.id}`);
 
-      const result = await deleteDocument(formData);
-
-      if (result.success) {
-        toast.success("Document deleted successfully");
-        if (onSuccess) onSuccess();
-        onClose();
-      } else {
-        toast.error(result.error || "Failed to delete document");
-      }
+      toast.success("Document deleted successfully");
+      if (onSuccess) onSuccess();
+      onClose();
     } catch (error) {
       console.error("Error deleting document:", error);
-      toast.error("An unexpected error occurred");
+      const message = axios.isAxiosError(error)
+        ? error.response?.data?.error
+        : undefined;
+      toast.error(message || "Failed to delete document");
     } finally {
       setIsLoading(false);
     }

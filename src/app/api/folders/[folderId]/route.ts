@@ -142,6 +142,7 @@ export async function GET(
         fileType,
         fileExtension,
         createdAt: doc.createdAt,
+        uploadedById: doc.userId,
         uploadedBy: doc.user.name,
         uploadedByEmail: doc.user.email,
       };
@@ -181,6 +182,8 @@ export async function GET(
         createdAt: child.createdAt,
         userId: child.userId,
         createdById: child.createdById,
+        createdBy: child.createdBy,
+        hasProject: child.project !== null,
         documents: child.documents,
         childrenCount: child._count.children,
         user: {

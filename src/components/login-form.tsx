@@ -17,7 +17,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Mail, Lock, Loader2, LogIn } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 // Form validation schema using Zod
@@ -77,73 +77,92 @@ export function LoginForm({
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
-      <div className="flex flex-col items-center justify-center text-center mb-4">
-        <img
-          src="/images/tsi-logo.png"
-          alt="TSI Logo"
-          className="h-16 w-auto mb-2"
-        />
-        <h1 className="text-2xl font-bold text-primary">
-          TSI Audit Document Share
-        </h1>
+      <div className="relative rounded-[26px] bg-gradient-to-br from-blue-300/50 via-white/60 to-blue-200/50 p-[1.5px] shadow-2xl shadow-blue-900/10 dark:from-blue-500/25 dark:via-transparent dark:to-blue-500/20">
+        <Card className="rounded-[24px] border-none bg-card/95 backdrop-blur-sm">
+          <CardHeader className="justify-items-center text-center">
+            <img
+              src="/images/tsi-logo.png"
+              alt="TSI Logo"
+              className="mx-auto mb-3 h-30 w-auto"
+            />
+            <CardTitle className="text-xl">Welcome back</CardTitle>
+            <CardDescription>
+              Log in with your email and password to continue.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit(onSubmit)}>
+              <div className="flex flex-col gap-5">
+                {error && (
+                  <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
+                )}
+
+                <div className="grid gap-2">
+                  <Label htmlFor="email">Email</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-blue-500/70" />
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="m@example.com"
+                      className="h-11 rounded-xl pl-10"
+                      {...register("email")}
+                      aria-invalid={!!errors.email}
+                    />
+                  </div>
+                  {errors.email && (
+                    <p className="text-sm font-medium text-destructive">
+                      {errors.email.message}
+                    </p>
+                  )}
+                </div>
+
+                <div className="grid gap-2">
+                  <Label htmlFor="password">Password</Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-blue-500/70" />
+                    <Input
+                      id="password"
+                      type="password"
+                      className="h-11 rounded-xl pl-10"
+                      {...register("password")}
+                      aria-invalid={!!errors.password}
+                    />
+                  </div>
+                  {errors.password && (
+                    <p className="text-sm font-medium text-destructive">
+                      {errors.password.message}
+                    </p>
+                  )}
+                </div>
+
+                <div className="flex flex-col gap-3">
+                  <Button
+                    type="submit"
+                    className="h-11 w-full scale-100 rounded-xl bg-gradient-to-r from-[#0a1f44] to-blue-600 text-white shadow-lg shadow-blue-600/25 transition-transform hover:cursor-pointer hover:opacity-90 active:scale-[0.98]"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Logging in...
+                      </>
+                    ) : (
+                      <>
+                        <LogIn className="mr-2 h-4 w-4" />
+                        Login
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
       </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Login to your account</CardTitle>
-          <CardDescription>
-            Enter your email below to login to your account
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <div className="flex flex-col gap-6">
-              {error && (
-                <Alert variant="destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              )}
-
-              <div className="grid gap-3">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="m@example.com"
-                  {...register("email")}
-                  aria-invalid={!!errors.email}
-                />
-                {errors.email && (
-                  <p className="text-sm font-medium text-destructive">
-                    {errors.email.message}
-                  </p>
-                )}
-              </div>
-
-              <div className="grid gap-3">
-                <Input
-                  id="password"
-                  type="password"
-                  {...register("password")}
-                  aria-invalid={!!errors.password}
-                />
-                {errors.password && (
-                  <p className="text-sm font-medium text-destructive">
-                    {errors.password.message}
-                  </p>
-                )}
-              </div>
-
-              <div className="flex flex-col gap-3">
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? "Logging in..." : "Login"}
-                </Button>
-              </div>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
     </div>
   );
 }

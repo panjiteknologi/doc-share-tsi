@@ -48,6 +48,12 @@ export async function GET(
           select: {
             id: true,
             name: true,
+            documents: {
+              select: { id: true },
+            },
+            _count: {
+              select: { children: true },
+            },
             parent: {
               select: {
                 name: true,
@@ -99,10 +105,12 @@ export async function GET(
     const formattedClient = {
       ...client,
       folders: client.folders.map((folder) => {
-        const { parent, ...folderRest } = folder;
+        const { parent, documents, _count, ...folderRest } = folder;
         return {
           ...folderRest,
           parentPath: getParentPath({ parent }),
+          documentCount: documents.length,
+          childrenCount: _count.children,
         };
       }),
     };

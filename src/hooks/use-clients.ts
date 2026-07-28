@@ -26,6 +26,8 @@ export interface DetailedClient extends Client {
     id: string;
     name: string;
     parentPath: string[];
+    documentCount: number;
+    childrenCount: number;
     project: {
       id: string;
       auditors: Array<{

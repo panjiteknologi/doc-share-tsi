@@ -53,6 +53,12 @@ export async function GET(
                 name: true,
                 startDate: true,
                 endDate: true,
+                documents: {
+                  select: { id: true },
+                },
+                _count: {
+                  select: { children: true },
+                },
                 user: {
                   select: {
                     id: true,
@@ -104,12 +110,14 @@ export async function GET(
       email: auditor.email,
       role: auditor.role,
       projects: auditor.projects.map((project) => {
-        const { parent, ...folderRest } = project.folder;
+        const { parent, documents, _count, ...folderRest } = project.folder;
         return {
           ...project,
           folder: {
             ...folderRest,
             parentPath: getParentPath({ parent }),
+            documentCount: documents.length,
+            childrenCount: _count.children,
           },
         };
       }),

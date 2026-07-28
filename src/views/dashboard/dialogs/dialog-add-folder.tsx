@@ -152,11 +152,11 @@ export function DialogAddFolder({ onSuccess }: AddFolderDialogProps) {
       <DialogContent className="sm:max-w-[425px]">
         <form onSubmit={handleSubmit(onSubmit)}>
           <DialogHeader>
-            <div className="flex items-center gap-2 mb-2">
-              <div className="bg-primary/10 p-2 rounded-md">
-                <IconFolderPlus className="h-5 w-5 text-primary" />
+            <div className="mb-1 flex items-center gap-3">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 shadow-md">
+                <IconFolderPlus className="h-5 w-5 text-white" />
               </div>
-              <DialogTitle>Add New Folder</DialogTitle>
+              <DialogTitle className="text-lg">Add New Folder</DialogTitle>
             </div>
             <DialogDescription>
               Create a new folder to organize documents for a client. Fill in
@@ -168,12 +168,16 @@ export function DialogAddFolder({ onSuccess }: AddFolderDialogProps) {
               <Label htmlFor="name">
                 Folder Name <span className="text-destructive">*</span>
               </Label>
-              <Input
-                id="name"
-                placeholder="Enter folder name"
-                {...register("name")}
-                aria-invalid={!!errors.name}
-              />
+              <div className="relative">
+                <IconFolderPlus className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  id="name"
+                  placeholder="Enter folder name"
+                  className="pl-10"
+                  {...register("name")}
+                  aria-invalid={!!errors.name}
+                />
+              </div>
               {errors.name && (
                 <p className="text-sm font-medium text-destructive">
                   {errors.name.message}
@@ -283,14 +287,21 @@ export function DialogAddFolder({ onSuccess }: AddFolderDialogProps) {
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isLoading || !selectedClientId}>
+            <Button
+              type="submit"
+              disabled={isLoading || !selectedClientId}
+              className="bg-gradient-to-r from-amber-500 to-orange-600 text-white hover:opacity-90 hover:cursor-pointer"
+            >
               {isLoading ? (
                 <>
                   <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
                   Creating...
                 </>
               ) : (
-                "Create Folder"
+                <>
+                  <IconFolderPlus className="mr-2 h-4 w-4" />
+                  Create Folder
+                </>
               )}
             </Button>
           </DialogFooter>

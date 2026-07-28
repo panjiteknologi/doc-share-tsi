@@ -21,7 +21,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2 } from "lucide-react";
+import { Loader2, User, Mail, Lock } from "lucide-react";
 
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -92,11 +92,11 @@ export function DialogAddAuditor() {
     <Dialog open={isDialogOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <div className="flex items-center gap-2 mb-2">
-            <div className="bg-primary/10 p-2 rounded-md">
-              <IconUserPlus className="h-5 w-5 text-primary" />
+          <div className="mb-1 flex items-center gap-3">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#0a1f44] to-blue-600 shadow-md">
+              <IconUserPlus className="h-5 w-5 text-white" />
             </div>
-            <DialogTitle>Add New Auditor</DialogTitle>
+            <DialogTitle className="text-lg">Add New Auditor</DialogTitle>
           </div>
           <DialogDescription>
             Enter auditor details to create a new audit verification account.
@@ -106,12 +106,16 @@ export function DialogAddAuditor() {
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
               <Label htmlFor="name">Name</Label>
-              <Input
-                id="name"
-                {...register("name")}
-                placeholder="Auditor Name"
-                disabled={isLoading}
-              />
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  id="name"
+                  {...register("name")}
+                  placeholder="Auditor Name"
+                  className="pl-10"
+                  disabled={isLoading}
+                />
+              </div>
               {errors.name && (
                 <p className="text-sm font-medium text-destructive">
                   {errors.name.message}
@@ -121,13 +125,17 @@ export function DialogAddAuditor() {
 
             <div className="grid gap-2">
               <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                {...register("email")}
-                placeholder="auditor@example.com"
-                disabled={isLoading}
-              />
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  id="email"
+                  type="email"
+                  {...register("email")}
+                  placeholder="auditor@example.com"
+                  className="pl-10"
+                  disabled={isLoading}
+                />
+              </div>
               {errors.email && (
                 <p className="text-sm font-medium text-destructive">
                   {errors.email.message}
@@ -137,12 +145,16 @@ export function DialogAddAuditor() {
 
             <div className="grid gap-2">
               <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                {...register("password")}
-                disabled={isLoading}
-              />
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  id="password"
+                  type="password"
+                  {...register("password")}
+                  className="pl-10"
+                  disabled={isLoading}
+                />
+              </div>
               {errors.password && (
                 <p className="text-sm font-medium text-destructive">
                   {errors.password.message}
@@ -163,14 +175,21 @@ export function DialogAddAuditor() {
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isLoading}>
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="bg-gradient-to-r from-[#0a1f44] to-blue-600 text-white hover:opacity-90 hover:cursor-pointer"
+            >
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Adding...
                 </>
               ) : (
-                "Add Auditor"
+                <>
+                  <IconUserPlus className="mr-2 h-4 w-4" />
+                  Add Auditor
+                </>
               )}
             </Button>
           </DialogFooter>

@@ -60,8 +60,9 @@ export async function createDocument(data: DocumentFormData) {
       data: validatedData,
     });
 
-    revalidatePath("/dashboard");
-    revalidatePath("/drive");
+    // No revalidatePath for /dashboard or /drive: those pages fetch documents
+    // client-side via SWR, and revalidating them here forces a router refresh
+    // that resets client state (e.g. collapses expanded folder tree rows).
     revalidatePath(`/folder/${validatedData.folderId}`);
 
     return { success: true, document };
@@ -140,8 +141,9 @@ export async function updateDocument(formData: FormData) {
       data: updateData,
     });
 
-    revalidatePath("/dashboard");
-    revalidatePath("/drive");
+    // No revalidatePath for /dashboard or /drive: those pages fetch documents
+    // client-side via SWR, and revalidating them here forces a router refresh
+    // that resets client state (e.g. collapses expanded folder tree rows).
     revalidatePath(`/folder/${existingDocument.folderId}`);
     if (folderId && folderId !== existingDocument.folderId) {
       revalidatePath(`/folder/${folderId}`);
@@ -211,8 +213,9 @@ export async function deleteDocument(formData: FormData) {
       where: { id },
     });
 
-    revalidatePath("/dashboard");
-    revalidatePath("/drive");
+    // No revalidatePath for /dashboard or /drive: those pages fetch documents
+    // client-side via SWR, and revalidating them here forces a router refresh
+    // that resets client state (e.g. collapses expanded folder tree rows).
     revalidatePath(`/folder/${folderId}`);
 
     return { success: true };

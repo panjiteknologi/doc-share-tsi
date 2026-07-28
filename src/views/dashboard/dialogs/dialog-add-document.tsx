@@ -144,11 +144,11 @@ export function DialogAddDocument() {
       <DialogContent className="sm:max-w-[600px]">
         <form onSubmit={handleSubmit(onSubmit)}>
           <DialogHeader>
-            <div className="flex items-center gap-2 mb-2">
-              <div className="bg-primary/10 p-2 rounded-md">
-                <IconFileUpload className="h-5 w-5 text-primary" />
+            <div className="mb-1 flex items-center gap-3">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#0a1f44] to-blue-600 shadow-md">
+                <IconFileUpload className="h-5 w-5 text-white" />
               </div>
-              <DialogTitle>Add New Document</DialogTitle>
+              <DialogTitle className="text-lg">Add New Document</DialogTitle>
             </div>
             <DialogDescription>
               Select a folder and upload a document file to store in the system.

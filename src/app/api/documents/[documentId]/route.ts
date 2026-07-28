@@ -143,8 +143,9 @@ export async function DELETE(
     // Check if the current user has permission to delete this document
     const isDocumentOwner = document.userId === session.user.id;
     const isFolderOwner = document.folder.userId === session.user.id;
+    const isSurveyor = session.user.roleCode === "surveyor";
 
-    if (!isDocumentOwner && !isFolderOwner) {
+    if (!isDocumentOwner && !isFolderOwner && !isSurveyor) {
       return NextResponse.json(
         { error: "Unauthorized to delete this document" },
         { status: 403 }

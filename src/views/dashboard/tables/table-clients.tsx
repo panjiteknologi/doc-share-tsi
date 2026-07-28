@@ -1,13 +1,15 @@
 "use client";
 
 import { Fragment, useMemo, useState, useRef } from "react";
+import Link from "next/link";
 import {
   Search,
   MoreHorizontal,
-  ChevronDown,
   ChevronRight,
   Folder as FolderIcon,
   UserCog,
+  Building2,
+  FileText,
   RefreshCcw,
   RefreshCwOff,
   Loader2,
@@ -274,8 +276,11 @@ function ClientAuditorsDetail({
   const rows = (client?.folders || []).flatMap((folder) =>
     (folder.project?.auditors || []).map((auditor) => ({
       key: `${folder.id}-${auditor.id}`,
+      folderId: folder.id,
       folderName: folder.name,
       parentPath: folder.parentPath,
+      documentCount: folder.documentCount,
+      childrenCount: folder.childrenCount,
       auditorId: auditor.id,
       auditorName: auditor.name || auditor.email || "Unknown auditor",
       projectId: folder.project!.id,
@@ -407,7 +412,7 @@ function ClientAuditorsDetail({
                           </div>
                         </TableCell>
                         <TableCell className="whitespace-normal break-words">
-                          <div className="flex items-center gap-2">
+                          <div className="flex flex-wrap items-center gap-2">
                             <FolderIcon className="h-4 w-4 shrink-0 text-primary" />
                             <span>
                               {row.parentPath.length > 0 && (
@@ -415,8 +420,40 @@ function ClientAuditorsDetail({
                                   {row.parentPath.join(" / ")} /{" "}
                                 </span>
                               )}
-                              {row.folderName}
+                              <Link
+                                href={`/drive/${row.folderId}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="hover:underline"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                {row.folderName}
+                              </Link>
                             </span>
+                            {row.childrenCount > 0 && (
+                              <Badge
+                                variant="outline"
+                                className="shrink-0 gap-1 border-orange-500/30 bg-orange-500/10 text-[10px] text-orange-600"
+                                title={`${row.childrenCount} subfolder${
+                                  row.childrenCount > 1 ? "s" : ""
+                                }`}
+                              >
+                                <FolderIcon className="h-3 w-3" />
+                                {row.childrenCount}
+                              </Badge>
+                            )}
+                            {row.documentCount > 0 && (
+                              <Badge
+                                variant="outline"
+                                className="shrink-0 gap-1 border-blue-500/30 bg-blue-500/10 text-[10px] text-blue-600"
+                                title={`${row.documentCount} document${
+                                  row.documentCount > 1 ? "s" : ""
+                                }`}
+                              >
+                                <FileText className="h-3 w-3" />
+                                {row.documentCount}
+                              </Badge>
+                            )}
                           </div>
                         </TableCell>
                         <TableCell>
@@ -614,9 +651,9 @@ export function TableClients() {
         </div>
       </div>
 
-      <div className="rounded-md border">
+      <div className="overflow-hidden rounded-xl border shadow-sm">
         <Table>
-          <TableHeader className="sticky top-0 z-10">
+          <TableHeader className="sticky top-0 z-10 bg-gradient-to-r from-[#0a1f44] to-[#16326e] [&_th]:text-[11px] [&_th]:uppercase [&_th]:tracking-wider">
             <TableRow>
               <TableHead className="w-[40px]" />
               <TableHead>Name</TableHead>
@@ -656,7 +693,7 @@ export function TableClients() {
                 return (
                 <Fragment key={client.id}>
                 <TableRow
-                  className="cursor-pointer"
+                  className="cursor-pointer transition-colors duration-150 hover:bg-blue-50/70 dark:hover:bg-blue-950/20"
                   onClick={() => toggleExpanded(client.id)}
                 >
                   <TableCell>
@@ -666,23 +703,31 @@ export function TableClients() {
                       className="h-7 w-7 hover:cursor-pointer"
                       tabIndex={-1}
                     >
-                      {isExpanded ? (
-                        <ChevronDown className="h-4 w-4" />
-                      ) : (
-                        <ChevronRight className="h-4 w-4" />
-                      )}
+                      <ChevronRight
+                        className={`h-4 w-4 transition-transform duration-200 ${
+                          isExpanded ? "rotate-90" : ""
+                        }`}
+                      />
                       <span className="sr-only">Toggle details</span>
                     </Button>
                   </TableCell>
                   <TableCell className="font-medium whitespace-normal break-words">
-                    {client.name}
+                    <div className="flex items-center gap-2">
+                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-blue-100 dark:bg-blue-900/40">
+                        <Building2 className="h-3.5 w-3.5 text-blue-600 dark:text-blue-300" />
+                      </span>
+                      {client.name}
+                    </div>
                   </TableCell>
                   <TableCell>{client.email}</TableCell>
                   <TableCell onClick={(e) => e.stopPropagation()}>
                     <CopyButton value={client.hashedPassword} />
                   </TableCell>
                   <TableCell>
-                    <Badge variant="secondary">
+                    <Badge
+                      variant="outline"
+                      className="gap-1 border-blue-500/30 bg-blue-500/10 text-blue-600"
+                    >
                       {client.auditorCount}{" "}
                       {client.auditorCount <= 1 ? "auditor" : "auditors"}
                     </Badge>

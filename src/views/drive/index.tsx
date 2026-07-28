@@ -18,7 +18,6 @@ import {
 } from "@/hooks/use-documents";
 import { Grid3x3, List, FolderPlus, File } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import FolderCard from "./folder-card";
 import FolderTable from "./folder-table";
@@ -124,22 +123,48 @@ const DriveView = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h1 className="text-2xl font-bold tracking-tight">Drive Share</h1>
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-2">
-            <Tabs
-              defaultValue="list"
-              value={viewMode}
-              onValueChange={(value) => setViewMode(value as "grid" | "list")}
-              className="w-auto"
+          <div
+            role="tablist"
+            aria-label="View mode"
+            className="relative inline-flex h-10 w-[184px] items-center rounded-full bg-blue-50 p-1 shadow-inner dark:bg-blue-950/40"
+          >
+            <div
+              aria-hidden
+              className={cn(
+                "absolute inset-y-1 left-1 w-[calc(50%-4px)] rounded-full bg-gradient-to-r from-[#0a1f44] to-blue-600 shadow-md transition-transform duration-300 ease-out",
+                viewMode === "list" && "translate-x-full"
+              )}
+            />
+            <button
+              type="button"
+              role="tab"
+              aria-selected={viewMode === "grid"}
+              onClick={() => setViewMode("grid")}
+              className={cn(
+                "relative z-10 flex flex-1 items-center justify-center gap-1.5 rounded-full py-1.5 text-sm font-medium transition-all duration-300 hover:cursor-pointer active:scale-95",
+                viewMode === "grid"
+                  ? "text-white"
+                  : "text-blue-700/70 hover:text-blue-700 dark:text-blue-300/70 dark:hover:text-blue-200"
+              )}
             >
-              <TabsList className="grid w-[120px] grid-cols-2">
-                <TabsTrigger value="grid">
-                  <Grid3x3 className="h-4 w-4" />
-                </TabsTrigger>
-                <TabsTrigger value="list">
-                  <List className="h-4 w-4" />
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
+              <Grid3x3 className="h-4 w-4" />
+              Grid
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={viewMode === "list"}
+              onClick={() => setViewMode("list")}
+              className={cn(
+                "relative z-10 flex flex-1 items-center justify-center gap-1.5 rounded-full py-1.5 text-sm font-medium transition-all duration-300 hover:cursor-pointer active:scale-95",
+                viewMode === "list"
+                  ? "text-white"
+                  : "text-blue-700/70 hover:text-blue-700 dark:text-blue-300/70 dark:hover:text-blue-200"
+              )}
+            >
+              <List className="h-4 w-4" />
+              List
+            </button>
           </div>
           {userRole !== "auditor" && userRole !== "client" && (
             <Button onClick={handleOpenCreateFolder}>
@@ -167,7 +192,7 @@ const DriveView = () => {
 
       {/* Folders Grid or Table View */}
       <div className={cn("w-full", loadingFolders && "opacity-70")}>
-        {loadingFolders && (
+        {loadingFolders && filteredFolders.length === 0 && (
           <div className="flex items-center justify-center h-40">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
           </div>
@@ -183,7 +208,10 @@ const DriveView = () => {
           </div>
         )}
 
-        {!loadingFolders && userRole === "surveyor" && (
+        {/* Keep these mounted during background revalidation (not gated on
+            loadingFolders) so client-side UI state like expanded folder tree
+            rows in the list view survives an upload/delete refresh. */}
+        {filteredFolders.length > 0 && userRole === "surveyor" && (
           <>
             {viewMode === "grid" ? (
               <>
@@ -206,7 +234,7 @@ const DriveView = () => {
           </>
         )}
 
-        {!loadingFolders && userRole === "client" && (
+        {filteredFolders.length > 0 && userRole === "client" && (
           <>
             {viewMode === "grid" ? (
               <>
@@ -229,7 +257,7 @@ const DriveView = () => {
           </>
         )}
 
-        {!loadingFolders && userRole === "auditor" && (
+        {filteredFolders.length > 0 && userRole === "auditor" && (
           <>
             {viewMode === "grid" ? (
               <>

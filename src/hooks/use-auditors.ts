@@ -28,6 +28,8 @@ export interface DetailedAuditor extends Auditor {
       startDate: string;
       endDate: string;
       parentPath: string[];
+      documentCount: number;
+      childrenCount: number;
       user: {
         id: string;
         name: string | null;

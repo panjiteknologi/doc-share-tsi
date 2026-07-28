@@ -15,6 +15,8 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get("search") || "";
     const sortBy = searchParams.get("sortBy") || "createdAt";
     const sortOrder = searchParams.get("sortOrder") || "desc";
+    const topLevelOnly = searchParams.get("topLevelOnly") === "true";
+    const createdByMe = searchParams.get("createdByMe") === "true";
 
     // Calculate pagination
     const skip = (page - 1) * limit;
@@ -26,6 +28,16 @@ export async function GET(request: NextRequest) {
       where.name = {
         contains: search
       };
+    }
+
+    // Restrict to root-level folders only, for tree views that lazy-load children
+    if (topLevelOnly) {
+      where.parentId = null;
+    }
+
+    // Restrict to folders created by the requesting user
+    if (createdByMe) {
+      where.createdById = session.user.id;
     }
 
     // Fetch folders with pagination
@@ -50,6 +62,9 @@ export async function GET(request: NextRequest) {
             id: true,
           },
         },
+        _count: {
+          select: { children: true },
+        },
       },
       skip,
       take: limit,
@@ -69,6 +84,7 @@ export async function GET(request: NextRequest) {
       endDate: folder.endDate,
       createdAt: folder.createdAt,
       documentCount: folder.documents.length,
+      childrenCount: folder._count.children,
       createdByName: folder.createdBy?.name,
       createdBy: folder.createdBy,
       owner: folder.user.name,

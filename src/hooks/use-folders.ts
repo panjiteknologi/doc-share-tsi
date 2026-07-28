@@ -12,6 +12,7 @@ export interface Document {
   fileExtension: string;
   fileSize: string;
   createdAt: string;
+  uploadedById: string;
   uploadedBy: string;
   uploadedByEmail: string;
 }
@@ -41,12 +42,14 @@ export interface SubfolderSummary {
   name: string;
   isRoot: boolean;
   isSustain: boolean;
+  hasProject: boolean;
   childrenCount?: number;
   startDate: string;
   endDate: string;
   createdAt: string;
   userId: string;
   createdById: string | null;
+  createdBy: { id: string; name: string; email: string } | null;
   documents: { id: string }[];
   user: {
     id: string;
@@ -112,12 +115,16 @@ export function useFolders({
   search = "",
   sortBy = "createdAt",
   sortOrder = "desc",
+  topLevelOnly = false,
+  createdByMe = false,
 }: {
   page?: number;
   limit?: number;
   search?: string;
   sortBy?: string;
   sortOrder?: "asc" | "desc";
+  topLevelOnly?: boolean;
+  createdByMe?: boolean;
 } = {}) {
   // Add default empty object
   const searchParams = new URLSearchParams();
@@ -126,6 +133,8 @@ export function useFolders({
   if (search) searchParams.append("search", search);
   searchParams.append("sortBy", sortBy);
   searchParams.append("sortOrder", sortOrder);
+  if (topLevelOnly) searchParams.append("topLevelOnly", "true");
+  if (createdByMe) searchParams.append("createdByMe", "true");
 
   const { data, error, isLoading, mutate } = useSWR<FoldersResponse>(
     `/api/folders?${searchParams.toString()}`,
