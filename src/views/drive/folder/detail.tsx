@@ -393,6 +393,7 @@ const FolderDetailView: React.FC<FolderDetailViewProps> = ({ folderId, onMutate 
                   document={document}
                   onViewDocument={handleViewDocument}
                   onSuccess={handleRevalidateSuccess}
+                  folderIsSustain={folder.isSustain}
                 />
               ))}
             </div>

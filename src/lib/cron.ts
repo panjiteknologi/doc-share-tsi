@@ -1,8 +1,11 @@
-export function calculateExpiryDate(createdAt: string | Date): Date {
+export function calculateExpiryDate(
+  createdAt: string | Date,
+  isSustain = false
+): Date {
   const created = new Date(createdAt);
   const expiryDate = new Date(created);
-  // expiryDate.setDate(expiryDate.getDate() + 30); // 30 days from creation
-  expiryDate.setDate(expiryDate.getDate() + 60); // 60 days from creation
+  // Sustain folders keep documents for 180 days, regular folders for 60.
+  expiryDate.setDate(expiryDate.getDate() + (isSustain ? 180 : 60));
   return expiryDate;
 }
 

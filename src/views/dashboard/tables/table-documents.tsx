@@ -264,7 +264,10 @@ export function TableDocuments({
                     })}</TableCell>
                   <TableCell>
                     {(() => {
-                      const expiryDate = calculateExpiryDate(document.createdAt);
+                      const expiryDate = calculateExpiryDate(
+                        document.createdAt,
+                        document.folder?.isSustain ?? false
+                      );
                       const timeRemaining = formatTimeRemaining(expiryDate);
                       const expiryStatusClass = getExpiryStatusColor(expiryDate);
 
