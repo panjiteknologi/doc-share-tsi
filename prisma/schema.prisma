@@ -75,6 +75,7 @@ model Authenticator {
 
 model User {
   id                String     @id @default(cuid())
+  createdAt         DateTime   @default(now())
   name              String?
   hashedPassword    String
   email             String?    @unique
@@ -105,12 +106,18 @@ model Folder {
   userId      String
   user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   isRoot      Boolean
+  isSustain   Boolean    @default(false)
   startDate   DateTime   @default(now())
   endDate     DateTime   @default(now())
   documents   Document[]
   project     Project?
-  createdById String? 
+  createdById String?
   createdBy   User?     @relation("FolderCreator", fields: [createdById], references: [id])
+  parentId    String?
+  parent      Folder?   @relation("FolderChildren", fields: [parentId], references: [id], onDelete: Restrict)
+  children    Folder[]  @relation("FolderChildren")
+
+  @@index([parentId])
 }
 
 model Document {

@@ -18,13 +18,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Combobox } from "@/components/ui/combobox";
 import { Document } from "@/hooks/use-documents";
 import { updateDocument } from "@/action/document";
 import { useFolders } from "@/hooks/use-folders";
@@ -163,47 +157,47 @@ export default function DialogEditDocument({
               <Label htmlFor="folder">
                 Destination Folder <span className="text-destructive">*</span>
               </Label>
-              <Select
-                defaultValue={document.folder?.id ?? ""}
+              <Combobox
+                id="folder"
+                value={selectedFolderId}
                 onValueChange={(value) =>
                   setValue("folderId", value, { shouldValidate: true })
                 }
+                options={folders.map((folder) => ({
+                  value: folder.id,
+                  label: folder.name,
+                  disabled: folder.id === document.folder?.id,
+                }))}
+                placeholder="Select a folder"
+                searchPlaceholder="Search folders..."
+                emptyText="No folders available"
+                loading={foldersLoading}
+                loadingText="Loading folders..."
                 disabled={isLoading || foldersLoading}
-              >
-                <SelectTrigger id="folder">
-                  <SelectValue placeholder="Select a folder" />
-                </SelectTrigger>
-                <SelectContent>
-                  {foldersLoading ? (
-                    <SelectItem value="loading" disabled>
-                      Loading folders...
-                    </SelectItem>
-                  ) : folders.length === 0 ? (
-                    <SelectItem value="empty" disabled>
-                      No folders available
-                    </SelectItem>
-                  ) : (
-                    folders.map((folder) => (
-                      <SelectItem
-                        key={folder.id}
-                        value={folder.id}
-                        disabled={folder.id === document.folder?.id}
-                      >
-                        <span className="flex items-center gap-2">
-                          <FolderIcon className="h-4 w-4" />
-                          <span
-                            className="truncate max-w-[300px]"
-                            title={folder.name}
-                          >
-                            {folder.name}
-                          </span>
-                          {folder.id === document.folder?.id && " (Current)"}
-                        </span>
-                      </SelectItem>
-                    ))
-                  )}
-                </SelectContent>
-              </Select>
+                renderOption={(option) => (
+                  <span className="flex items-center gap-2">
+                    <FolderIcon className="h-4 w-4" />
+                    <span
+                      className="truncate max-w-[300px]"
+                      title={option.label}
+                    >
+                      {option.label}
+                    </span>
+                    {option.value === document.folder?.id && " (Current)"}
+                  </span>
+                )}
+                renderValue={(option) => (
+                  <span className="flex items-center gap-2">
+                    <FolderIcon className="h-4 w-4" />
+                    <span
+                      className="truncate max-w-[300px]"
+                      title={option.label}
+                    >
+                      {option.label}
+                    </span>
+                  </span>
+                )}
+              />
               {errors.folderId && (
                 <p className="text-sm font-medium text-destructive">
                   {errors.folderId.message}

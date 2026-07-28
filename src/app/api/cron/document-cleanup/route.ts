@@ -16,16 +16,26 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Calculate date 30 days ago
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    // Regular folders: 60 days retention. Sustain folders: 180 days retention.
+    const sixtyDaysAgo = new Date();
+    sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
 
-    // Find documents older than 30 days
+    const oneEightyDaysAgo = new Date();
+    oneEightyDaysAgo.setDate(oneEightyDaysAgo.getDate() - 180);
+
+    // Find documents past their folder's retention period
     const expiredDocuments = await prisma.document.findMany({
       where: {
-        createdAt: {
-          lt: thirtyDaysAgo,
-        },
+        OR: [
+          {
+            createdAt: { lt: sixtyDaysAgo },
+            folder: { isSustain: false },
+          },
+          {
+            createdAt: { lt: oneEightyDaysAgo },
+            folder: { isSustain: true },
+          },
+        ],
       },
     });
 

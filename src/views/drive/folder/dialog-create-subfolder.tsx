@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, FolderPlus, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -19,14 +19,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Combobox } from "@/components/ui/combobox";
 import { createFolder } from "@/action/folder";
-import { useDashboardDialog } from "@/store/store-dashboard-dialog";
-import { IconFolderPlus } from "@tabler/icons-react";
-import { useFolders } from "@/hooks/use-folders";
-import { useClients } from "@/hooks/use-clients";
+import { useState } from "react";
 
-// Form validation schema
 const FormSchema = z
   .object({
     name: z
@@ -37,7 +32,6 @@ const FormSchema = z
         message:
           "Folder name can only contain letters, numbers, spaces, hyphens, and underscores",
       }),
-    clientId: z.string().min(1, "Client selection is required"),
     startDate: z.string().refine((val) => !isNaN(Date.parse(val)), {
       message: "Invalid start date format",
     }),
@@ -60,22 +54,25 @@ const FormSchema = z
 
 type FormData = z.infer<typeof FormSchema>;
 
-interface AddFolderDialogProps {
+interface DialogCreateSubfolderProps {
+  isOpen: boolean;
+  onClose: () => void;
+  parentFolderId: string;
+  /** userId (client) that owns the parent folder — subfolders inherit it. */
+  parentUserId: string;
   onSuccess?: () => void;
 }
 
-export function DialogAddFolder({ onSuccess }: AddFolderDialogProps) {
+export default function DialogCreateSubfolder({
+  isOpen,
+  onClose,
+  parentFolderId,
+  parentUserId,
+  onSuccess,
+}: DialogCreateSubfolderProps) {
   const { data: session } = useSession();
-  const userId = session?.user.id as string;
-  const { isOpen, dialogType, closeDialog, isLoading, setLoading } =
-    useDashboardDialog();
-  const isDialogOpen = isOpen && dialogType === "folder";
-
-  const { mutate } = useFolders({ page: 1, limit: 10 });
-  const { clients, isLoading: isLoadingClients } = useClients({
-    page: 1,
-    limit: 1000, // Load more clients to ensure we get all
-  });
+  const userId = session?.user?.id as string;
+  const [isLoading, setIsLoading] = useState(false);
 
   const today = new Date().toISOString().split("T")[0];
   const thirtyDaysLater = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
@@ -93,86 +90,84 @@ export function DialogAddFolder({ onSuccess }: AddFolderDialogProps) {
     resolver: zodResolver(FormSchema),
     defaultValues: {
       name: "",
-      clientId: "",
       startDate: today,
       endDate: thirtyDaysLater,
       isSustain: false,
     },
   });
 
-  const selectedClientId = watch("clientId");
   const isSustain = watch("isSustain");
 
   const onSubmit = async (data: FormData) => {
-    if (!session?.user?.id) {
+    if (!userId) {
       toast.error("Authentication required");
       return;
     }
 
-    setLoading(true);
+    setIsLoading(true);
 
     try {
-      // Use the selected client's ID instead of the current admin's ID
       const result = await createFolder({
         name: data.name,
-        userId: data.clientId, // Use client ID instead of session user ID
+        userId: parentUserId,
         createdById: userId,
         isRoot: false,
         isSustain: data.isSustain,
+        parentId: parentFolderId,
         startDate: new Date(data.startDate),
         endDate: new Date(data.endDate),
       });
 
       if (result.success) {
-        toast.success("Folder created successfully");
+        toast.success("Subfolder created successfully");
         reset();
-        mutate();
-        closeDialog();
-        if (onSuccess) onSuccess();
+        onSuccess?.();
+        onClose();
       } else {
-        toast.error(result.error || "Failed to create folder");
+        toast.error(result.error || "Failed to create subfolder");
       }
     } catch (error) {
-      console.error("Error submitting form:", error);
+      console.error("Error creating subfolder:", error);
       toast.error("An unexpected error occurred");
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
   const handleClose = () => {
     if (!isLoading) {
       reset();
-      closeDialog();
+      onClose();
     }
   };
 
   return (
-    <Dialog open={isDialogOpen} onOpenChange={handleClose}>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[425px]">
         <form onSubmit={handleSubmit(onSubmit)}>
           <DialogHeader>
             <div className="flex items-center gap-2 mb-2">
               <div className="bg-primary/10 p-2 rounded-md">
-                <IconFolderPlus className="h-5 w-5 text-primary" />
+                <FolderPlus className="h-5 w-5 text-primary" />
               </div>
-              <DialogTitle>Add New Folder</DialogTitle>
+              <DialogTitle>New Subfolder</DialogTitle>
             </div>
             <DialogDescription>
-              Create a new folder to organize documents for a client. Fill in
-              the fields below.
+              Create a subfolder inside this folder to further organize
+              documents.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="name">
+              <Label htmlFor="subfolder-name">
                 Folder Name <span className="text-destructive">*</span>
               </Label>
               <Input
-                id="name"
+                id="subfolder-name"
                 placeholder="Enter folder name"
                 {...register("name")}
                 aria-invalid={!!errors.name}
+                disabled={isLoading}
               />
               {errors.name && (
                 <p className="text-sm font-medium text-destructive">
@@ -181,39 +176,9 @@ export function DialogAddFolder({ onSuccess }: AddFolderDialogProps) {
               )}
             </div>
 
-            <div className="grid gap-2">
-              <Label htmlFor="client">
-                Client <span className="text-destructive">*</span>
-              </Label>
-              <Combobox
-                id="client"
-                options={clients.map((client) => ({
-                  value: client.id,
-                  label: client.name ?? "",
-                }))}
-                value={selectedClientId}
-                onValueChange={(value) =>
-                  setValue("clientId", value, {
-                    shouldValidate: true,
-                  })
-                }
-                placeholder="Select a client"
-                searchPlaceholder="Search clients..."
-                emptyText="No clients available"
-                loading={isLoadingClients}
-                loadingText="Loading clients..."
-                disabled={isLoading}
-              />
-              {errors.clientId && (
-                <p className="text-sm font-medium text-destructive">
-                  {errors.clientId.message}
-                </p>
-              )}
-            </div>
-
             <div className="flex items-start gap-2">
               <Checkbox
-                id="isSustain"
+                id="subfolder-isSustain"
                 checked={isSustain}
                 onCheckedChange={(checked) =>
                   setValue("isSustain", checked === true)
@@ -221,7 +186,10 @@ export function DialogAddFolder({ onSuccess }: AddFolderDialogProps) {
                 disabled={isLoading}
               />
               <div className="grid gap-1 leading-none">
-                <Label htmlFor="isSustain" className="cursor-pointer">
+                <Label
+                  htmlFor="subfolder-isSustain"
+                  className="cursor-pointer"
+                >
                   Sustain Folder
                 </Label>
                 <p className="text-sm text-muted-foreground">
@@ -233,17 +201,18 @@ export function DialogAddFolder({ onSuccess }: AddFolderDialogProps) {
 
             <div className="grid grid-cols-12 gap-4">
               <div className="col-span-6 grid gap-2">
-                <Label htmlFor="startDate">
+                <Label htmlFor="subfolder-startDate">
                   Start Date <span className="text-destructive">*</span>
                 </Label>
                 <div className="relative">
                   <CalendarIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
-                    id="startDate"
+                    id="subfolder-startDate"
                     type="date"
                     {...register("startDate")}
                     className="pl-10"
                     aria-invalid={!!errors.startDate}
+                    disabled={isLoading}
                   />
                 </div>
                 {errors.startDate && (
@@ -253,17 +222,18 @@ export function DialogAddFolder({ onSuccess }: AddFolderDialogProps) {
                 )}
               </div>
               <div className="col-span-6 grid gap-2">
-                <Label htmlFor="endDate">
+                <Label htmlFor="subfolder-endDate">
                   End Date <span className="text-destructive">*</span>
                 </Label>
                 <div className="relative">
                   <CalendarIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
-                    id="endDate"
+                    id="subfolder-endDate"
                     type="date"
                     {...register("endDate")}
                     className="pl-10"
                     aria-invalid={!!errors.endDate}
+                    disabled={isLoading}
                   />
                 </div>
                 {errors.endDate && (
@@ -283,14 +253,14 @@ export function DialogAddFolder({ onSuccess }: AddFolderDialogProps) {
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isLoading || !selectedClientId}>
+            <Button type="submit" disabled={isLoading}>
               {isLoading ? (
                 <>
-                  <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Creating...
                 </>
               ) : (
-                "Create Folder"
+                "Create Subfolder"
               )}
             </Button>
           </DialogFooter>

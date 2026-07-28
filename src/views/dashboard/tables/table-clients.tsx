@@ -121,7 +121,7 @@ export function TableClients() {
 
       <div className="rounded-md border">
         <Table>
-          <TableHeader className="sticky top-0 z-10 bg-muted">
+          <TableHeader className="sticky top-0 z-10">
             <TableRow>
               <TableHead>Name</TableHead>
               <TableHead>Email</TableHead>
@@ -205,6 +205,8 @@ export function TableClients() {
           currentPage={currentPage}
           totalPages={pagination.totalPages}
           onPageChange={setCurrentPage}
+          totalItems={pagination.total}
+          pageSize={pagination.limit}
         />
       )}
 

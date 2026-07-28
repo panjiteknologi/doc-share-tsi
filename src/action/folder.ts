@@ -18,6 +18,8 @@ const FolderSchema = z
     userId: z.string().min(1, "User ID is required"),
     createdById: z.string().min(1, "Created By ID is required"),
     isRoot: z.boolean().default(false),
+    isSustain: z.boolean().default(false),
+    parentId: z.string().optional(),
     startDate: z.date(),
     endDate: z.date(),
   })
@@ -54,10 +56,21 @@ export async function createFolder(data: FolderFormData) {
 
     const validatedData = FolderSchema.parse(data);
 
+    if (validatedData.parentId) {
+      const parentFolder = await prisma.folder.findUnique({
+        where: { id: validatedData.parentId },
+      });
+
+      if (!parentFolder) {
+        return { success: false, error: "Parent folder not found" };
+      }
+    }
+
     const existingFolder = await prisma.folder.findFirst({
       where: {
         name: validatedData.name,
         userId: validatedData.userId,
+        parentId: validatedData.parentId ?? null,
       },
     });
 
@@ -231,7 +244,7 @@ export async function deleteFolder(formData: FormData) {
 
     const existingFolder = await prisma.folder.findUnique({
       where: { id },
-      include: { documents: true },
+      include: { documents: true, children: true },
     });
 
     if (!existingFolder) {
@@ -243,6 +256,14 @@ export async function deleteFolder(formData: FormData) {
         success: false,
         error:
           "Cannot delete folder that contains documents. Remove documents first.",
+      };
+    }
+
+    if (existingFolder.children.length > 0) {
+      return {
+        success: false,
+        error:
+          "Cannot delete folder that contains subfolders. Remove subfolders first.",
       };
     }
 

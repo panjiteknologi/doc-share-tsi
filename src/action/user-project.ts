@@ -83,6 +83,86 @@ export async function connectUserWithProject(data: {
   }
 }
 
+const userFoldersSchema = z.object({
+  id: z.string().min(1, "User ID is required"),
+  folderIds: z.array(z.string().min(1)).min(1, "Select at least one folder"),
+});
+
+export async function connectUserWithFolders(data: {
+  id: string;
+  folderIds: string[];
+}) {
+  try {
+    const session = await auth();
+    if (!session || !session.user) {
+      return { success: false, error: "Not authenticated" };
+    }
+
+    const validatedData = userFoldersSchema.parse(data);
+
+    const projectIds = await prisma.$transaction(async (tx) => {
+      const ids: string[] = [];
+
+      for (const folderId of validatedData.folderIds) {
+        const folder = await tx.folder.findUnique({
+          where: { id: folderId },
+          include: { project: true },
+        });
+
+        if (!folder) {
+          throw new Error(`Folder not found: ${folderId}`);
+        }
+
+        if (folder.isRoot) {
+          throw new Error("Cannot connect users to root folders");
+        }
+
+        let projectId = folder.project?.id;
+        if (!projectId) {
+          const newProject = await tx.project.create({
+            data: { folderId: folder.id },
+          });
+          projectId = newProject.id;
+        }
+
+        ids.push(projectId);
+      }
+
+      return ids;
+    });
+
+    const user = await prisma.user.update({
+      where: { id: validatedData.id },
+      data: {
+        projects: {
+          connect: projectIds.map((id) => ({ id })),
+        },
+      },
+    });
+
+    revalidatePath("/dashboard");
+
+    return { success: true, user, connectedCount: projectIds.length };
+  } catch (error) {
+    console.error("Error connecting user with folders:", error);
+
+    if (error instanceof z.ZodError) {
+      return {
+        success: false,
+        error: error.errors.map((e) => e.message).join(", "),
+      };
+    }
+
+    return {
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Failed to connect user with folders",
+    };
+  }
+}
+
 export async function disconnectUserFromProject(data: {
   id: string;
   projectId: string;

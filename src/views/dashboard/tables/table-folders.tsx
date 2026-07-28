@@ -88,7 +88,7 @@ export function TableFolders() {
 
       <div className="rounded-md border">
         <Table>
-          <TableHeader className="sticky top-0 z-10 bg-muted">
+          <TableHeader className="sticky top-0 z-10">
             <TableRow>
               <TableHead>Name</TableHead>
               <TableHead>Type</TableHead>
@@ -134,13 +134,18 @@ export function TableFolders() {
                     {folder.name}
                   </TableCell>
                   <TableCell>
-                    <Badge variant={folder.isRoot ? "default" : "secondary"}>
-                      {folder.isRoot
-                        ? "Root"
-                        : folder.hasProject
-                        ? "Project"
-                        : "Standard"}
-                    </Badge>
+                    <div className="flex items-center gap-1">
+                      <Badge variant={folder.isRoot ? "default" : "secondary"}>
+                        {folder.isRoot
+                          ? "Root"
+                          : folder.hasProject
+                          ? "Project"
+                          : "Standard"}
+                      </Badge>
+                      {folder.isSustain && (
+                        <Badge variant="success">Sustain</Badge>
+                      )}
+                    </div>
                   </TableCell>
                   <TableCell>{folder.documentCount}</TableCell>
                   <TableCell>
@@ -203,6 +208,8 @@ export function TableFolders() {
           currentPage={currentPage}
           totalPages={pagination.totalPages}
           onPageChange={setCurrentPage}
+          totalItems={pagination.total}
+          pageSize={pagination.limit}
         />
       )}
 

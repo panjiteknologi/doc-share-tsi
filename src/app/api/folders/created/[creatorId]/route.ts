@@ -17,6 +17,7 @@ export async function GET(
     const folders = await prisma.folder.findMany({
       where: {
         createdById: creatorId,
+        parentId: null,
       },
       include: {
         user: {
@@ -39,6 +40,9 @@ export async function GET(
             id: true,
           },
         },
+        _count: {
+          select: { children: true },
+        },
       },
       orderBy: {
         createdAt: "desc",
@@ -50,6 +54,7 @@ export async function GET(
       id: folder.id,
       name: folder.name,
       isRoot: folder.isRoot,
+      isSustain: folder.isSustain,
       startDate: folder.startDate,
       endDate: folder.endDate,
       createdAt: folder.createdAt,
@@ -68,6 +73,7 @@ export async function GET(
         email: folder.createdBy?.email,
       },
       hasProject: folder.project !== null,
+      childrenCount: folder._count.children,
     }));
 
     return NextResponse.json({ folders: formattedFolders });

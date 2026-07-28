@@ -27,12 +27,16 @@ import DocumentTable from "./document-table";
 import DocumentDrawerViewer from "@/components/document-drawer-viewer";
 import DialogCreateFolder from "./dialog-create-folder";
 import { Input } from "@/components/ui/input";
+import { DataPagination } from "../dashboard/tables/data-pagination";
+
+const FOLDERS_PER_PAGE = 12;
 
 const DriveView = () => {
   const { data: session } = useSession();
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [searchQuery, setSearchQuery] = useState(""); // State untuk pencarian folder
   const [isCreateFolderDialogOpen, setIsCreateFolderDialogOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const handleMutateAll = () => {
     revalidateNonRootFolders(undefined, { revalidate: true });
@@ -63,6 +67,7 @@ const DriveView = () => {
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value); // Update search query state
+    setCurrentPage(1); // Reset to first page on new search
   };
 
   // Filter folders based on search query
@@ -101,6 +106,17 @@ const DriveView = () => {
   };
 
   const loadingFolders = isFoldersLoading || isFoldersByIdLoading;
+
+  // Client-side pagination for the grid view
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredFolders.length / FOLDERS_PER_PAGE)
+  );
+  const safePage = Math.min(currentPage, totalPages);
+  const paginatedFolders = filteredFolders.slice(
+    (safePage - 1) * FOLDERS_PER_PAGE,
+    safePage * FOLDERS_PER_PAGE
+  );
 
   return (
     <div className="px-6 py-4 space-y-6">
@@ -170,11 +186,20 @@ const DriveView = () => {
         {!loadingFolders && userRole === "surveyor" && (
           <>
             {viewMode === "grid" ? (
-              <div  key={filteredFolders.length} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {filteredFolders.map((folder) => (
-                  <FolderCard key={folder.id} folder={folder} onMutate={handleMutateAll}/>
-                ))}
-              </div>
+              <>
+                <div key={filteredFolders.length} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                  {paginatedFolders.map((folder) => (
+                    <FolderCard key={folder.id} folder={folder} onMutate={handleMutateAll}/>
+                  ))}
+                </div>
+                <DataPagination
+                  currentPage={safePage}
+                  totalPages={totalPages}
+                  onPageChange={setCurrentPage}
+                  totalItems={filteredFolders.length}
+                  pageSize={FOLDERS_PER_PAGE}
+                />
+              </>
             ) : (
               <FolderTable folders={filteredFolders} onMutate={handleMutateAll}/>
             )}
@@ -184,11 +209,20 @@ const DriveView = () => {
         {!loadingFolders && userRole === "client" && (
           <>
             {viewMode === "grid" ? (
-              <div  key={filteredFolders.length} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {filteredFolders.map((folder) => (
-                  <FolderCard key={folder.id} folder={folder} onMutate={handleMutateAll}/>
-                ))}
-              </div>
+              <>
+                <div key={filteredFolders.length} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                  {paginatedFolders.map((folder) => (
+                    <FolderCard key={folder.id} folder={folder} onMutate={handleMutateAll}/>
+                  ))}
+                </div>
+                <DataPagination
+                  currentPage={safePage}
+                  totalPages={totalPages}
+                  onPageChange={setCurrentPage}
+                  totalItems={filteredFolders.length}
+                  pageSize={FOLDERS_PER_PAGE}
+                />
+              </>
             ) : (
               <FolderTable folders={filteredFolders} onMutate={handleMutateAll} />
             )}
@@ -198,11 +232,20 @@ const DriveView = () => {
         {!loadingFolders && userRole === "auditor" && (
           <>
             {viewMode === "grid" ? (
-              <div  key={filteredFolders.length} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {filteredFolders.map((folder) => (
-                  <FolderCard key={folder.id} folder={folder} onMutate={handleMutateAll}/>
-                ))}
-              </div>
+              <>
+                <div key={filteredFolders.length} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                  {paginatedFolders.map((folder) => (
+                    <FolderCard key={folder.id} folder={folder} onMutate={handleMutateAll}/>
+                  ))}
+                </div>
+                <DataPagination
+                  currentPage={safePage}
+                  totalPages={totalPages}
+                  onPageChange={setCurrentPage}
+                  totalItems={filteredFolders.length}
+                  pageSize={FOLDERS_PER_PAGE}
+                />
+              </>
             ) : (
               <FolderTable folders={filteredFolders} onMutate={handleMutateAll}/>
             )}

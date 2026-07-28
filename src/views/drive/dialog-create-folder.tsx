@@ -20,13 +20,8 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Combobox } from "@/components/ui/combobox";
 import { createFolder } from "@/action/folder";
 import { useClients } from "@/hooks/use-clients";
 
@@ -46,6 +41,7 @@ const baseSchemaFields = {
   endDate: z.string().refine((val) => !isNaN(Date.parse(val)), {
     message: "Invalid end date format",
   }),
+  isSustain: z.boolean(),
 };
 
 // Define schema refinement (shared between schemas)
@@ -127,10 +123,12 @@ export default function DialogCreateFolder({
       userId: userRole === "client" ? userId || "" : "",
       startDate: today,
       endDate: thirtyDaysLater,
+      isSustain: false,
     },
   });
 
   const selectedClientId = watch("userId");
+  const isSustain = watch("isSustain");
 
   const onSubmit = async (data: FormData) => {
     if (!session?.user?.id) {
@@ -155,6 +153,7 @@ export default function DialogCreateFolder({
         userId: finalUserId,
         createdById: userId,
         isRoot: false,
+        isSustain: data.isSustain,
         startDate: new Date(data.startDate),
         endDate: new Date(data.endDate),
       });
@@ -223,35 +222,25 @@ export default function DialogCreateFolder({
                 <Label htmlFor="client">
                   Client <span className="text-destructive">*</span>
                 </Label>
-                <Select
+                <Combobox
+                  id="client"
+                  options={clients.map((client) => ({
+                    value: client.id,
+                    label: client.name ?? "",
+                  }))}
+                  value={selectedClientId}
                   onValueChange={(value) =>
                     setValue("userId", value, {
                       shouldValidate: true,
                     })
                   }
-                  disabled={isLoading || isLoadingClients}
-                >
-                  <SelectTrigger id="client">
-                    <SelectValue placeholder="Select a client" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {isLoadingClients ? (
-                      <SelectItem value="loading" disabled>
-                        Loading clients...
-                      </SelectItem>
-                    ) : clients?.length === 0 ? (
-                      <SelectItem value="empty" disabled>
-                        No clients available
-                      </SelectItem>
-                    ) : (
-                      clients.map((client) => (
-                        <SelectItem key={client.id} value={client.id}>
-                          {client.name}
-                        </SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
+                  placeholder="Select a client"
+                  searchPlaceholder="Search clients..."
+                  emptyText="No clients available"
+                  loading={isLoadingClients}
+                  loadingText="Loading clients..."
+                  disabled={isLoading}
+                />
                 {errors.userId && (
                   <p className="text-sm font-medium text-destructive">
                     {errors.userId.message}
@@ -259,6 +248,26 @@ export default function DialogCreateFolder({
                 )}
               </div>
             )}
+
+            <div className="flex items-start gap-2">
+              <Checkbox
+                id="isSustain"
+                checked={isSustain}
+                onCheckedChange={(checked) =>
+                  setValue("isSustain", checked === true)
+                }
+                disabled={isLoading}
+              />
+              <div className="grid gap-1 leading-none">
+                <Label htmlFor="isSustain" className="cursor-pointer">
+                  Sustain Folder
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  Files in this folder will be auto-deleted after 180 days.
+                  Regular folders auto-delete after 60 days.
+                </p>
+              </div>
+            </div>
 
             <div className="grid grid-cols-12 gap-4">
               <div className="col-span-6 grid gap-2">

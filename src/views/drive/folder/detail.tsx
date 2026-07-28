@@ -14,6 +14,8 @@ import {
   List,
   Search,
   Filter,
+  FolderPlus,
+  ChevronRight,
 } from "lucide-react";
 import {
   Card,
@@ -32,8 +34,10 @@ import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import Link from "next/link";
 import DocumentCard from "../document-card";
+import FolderCard from "../folder-card";
 // import { DialogAddDocument } from "@/views/dashboard/dialogs/dialog-add-document";
 import DialogUploadDocument from "./dialog-upload-document";
+import DialogCreateSubfolder from "./dialog-create-subfolder";
 import DocumentDrawerViewer from "@/components/document-drawer-viewer";
 import { useSession } from "next-auth/react";
 
@@ -49,6 +53,7 @@ const FolderDetailView: React.FC<FolderDetailViewProps> = ({ folderId, onMutate 
   const [viewMode, setViewMode] = useState<"grid" | "list">("list");
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddDocumentOpen, setIsAddDocumentOpen] = useState(false);
+  const [isCreateSubfolderOpen, setIsCreateSubfolderOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [selectedDocument, setSelectedDocument] = useState<any>(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -139,25 +144,50 @@ const FolderDetailView: React.FC<FolderDetailViewProps> = ({ folderId, onMutate 
   };
   
   const isDocumentsReady = !isFolderLoading && !isRefreshingDocuments && folder.documents;
+
+  const handleSubfolderCreated = () => {
+    mutate();
+    onMutate?.();
+  };
+
   return (
     <div className="px-6 py-4 space-y-6">
       {/* Header with back button and title */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Link href="/drive">
-            <Button variant="ghost" size="icon">
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-          </Link>
-          <h1 className="text-2xl font-bold tracking-tight truncate">
-            {folder.name}
-          </h1>
-          {folder.isRoot && (
-            <Badge variant="outline" className="ml-2">
-              Root
-            </Badge>
-          )}
-          {folder.project && <Badge className="ml-2">Project</Badge>}
+      <div className="flex flex-col gap-1">
+        {folder.parent && (
+          <div className="flex items-center gap-1 pl-10 text-sm text-muted-foreground">
+            <Link
+              href={`/drive/${folder.parent.id}`}
+              className="truncate hover:underline"
+            >
+              {folder.parent.name}
+            </Link>
+            <ChevronRight className="h-3.5 w-3.5 shrink-0" />
+            <span className="truncate text-foreground">{folder.name}</span>
+          </div>
+        )}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Link href={folder.parent ? `/drive/${folder.parent.id}` : "/drive"}>
+              <Button variant="ghost" size="icon">
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+            </Link>
+            <h1 className="text-2xl font-bold tracking-tight truncate">
+              {folder.name}
+            </h1>
+            {folder.isRoot && (
+              <Badge variant="outline" className="ml-2">
+                Root
+              </Badge>
+            )}
+            {folder.isSustain && (
+              <Badge variant="success" className="ml-2">
+                Sustain
+              </Badge>
+            )}
+            {folder.project && <Badge className="ml-2">Project</Badge>}
+          </div>
         </div>
       </div>
 
@@ -241,6 +271,38 @@ const FolderDetailView: React.FC<FolderDetailViewProps> = ({ folderId, onMutate 
           </div>
         </CardContent>
       </Card>
+
+      {/* Subfolders section */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between gap-4">
+          <h2 className="text-xl font-bold">
+            Subfolders ({folder.children?.length || 0})
+          </h2>
+          {userRole !== "auditor" && (
+            <Button
+              variant="outline"
+              onClick={() => setIsCreateSubfolderOpen(true)}
+            >
+              <FolderPlus className="h-4 w-4 mr-2" />
+              New Subfolder
+            </Button>
+          )}
+        </div>
+
+        {folder.children && folder.children.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {folder.children.map((child) => (
+              <FolderCard key={child.id} folder={child} onMutate={handleSubfolderCreated} />
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center h-32 border rounded-lg border-dashed border-muted-foreground/50 p-6">
+            <p className="text-sm text-muted-foreground">
+              No subfolders yet.
+            </p>
+          </div>
+        )}
+      </div>
 
       {/* Documents section */}
       <div className="space-y-4">
@@ -354,11 +416,21 @@ const FolderDetailView: React.FC<FolderDetailViewProps> = ({ folderId, onMutate 
         onSuccess={handleRevalidateSuccess}
       />
 
+      {/* New Subfolder Dialog */}
+      <DialogCreateSubfolder
+        isOpen={isCreateSubfolderOpen}
+        onClose={() => setIsCreateSubfolderOpen(false)}
+        parentFolderId={folder.id}
+        parentUserId={folder.owner.id}
+        onSuccess={handleSubfolderCreated}
+      />
+
       {/* View Document Dialog */}
       <DocumentDrawerViewer
         isOpen={isViewDialogOpen}
         onClose={() => setIsViewDialogOpen(false)}
         document={selectedDocument}
+        // client={folder.owner.name}
       />
     </div>
   );

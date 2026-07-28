@@ -12,6 +12,7 @@ export async function GET(request: NextRequest) {
     // For auditors: Get folders connected to projects where the current user is assigned
     const folders = await prisma.folder.findMany({
       where: {
+        parentId: null,
         project: {
           auditors: {
             some: {
@@ -40,10 +41,18 @@ export async function GET(request: NextRequest) {
             },
           },
         },
+        _count: {
+          select: { children: true },
+        },
       },
     });
 
-    return NextResponse.json({ folders });
+    const formattedFolders = folders.map((folder) => ({
+      ...folder,
+      childrenCount: folder._count.children,
+    }));
+
+    return NextResponse.json({ folders: formattedFolders });
   } catch (error) {
     console.error("Error fetching auditor project folders:", error);
     return NextResponse.json(

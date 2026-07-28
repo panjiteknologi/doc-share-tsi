@@ -20,6 +20,9 @@ export interface Folder {
   id: string;
   name: string;
   isRoot: boolean;
+  isSustain: boolean;
+  childrenCount?: number;
+  parentId?: string | null;
   startDate: string;
   endDate: string;
   createdAt: string;
@@ -31,6 +34,25 @@ export interface Folder {
   documents: Document[];
   user: User;
   createdBy: User;
+}
+
+export interface SubfolderSummary {
+  id: string;
+  name: string;
+  isRoot: boolean;
+  isSustain: boolean;
+  childrenCount?: number;
+  startDate: string;
+  endDate: string;
+  createdAt: string;
+  userId: string;
+  createdById: string | null;
+  documents: { id: string }[];
+  user: {
+    id: string;
+    name: string;
+    email: string;
+  };
 }
 
 export interface DetailedFolder
@@ -50,6 +72,9 @@ export interface DetailedFolder
       email: string;
     }>;
   } | null;
+  parentId: string | null;
+  parent: { id: string; name: string } | null;
+  children: SubfolderSummary[];
 }
 
 export interface PaginatedResponse<T> {

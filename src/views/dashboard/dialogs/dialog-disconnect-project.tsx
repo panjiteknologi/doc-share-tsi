@@ -12,13 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Combobox } from "@/components/ui/combobox";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -113,32 +107,21 @@ export default function DialogDisconnectProject({
             <>
               <div className="grid gap-2">
                 <Label htmlFor="project">Select Project to Disconnect</Label>
-                <Select
+                <Combobox
+                  id="project"
                   value={projectId}
                   onValueChange={setProjectId}
+                  options={auditorProjects.map((project) => ({
+                    value: project.id,
+                    label: project.folder?.name || "Unnamed Project",
+                  }))}
+                  placeholder="Select a project"
+                  searchPlaceholder="Search projects..."
+                  emptyText="No projects assigned"
+                  loading={isLoadingAuditor}
+                  loadingText="Loading projects..."
                   disabled={isLoading || isLoadingAuditor}
-                >
-                  <SelectTrigger id="project">
-                    <SelectValue placeholder="Select a project" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {isLoadingAuditor ? (
-                      <SelectItem value="loading" disabled>
-                        Loading projects...
-                      </SelectItem>
-                    ) : auditorProjects.length === 0 ? (
-                      <SelectItem value="none" disabled>
-                        No projects assigned
-                      </SelectItem>
-                    ) : (
-                      auditorProjects.map((project) => (
-                        <SelectItem key={project.id} value={project.id}>
-                          {project.folder?.name || "Unnamed Project"}
-                        </SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
+                />
               </div>
 
               {selectedFolderName && (

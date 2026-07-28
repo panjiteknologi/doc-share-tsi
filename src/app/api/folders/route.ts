@@ -63,6 +63,8 @@ export async function GET(request: NextRequest) {
       id: folder.id,
       name: folder.name,
       isRoot: folder.isRoot,
+      isSustain: folder.isSustain,
+      parentId: folder.parentId,
       startDate: folder.startDate,
       endDate: folder.endDate,
       createdAt: folder.createdAt,

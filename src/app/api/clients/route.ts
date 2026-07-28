@@ -50,6 +50,7 @@ export async function GET(request: NextRequest) {
         name: true,
         email: true,
         hashedPassword: true,
+        createdAt: true,
         role: {
           select: {
             name: true,
@@ -57,6 +58,9 @@ export async function GET(request: NextRequest) {
           },
         },
         projects: true,
+      },
+      orderBy: {
+        createdAt: "desc",
       },
       skip,
       take: limit,

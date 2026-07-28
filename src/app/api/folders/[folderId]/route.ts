@@ -54,12 +54,63 @@ export async function GET(
             },
           },
         },
+        parent: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        children: {
+          include: {
+            documents: {
+              select: { id: true },
+            },
+            createdBy: {
+              select: { id: true, name: true, email: true },
+            },
+            project: {
+              select: {
+                auditors: { select: { id: true } },
+              },
+            },
+            _count: {
+              select: { children: true },
+            },
+          },
+          orderBy: {
+            createdAt: "desc",
+          },
+        },
       },
     });
 
     if (!folder) {
       return NextResponse.json({ error: "Folder not found" }, { status: 404 });
     }
+
+    // Auditors only have access to folders they're explicitly connected to
+    // via a Project — access does not cascade from a parent folder to its
+    // children, so each folder/subfolder must be checked individually.
+    const isAuditor = session.user.roleCode === "auditor";
+    if (isAuditor) {
+      const hasAccess = folder.project?.auditors.some(
+        (auditor) => auditor.id === session.user.id
+      );
+      if (!hasAccess) {
+        return NextResponse.json(
+          { error: "You don't have access to this folder" },
+          { status: 403 }
+        );
+      }
+    }
+
+    const visibleChildren = isAuditor
+      ? folder.children.filter((child) =>
+          child.project?.auditors.some(
+            (auditor) => auditor.id === session.user.id
+          )
+        )
+      : folder.children;
 
     // Format document URLs and other information
     const formattedDocuments = folder.documents.map((doc) => {
@@ -101,6 +152,7 @@ export async function GET(
       id: folder.id,
       name: folder.name,
       isRoot: folder.isRoot,
+      isSustain: folder.isSustain,
       startDate: folder.startDate,
       endDate: folder.endDate,
       createdAt: folder.createdAt,
@@ -117,6 +169,26 @@ export async function GET(
             auditors: folder.project.auditors,
           }
         : null,
+      parentId: folder.parentId,
+      parent: folder.parent,
+      children: visibleChildren.map((child) => ({
+        id: child.id,
+        name: child.name,
+        isRoot: child.isRoot,
+        isSustain: child.isSustain,
+        startDate: child.startDate,
+        endDate: child.endDate,
+        createdAt: child.createdAt,
+        userId: child.userId,
+        createdById: child.createdById,
+        documents: child.documents,
+        childrenCount: child._count.children,
+        user: {
+          id: folder.user.id,
+          name: folder.user.name,
+          email: folder.user.email,
+        },
+      })),
     };
 
     return NextResponse.json({ folder: formattedFolder });

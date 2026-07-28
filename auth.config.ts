@@ -31,7 +31,8 @@ export default {
 
           return user;
         } catch (e: any) {
-          const errorMessage = e?.response.data.message;
+          console.error("[authorize] error:", e);
+          const errorMessage = e?.response?.data?.message ?? e?.message ?? "Login failed";
           throw new Error(errorMessage);
         }
       },

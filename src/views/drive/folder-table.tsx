@@ -9,6 +9,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -102,6 +103,9 @@ const FolderTable: React.FC<FolderTableProps> = ({ folders, onMutate }) => {
                     >
                       {folder.name}
                     </Link>
+                    {folder.isSustain && (
+                      <Badge variant="success">Sustain</Badge>
+                    )}
                   </div>
                 </TableCell>
                 <TableCell>

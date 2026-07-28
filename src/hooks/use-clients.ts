@@ -1,4 +1,4 @@
-import useSWR from "swr";
+import useSWR, { useSWRConfig } from "swr";
 import axios from "axios";
 import { Project } from "@prisma/client";
 
@@ -46,13 +46,23 @@ export function useClients({
   searchParams.append("limit", limit.toString());
   if (search) searchParams.append("search", search);
 
-  const { data, error, isLoading, mutate } = useSWR<ClientsResponse>(
+  const { data, error, isLoading } = useSWR<ClientsResponse>(
     `/api/clients?${searchParams.toString()}`,
     fetcher,
     {
       revalidateOnFocus: false,
     }
   );
+
+  const { mutate: globalMutate } = useSWRConfig();
+
+  // Revalidate every /api/clients cache entry, not just this hook's own
+  // page/limit/search key, so client lists elsewhere (e.g. folder dialogs
+  // with a different limit) update without a full page refresh.
+  const mutate = () =>
+    globalMutate(
+      (key) => typeof key === "string" && key.startsWith("/api/clients")
+    );
 
   return {
     clients: data?.clients || [],

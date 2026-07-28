@@ -125,7 +125,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 <img
                   src="/images/tsi-logo.png"
                   alt="TSI Logo"
-                  className="h-8 w-auto"
+                  className="h-8 w-auto brightness-0 invert"
                 />
                 <span className="text-base font-semibold">
                   Audit Document Share

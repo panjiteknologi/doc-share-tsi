@@ -169,6 +169,7 @@ export function TableDocuments({
     }
   };
 
+
   return (
     <div className="space-y-4">
       {/* Search bar remains outside of grid/table */}
@@ -188,7 +189,7 @@ export function TableDocuments({
       {/* Table or Grid based on viewMode */}
       <div  key={filteredDocuments.length} className="rounded-md border">
         <Table>
-          <TableHeader className="sticky top-0 z-10 bg-muted">
+          <TableHeader className="sticky top-0 z-10">
             <TableRow>
               <TableHead>Document Name</TableHead>
               <TableHead>Type</TableHead>
@@ -343,6 +344,8 @@ export function TableDocuments({
           currentPage={currentPage}
           totalPages={pagination.totalPages}
           onPageChange={setCurrentPage}
+          totalItems={pagination.total}
+          pageSize={pagination.limit}
         />
       )}
 

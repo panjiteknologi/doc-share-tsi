@@ -21,13 +21,7 @@ import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { FileUpload } from "@/components/file-upload";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Combobox } from "@/components/ui/combobox";
 
 // Icons
 import {
@@ -261,29 +255,41 @@ export default function UploadPage() {
                   <Label htmlFor="folder-select">
                     Folder <span className="text-destructive">*</span>
                   </Label>
-                  <Select
+                  <Combobox
+                    id="folder-select"
                     value={selectedFolderId}
                     onValueChange={handleFolderChange}
-                  >
-                    <SelectTrigger id="folder-select" className="w-full">
-                      <SelectValue placeholder="Select a folder" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {folders.map((folder) => (
-                        <SelectItem key={folder.id} value={folder.id}>
-                          <div className="flex items-center gap-2">
-                            <Folder className="h-4 w-4" />
-                            <span>{folder.name}</span>
-                            {folder.isRoot && (
-                              <Badge variant="outline" className="ml-1">
-                                Root
-                              </Badge>
-                            )}
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                    options={folders.map((folder) => ({
+                      value: folder.id,
+                      label: folder.name,
+                      data: folder,
+                    }))}
+                    placeholder="Select a folder"
+                    searchPlaceholder="Search folders..."
+                    emptyText="No folders available"
+                    renderOption={(option) => (
+                      <div className="flex items-center gap-2">
+                        <Folder className="h-4 w-4" />
+                        <span>{option.label}</span>
+                        {option.data?.isRoot && (
+                          <Badge variant="outline" className="ml-1">
+                            Root
+                          </Badge>
+                        )}
+                      </div>
+                    )}
+                    renderValue={(option) => (
+                      <div className="flex items-center gap-2">
+                        <Folder className="h-4 w-4" />
+                        <span>{option.label}</span>
+                        {option.data?.isRoot && (
+                          <Badge variant="outline" className="ml-1">
+                            Root
+                          </Badge>
+                        )}
+                      </div>
+                    )}
+                  />
                 </div>
 
                 {selectedFolderId && (

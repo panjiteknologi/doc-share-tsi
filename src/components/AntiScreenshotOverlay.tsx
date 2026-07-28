@@ -4,7 +4,7 @@ interface AntiScreenshotOverlayProps {
   watermarkText?: string;
 }
 
-export default function AntiScreenshotOverlay({ watermarkText = "Confidential" }: AntiScreenshotOverlayProps) {
+export default function AntiScreenshotOverlay({ watermarkText }: AntiScreenshotOverlayProps) {
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       const keyCombo = `${e.metaKey ? "Meta+" : ""}${e.ctrlKey ? "Ctrl+" : ""}${e.shiftKey ? "Shift+" : ""}${e.altKey ? "Alt+" : ""}${e.key}`;

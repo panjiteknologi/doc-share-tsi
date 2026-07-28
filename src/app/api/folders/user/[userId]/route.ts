@@ -17,14 +17,23 @@ export async function GET(
     const folders = await prisma.folder.findMany({
       where: {
         userId,
+        parentId: null,
       },
       include: {
         user: true,
         documents: true,
+        _count: {
+          select: { children: true },
+        },
       },
     });
 
-    return NextResponse.json({ folders });
+    const formattedFolders = folders.map((folder) => ({
+      ...folder,
+      childrenCount: folder._count.children,
+    }));
+
+    return NextResponse.json({ folders: formattedFolders });
   } catch (error) {
     console.error("Error fetching user's folders:", error);
     return NextResponse.json(

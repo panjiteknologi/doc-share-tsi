@@ -50,6 +50,7 @@ export async function GET(request: NextRequest) {
         name: true,
         email: true,
         hashedPassword: true,
+        createdAt: true,
         role: {
           select: {
             name: true,
@@ -62,6 +63,9 @@ export async function GET(request: NextRequest) {
           },
         },
       },
+      orderBy: {
+        createdAt: "desc",
+      },
       skip,
       take: limit,
     });
@@ -72,6 +76,7 @@ export async function GET(request: NextRequest) {
       name: auditor.name,
       email: auditor.email,
       role: auditor.role,
+      createdAt: auditor.createdAt,
       projectCount: auditor.projects.length,
       projects: auditor.projects,
       hashedPassword: auditor.hashedPassword,

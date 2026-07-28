@@ -71,7 +71,7 @@ const DocumentTable: React.FC<DocumentTableProps> = ({
   return (
     <div className={`${documents.length > 0 && "rounded-md border"}`}>
       <Table>
-        <TableHeader className="sticky top-0 z-10 bg-muted">
+        <TableHeader className="sticky top-0 z-10">
           {documents.length > 0 && (
             <TableRow>
               <TableHead>Name</TableHead>
