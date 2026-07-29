@@ -184,13 +184,15 @@ function makeEmptySubfolderRow() {
   return { name: "", isSustain: false, startDate: today, endDate: thirtyDaysLater };
 }
 
-function DialogAddSubfolder({
+export type SubfolderParent = Pick<TreeFolder, "id" | "name" | "userId">;
+
+export function DialogAddSubfolder({
   parentFolder,
   isOpen,
   onClose,
   onSuccess,
 }: {
-  parentFolder: TreeFolder | null;
+  parentFolder: SubfolderParent | null;
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: () => void;
@@ -596,7 +598,8 @@ function FolderRow({
   depth,
   expanded,
   onToggle,
-  canManage,
+  canEdit,
+  canDelete,
   canAddSubfolder,
   canUploadFile,
   showActionsColumn,
@@ -609,7 +612,8 @@ function FolderRow({
   depth: number;
   expanded: boolean;
   onToggle: () => void;
-  canManage: boolean;
+  canEdit: boolean;
+  canDelete: boolean;
   canAddSubfolder: boolean;
   canUploadFile: boolean;
   showActionsColumn: boolean;
@@ -724,7 +728,7 @@ function FolderRow({
               <span className="sr-only">Upload file</span>
             </Button>
           )}
-          {canManage && (
+          {(canEdit || canDelete) && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
@@ -738,13 +742,17 @@ function FolderRow({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={onEdit}>Edit</DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={onDelete}
-                  className="text-destructive"
-                >
-                  Delete
-                </DropdownMenuItem>
+                {canEdit && (
+                  <DropdownMenuItem onClick={onEdit}>Edit</DropdownMenuItem>
+                )}
+                {canDelete && (
+                  <DropdownMenuItem
+                    onClick={onDelete}
+                    className="text-destructive"
+                  >
+                    Delete
+                  </DropdownMenuItem>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           )}
@@ -864,7 +872,7 @@ function getRolePermissions(role: FolderTreeRole): RolePermissions {
     case "surveyor":
       return { canAddSubfolder: true, canUploadFile: true };
     case "client":
-      return { canAddSubfolder: false, canUploadFile: true };
+      return { canAddSubfolder: true, canUploadFile: true };
     case "auditor":
       return { canAddSubfolder: false, canUploadFile: false };
   }
@@ -915,7 +923,9 @@ function FolderNode({
   onUploadFile,
 }: FolderNodeProps) {
   const isExpanded = expandedIds.has(folder.id);
-  const canManage = role === "surveyor" && folder.createdById === userId;
+  const isOwnCreation = folder.createdById === userId;
+  const canEdit = role === "surveyor" && isOwnCreation;
+  const canDelete = (role === "surveyor" || role === "client") && isOwnCreation;
 
   return (
     <>
@@ -924,7 +934,8 @@ function FolderNode({
         depth={depth}
         expanded={isExpanded}
         onToggle={() => onToggle(folder.id)}
-        canManage={canManage}
+        canEdit={canEdit}
+        canDelete={canDelete}
         canAddSubfolder={permissions.canAddSubfolder}
         canUploadFile={permissions.canUploadFile}
         showActionsColumn={role !== "auditor"}

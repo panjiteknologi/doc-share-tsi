@@ -37,7 +37,7 @@ import DocumentCard from "../document-card";
 import FolderCard from "../folder-card";
 // import { DialogAddDocument } from "@/views/dashboard/dialogs/dialog-add-document";
 import DialogUploadDocument from "./dialog-upload-document";
-import DialogCreateSubfolder from "./dialog-create-subfolder";
+import { DialogAddSubfolder } from "@/components/folder-tree";
 import DocumentDrawerViewer from "@/components/document-drawer-viewer";
 import { useSession } from "next-auth/react";
 
@@ -418,11 +418,14 @@ const FolderDetailView: React.FC<FolderDetailViewProps> = ({ folderId, onMutate 
       />
 
       {/* New Subfolder Dialog */}
-      <DialogCreateSubfolder
+      <DialogAddSubfolder
         isOpen={isCreateSubfolderOpen}
         onClose={() => setIsCreateSubfolderOpen(false)}
-        parentFolderId={folder.id}
-        parentUserId={folder.owner.id}
+        parentFolder={{
+          id: folder.id,
+          name: folder.name,
+          userId: folder.owner.id,
+        }}
         onSuccess={handleSubfolderCreated}
       />
 

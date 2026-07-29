@@ -251,6 +251,16 @@ export async function deleteFolder(formData: FormData) {
       return { success: false, error: "Folder not found" };
     }
 
+    if (
+      session.user.roleCode !== "surveyor" &&
+      existingFolder.createdById !== session.user.id
+    ) {
+      return {
+        success: false,
+        error: "You can only delete folders you created",
+      };
+    }
+
     if (existingFolder.documents.length > 0) {
       return {
         success: false,

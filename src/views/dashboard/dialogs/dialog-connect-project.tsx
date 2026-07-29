@@ -188,6 +188,20 @@ export default function DialogConnectProject({
   );
   const tree = useMemo(() => buildFolderTree(clientFolders), [clientFolders]);
 
+  const selectableFolderIds = useMemo(
+    () =>
+      clientFolders
+        .filter((folder) => !connectedFolderIds.has(folder.id))
+        .map((folder) => folder.id),
+    [clientFolders, connectedFolderIds]
+  );
+  const isAllSelected =
+    selectableFolderIds.length > 0 &&
+    selectableFolderIds.every((id) => selectedFolderIds.has(id));
+  const isSomeSelected = selectableFolderIds.some((id) =>
+    selectedFolderIds.has(id)
+  );
+
   const toggleFolder = (folderId: string) => {
     setSelectedFolderIds((prev) => {
       const next = new Set(prev);
@@ -197,6 +211,17 @@ export default function DialogConnectProject({
         next.add(folderId);
       }
       return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    setSelectedFolderIds((prev) => {
+      if (isAllSelected) {
+        const next = new Set(prev);
+        selectableFolderIds.forEach((id) => next.delete(id));
+        return next;
+      }
+      return new Set([...prev, ...selectableFolderIds]);
     });
   };
 
@@ -293,6 +318,25 @@ export default function DialogConnectProject({
                   disabled={isLoading}
                 />
               </div>
+
+              {selectableFolderIds.length > 0 && (
+                <div className="flex items-center gap-1.5 rounded-md py-1 pr-2 pl-1.5">
+                  <Checkbox
+                    checked={
+                      isAllSelected
+                        ? true
+                        : isSomeSelected
+                          ? "indeterminate"
+                          : false
+                    }
+                    onCheckedChange={toggleSelectAll}
+                    disabled={isLoading}
+                  />
+                  <span className="text-sm text-muted-foreground">
+                    Select all folders &amp; subfolders
+                  </span>
+                </div>
+              )}
 
               <div className="max-h-64 overflow-y-auto rounded-md border p-1">
                 {tree.length === 0 ? (
