@@ -1,6 +1,6 @@
 "use client";
 
-import { IconDotsVertical, IconLogout } from "@tabler/icons-react";
+import { IconDotsVertical, IconLogout, IconKey } from "@tabler/icons-react";
 import { useSession, signOut } from "next-auth/react";
 import { useState, useEffect } from "react";
 
@@ -19,11 +19,13 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import DialogChangePassword from "@/views/dashboard/dialogs/dialog-change-password";
 
 export function NavUser() {
   const { isMobile } = useSidebar();
   const { data: session, status } = useSession();
   const [initials, setInitials] = useState("--");
+  const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
 
   useEffect(() => {
     if (session?.user?.name) {
@@ -123,6 +125,11 @@ export function NavUser() {
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => setIsChangePasswordOpen(true)}>
+              <IconKey />
+              Change Password
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleSignOut}>
               <IconLogout />
               Log out
@@ -130,6 +137,11 @@ export function NavUser() {
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>
+
+      <DialogChangePassword
+        isOpen={isChangePasswordOpen}
+        onClose={() => setIsChangePasswordOpen(false)}
+      />
     </SidebarMenu>
   );
 }

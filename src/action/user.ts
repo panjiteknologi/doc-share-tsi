@@ -1,6 +1,7 @@
 "use server";
 
 import prisma from "@/lib/prisma";
+import { auth } from "@/lib/auth";
 import { z } from "zod";
 
 const userSchema = z.object({
@@ -138,5 +139,53 @@ export async function addAuditor(data: UserFormData) {
       return { success: false, error: error.errors[0].message };
     }
     return { success: false, error: "Failed to create auditor" };
+  }
+}
+
+const changePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1, "Current password is required"),
+    newPassword: z.string().min(5, "Password must be at least 5 characters"),
+    confirmPassword: z.string().min(1, "Please confirm your new password"),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
+
+export type ChangePasswordFormData = z.infer<typeof changePasswordSchema>;
+
+export async function changePassword(data: ChangePasswordFormData) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { success: false, error: "Not authenticated" };
+    }
+
+    const validatedData = changePasswordSchema.parse(data);
+
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+    });
+
+    if (!user) {
+      return { success: false, error: "User not found" };
+    }
+
+    if (user.hashedPassword !== validatedData.currentPassword) {
+      return { success: false, error: "Current password is incorrect" };
+    }
+
+    await prisma.user.update({
+      where: { id: session.user.id },
+      data: { hashedPassword: validatedData.newPassword },
+    });
+
+    return { success: true };
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return { success: false, error: error.errors[0].message };
+    }
+    return { success: false, error: "Failed to change password" };
   }
 }
