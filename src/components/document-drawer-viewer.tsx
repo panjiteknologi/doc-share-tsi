@@ -103,24 +103,29 @@ export default function DocumentDrawerViewer({
       overlay.style.display = "none";
     };
 
+    // Standalone modifier taps (holding Shift to select text, etc.) are
+    // extremely common and never a screenshot trigger by themselves — skip
+    // those so the blackout doesn't fire on every incidental keypress.
+    const modifierOnlyKeys = new Set([
+      "shift",
+      "control",
+      "alt",
+      "meta",
+      "capslock",
+    ]);
+
     const blockActions = (e: KeyboardEvent) => {
       const key = e.key.toLowerCase();
-      const isDevTools =
-        key === "f12" ||
-        (e.ctrlKey && e.shiftKey && ["i", "j", "c"].includes(key)) ||
-        (e.metaKey && e.altKey && key === "i");
-      const isPrintScreen =
-        key === "printscreen" ||
-        Boolean(e.code?.toLowerCase().includes("printscreen"));
-      const isSnipShortcut =
-        (e.ctrlKey || e.metaKey) && e.shiftKey && key === "s";
+      if (modifierOnlyKeys.has(key)) return;
 
-      if (isDevTools || isPrintScreen || isSnipShortcut) {
-        showOverlay();
-        setTimeout(() => {
-          hideOverlay();
-        }, 1500);
-      }
+      showOverlay();
+      setShowProtectionAlert(true);
+      setTimeout(() => {
+        hideOverlay();
+      }, 1500);
+      setTimeout(() => {
+        setShowProtectionAlert(false);
+      }, 3000);
     };
 
     const onVisibilityChange = () => {
@@ -139,8 +144,10 @@ export default function DocumentDrawerViewer({
       }, 1500);
     };
 
-    // PrintScreen is inconsistent across browsers/OS: some only fire
-    // keyup for it (never keydown), so listen on both.
+    // Flash on any keypress rather than a curated shortcut list, since some
+    // browsers/OSes only ever deliver certain keys (e.g. PrintScreen) as
+    // keyup, never keydown — and third-party screenshot tools can be bound
+    // to arbitrary keys. Listen on both phases to not miss either.
     window.addEventListener("keydown", blockActions);
     window.addEventListener("keyup", blockActions);
     window.document.addEventListener("visibilitychange", onVisibilityChange);

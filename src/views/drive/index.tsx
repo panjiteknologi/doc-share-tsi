@@ -32,7 +32,7 @@ const FOLDERS_PER_PAGE = 12;
 
 const DriveView = () => {
   const { data: session } = useSession();
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [viewMode, setViewMode] = useState<"grid" | "list">("list");
   const [searchQuery, setSearchQuery] = useState(""); // State untuk pencarian folder
   const [isCreateFolderDialogOpen, setIsCreateFolderDialogOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);

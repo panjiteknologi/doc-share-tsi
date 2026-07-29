@@ -63,7 +63,7 @@ export type FolderTreeRole = "surveyor" | "client" | "auditor";
 // Shared column widths so the tree stays aligned across every depth level
 const COL = {
   type: "hidden sm:flex w-[150px] shrink-0 items-center gap-1",
-  period: "hidden lg:flex w-[170px] shrink-0 items-center gap-1",
+  period: "hidden lg:flex w-[220px] shrink-0 items-center gap-1",
   client: "hidden lg:flex w-[130px] shrink-0",
   createdBy: "hidden xl:flex w-[130px] shrink-0",
   actions: "flex w-[104px] shrink-0 justify-end gap-1",
@@ -582,7 +582,7 @@ function DialogUploadToFolder({
 
 function TreeHeader({ showActions }: { showActions: boolean }) {
   return (
-    <div className="flex items-center gap-2 bg-gradient-to-r from-[#0a1f44] to-[#16326e] py-2.5 pl-3 pr-3 text-[11px] font-semibold uppercase tracking-wider text-white/90">
+    <div className="flex items-center gap-2 bg-gradient-to-r from-[#0a1f44] to-[#16326e] py-3.5 pl-4 pr-4 text-xs font-semibold uppercase tracking-wider text-white/90">
       <div className="min-w-0 flex-1">Folder Name</div>
       <div className={COL.type}>Type</div>
       <div className={COL.period}>Period</div>
@@ -626,69 +626,72 @@ function FolderRow({
 
   return (
     <div
-      className={`group flex items-center gap-2 border-b border-border/60 py-2.5 pr-3 transition-colors duration-150 hover:bg-blue-50/70 dark:hover:bg-blue-950/20 ${
+      className={`group flex items-start gap-2 border-b border-border/60 py-4 pr-4 transition-colors duration-150 hover:bg-blue-50/70 dark:hover:bg-blue-950/20 ${
         hasContent ? "cursor-pointer" : ""
       }`}
       onClick={() => hasContent && onToggle()}
     >
       <div
-        className="flex min-w-0 flex-1 items-center gap-2"
-        style={{ paddingLeft: depth * 20 + 12 }}
+        className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1"
+        style={{ paddingLeft: depth * 24 + 14 }}
       >
         {hasContent ? (
-          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors group-hover:bg-blue-100 group-hover:text-blue-700 dark:group-hover:bg-blue-900/40 dark:group-hover:text-blue-300">
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors group-hover:bg-blue-100 group-hover:text-blue-700 dark:group-hover:bg-blue-900/40 dark:group-hover:text-blue-300">
             <ChevronRight
-              className={`h-3.5 w-3.5 transition-transform duration-200 ${
+              className={`h-4 w-4 transition-transform duration-200 ${
                 expanded ? "rotate-90" : ""
               }`}
             />
           </span>
         ) : (
-          <span className="w-5 shrink-0" />
+          <span className="w-6 shrink-0" />
         )}
-        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-blue-100 transition-colors dark:bg-blue-900/40">
-          <FolderOpen className="h-3.5 w-3.5 text-blue-600 dark:text-blue-300" />
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-blue-100 transition-colors dark:bg-blue-900/40">
+          <FolderOpen className="h-5 w-5 text-blue-600 dark:text-blue-300" />
         </span>
-        <span className="truncate text-sm font-medium" title={folder.name}>
+        <span
+          className="min-w-[120px] flex-1 break-words text-base font-medium"
+          title={folder.name}
+        >
           {folder.name}
         </span>
         {folder.childrenCount > 0 && (
           <Badge
             variant="outline"
-            className="shrink-0 gap-1 border-orange-500/30 bg-orange-500/10 text-[10px] text-orange-600"
+            className="shrink-0 gap-1 border-orange-500/30 bg-orange-500/10 text-xs text-orange-600"
             title={`${folder.childrenCount} subfolder${
               folder.childrenCount > 1 ? "s" : ""
             }`}
           >
-            <FolderOpen className="h-3 w-3" />
+            <FolderOpen className="h-3.5 w-3.5" />
             {folder.childrenCount}
           </Badge>
         )}
         {folder.documentCount > 0 && (
           <Badge
             variant="outline"
-            className="shrink-0 gap-1 border-blue-500/30 bg-blue-500/10 text-[10px] text-blue-600"
+            className="shrink-0 gap-1 border-blue-500/30 bg-blue-500/10 text-xs text-blue-600"
             title={`${folder.documentCount} document${
               folder.documentCount > 1 ? "s" : ""
             }`}
           >
-            <FileText className="h-3 w-3" />
+            <FileText className="h-3.5 w-3.5" />
             {folder.documentCount}
           </Badge>
         )}
       </div>
       <div className={COL.type}>
-        <Badge variant={folder.isRoot ? "default" : "secondary"} className="text-[10px]">
+        <Badge variant={folder.isRoot ? "default" : "secondary"} className="text-xs">
           {folder.isRoot ? "Root" : folder.hasProject ? "Project" : "Standard"}
         </Badge>
         {folder.isSustain && (
-          <Badge variant="success" className="text-[10px]">
+          <Badge variant="success" className="text-xs">
             Sustain
           </Badge>
         )}
       </div>
-      <div className={`${COL.period} text-xs text-muted-foreground`}>
-        <Calendar className="h-3 w-3 shrink-0" />
+      <div className={`${COL.period} text-sm text-muted-foreground`}>
+        <Calendar className="h-3.5 w-3.5 shrink-0" />
         <span>
           {formatDate(folder.startDate)} - {formatDate(folder.endDate)}
         </span>
@@ -708,7 +711,7 @@ function FolderRow({
             <Button
               variant="ghost"
               size="icon"
-              className="h-7 w-7 text-orange-500 hover:cursor-pointer hover:bg-orange-500/10 hover:text-orange-600"
+              className="h-8 w-8 text-orange-500 hover:cursor-pointer hover:bg-orange-500/10 hover:text-orange-600"
               onClick={onAddSubfolder}
               title="Add subfolder"
             >
@@ -720,7 +723,7 @@ function FolderRow({
             <Button
               variant="ghost"
               size="icon"
-              className="h-7 w-7 text-blue-500 hover:cursor-pointer hover:bg-blue-500/10 hover:text-blue-600"
+              className="h-8 w-8 text-blue-500 hover:cursor-pointer hover:bg-blue-500/10 hover:text-blue-600"
               onClick={onUploadFile}
               title="Upload file"
             >
@@ -734,7 +737,7 @@ function FolderRow({
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-7 w-7 hover:cursor-pointer"
+                  className="h-8 w-8 hover:cursor-pointer"
                   title="More actions"
                 >
                   <MoreHorizontal className="h-4 w-4" />
@@ -789,15 +792,15 @@ function FileRow({
 
   return (
     <div
-      className="flex cursor-pointer items-center gap-2 border-b border-border/60 py-2 pr-3 transition-colors duration-150 hover:bg-blue-50/50 dark:hover:bg-blue-950/10"
+      className="flex cursor-pointer items-center gap-2 border-b border-border/60 py-3 pr-4 transition-colors duration-150 hover:bg-blue-50/50 dark:hover:bg-blue-950/10"
       onClick={onView}
     >
       <div
-        className="flex min-w-0 flex-1 items-center gap-2"
-        style={{ paddingLeft: depth * 20 + 12 + 21 }}
+        className="flex min-w-0 flex-1 items-center gap-3"
+        style={{ paddingLeft: depth * 24 + 14 + 24 }}
       >
         <span
-          className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md ${getDocumentChipClass(
+          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md ${getDocumentChipClass(
             document.fileType
           )}`}
         >
@@ -808,11 +811,11 @@ function FileRow({
         </span>
       </div>
       <div className={COL.type}>
-        <Badge variant="outline" className="text-[10px]">
+        <Badge variant="outline" className="text-xs">
           {document.fileType}
         </Badge>
       </div>
-      <div className={`${COL.period} text-xs text-muted-foreground`}>
+      <div className={`${COL.period} text-sm text-muted-foreground`}>
         {formatDate(document.createdAt)}
       </div>
       <div
@@ -823,10 +826,10 @@ function FileRow({
       </div>
       <div className={COL.createdBy}>
         <Badge
-          className={`${expiryStatusClass} gap-1 text-[10px]`}
+          className={`${expiryStatusClass} gap-1 text-xs`}
           title="Time remaining until auto-delete"
         >
-          <Clock className="h-3 w-3" />
+          <Clock className="h-3.5 w-3.5" />
           {timeRemaining}
         </Badge>
       </div>
@@ -836,7 +839,7 @@ function FileRow({
             <Button
               variant="ghost"
               size="icon"
-              className="h-7 w-7 hover:cursor-pointer"
+              className="h-8 w-8 hover:cursor-pointer"
               onClick={onDownload}
               title="Download file"
             >
@@ -848,7 +851,7 @@ function FileRow({
             <Button
               variant="ghost"
               size="icon"
-              className="h-7 w-7 text-destructive hover:cursor-pointer hover:bg-destructive/10"
+              className="h-8 w-8 text-destructive hover:cursor-pointer hover:bg-destructive/10"
               onClick={onDelete}
               title="Delete file"
             >
@@ -1002,9 +1005,9 @@ function FolderNodeChildren({
 
   if (isLoading) {
     return (
-      <div className="space-y-1 py-2 pr-3" style={{ paddingLeft: depth * 20 + 12 }}>
-        <Skeleton className="h-6 w-full" />
-        <Skeleton className="h-6 w-full" />
+      <div className="space-y-1 py-3 pr-4" style={{ paddingLeft: depth * 24 + 14 }}>
+        <Skeleton className="h-8 w-full" />
+        <Skeleton className="h-8 w-full" />
       </div>
     );
   }
@@ -1012,8 +1015,8 @@ function FolderNodeChildren({
   if (!folder || (folder.children.length === 0 && folder.documents.length === 0)) {
     return (
       <div
-        className="border-b py-2 pr-3 text-xs text-muted-foreground"
-        style={{ paddingLeft: depth * 20 + 12 }}
+        className="border-b py-3 pr-4 text-sm text-muted-foreground"
+        style={{ paddingLeft: depth * 24 + 14 }}
       >
         Folder kosong — tidak ada subfolder atau file.
       </div>
@@ -1031,7 +1034,7 @@ function FolderNodeChildren({
       {folder.documents.length > 0 && (
         <div
           className="border-b bg-gradient-to-r from-blue-50 to-transparent py-2 pl-3 pr-3 dark:from-blue-950/30"
-          style={{ paddingLeft: depth * 20 + 12 + 21 }}
+          style={{ paddingLeft: depth * 24 + 14 + 24 }}
         >
           <div className="relative w-full">
             <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-blue-500/70 dark:text-blue-300/70" />
@@ -1081,7 +1084,7 @@ function FolderNodeChildren({
       {folder.documents.length > 0 && filteredDocuments.length === 0 && (
         <div
           className="border-b py-2 pr-3 text-xs text-muted-foreground"
-          style={{ paddingLeft: depth * 20 + 12 + 21 }}
+          style={{ paddingLeft: depth * 24 + 14 + 24 }}
         >
           No files match &quot;{fileSearch}&quot;.
         </div>
