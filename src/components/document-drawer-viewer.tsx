@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import dynamic from "next/dynamic";
 // Dynamically import EnhancedPdfViewer with no SSR
 const EnhancedPdfViewer = dynamic(() => import("./enhanced-pdf-viewer"), {
@@ -53,12 +54,14 @@ export default function DocumentDrawerViewer({
   const [error, setError] = useState<string | null>(null);
   const [showProtectionAlert, setShowProtectionAlert] = useState(false);
   const [isMobileBlocked, setIsMobileBlocked] = useState(false);
+  const [isBlackedOut, setIsBlackedOut] = useState(false);
 
   // Reset expanded state when drawer closes
   useEffect(() => {
     if (!isOpen) {
       setIsExpanded(false);
       setShowProtectionAlert(false);
+      setIsBlackedOut(false);
     }
   }, [isOpen]);
 
@@ -72,36 +75,15 @@ export default function DocumentDrawerViewer({
     setIsMobileBlocked(isMobile || isTablet);
   }, []);
 
-  // Flash a full-screen blackout when a screenshot/devtools shortcut is
+  // Trigger a full-screen blackout when a screenshot/devtools shortcut is
   // pressed, or when the window loses focus (e.g. the OS screenshot tool
   // takes focus) — a deterrent heuristic, not a guarantee, since true
-  // OS-level screenshots aren't visible to the page at all.
+  // OS-level screenshots aren't visible to the page at all. It stays up
+  // until the viewer explicitly clicks through it, rather than
+  // auto-hiding, so a screenshot timed around the flash can't catch the
+  // document underneath.
   useEffect(() => {
     if (!isOpen) return;
-
-    const overlayId = "screenshot-block-overlay";
-
-    // Buat overlay div
-    const overlay = window.document.createElement("div");
-    overlay.id = overlayId;
-    overlay.style.position = "fixed";
-    overlay.style.top = "0";
-    overlay.style.left = "0";
-    overlay.style.width = "100vw";
-    overlay.style.height = "100vh";
-    overlay.style.backgroundColor = "black";
-    overlay.style.zIndex = "999999";
-    overlay.style.display = "none"; // awalnya sembunyi
-
-    window.document.body.appendChild(overlay);
-
-    const showOverlay = () => {
-      overlay.style.display = "block";
-    };
-
-    const hideOverlay = () => {
-      overlay.style.display = "none";
-    };
 
     // Standalone modifier taps (holding Shift to select text, etc.) are
     // extremely common and never a screenshot trigger by themselves — skip
@@ -117,31 +99,17 @@ export default function DocumentDrawerViewer({
     const blockActions = (e: KeyboardEvent) => {
       const key = e.key.toLowerCase();
       if (modifierOnlyKeys.has(key)) return;
-
-      showOverlay();
-      setShowProtectionAlert(true);
-      setTimeout(() => {
-        hideOverlay();
-      }, 1500);
-      setTimeout(() => {
-        setShowProtectionAlert(false);
-      }, 3000);
+      setIsBlackedOut(true);
     };
 
     const onVisibilityChange = () => {
       if (window.document.hidden) {
-        showOverlay();
-        setTimeout(() => {
-          hideOverlay();
-        }, 1500);
+        setIsBlackedOut(true);
       }
     };
 
     const onBlur = () => {
-      showOverlay();
-      setTimeout(() => {
-        hideOverlay();
-      }, 1500);
+      setIsBlackedOut(true);
     };
 
     // Flash on any keypress rather than a curated shortcut list, since some
@@ -165,9 +133,6 @@ export default function DocumentDrawerViewer({
       window.removeEventListener("blur", onBlur);
       window.document.removeEventListener("contextmenu", preventDefault);
       window.document.removeEventListener("selectstart", preventDefault);
-
-      const el = window.document.getElementById(overlayId);
-      if (el) el.remove();
     };
   }, [isOpen]);
 
@@ -404,6 +369,27 @@ export default function DocumentDrawerViewer({
         }}
       >
         {/* <ResizeHandle /> */}
+
+        {/* Rendered inside the Sheet's own portal (not as an outside
+            sibling) — Radix's modal dialog disables pointer events on
+            everything outside its portal while open, so a sibling overlay
+            would paint on top but never receive the Close click. */}
+        {isBlackedOut && (
+          <div className="fixed inset-0 z-[999999] flex flex-col items-center justify-center gap-4 bg-black p-6 text-center text-white">
+            <Shield className="h-10 w-10" />
+            <p className="max-w-sm text-sm">
+              This document is protected. Screenshots and screen recording
+              are not allowed.
+            </p>
+            <Button
+              variant="secondary"
+              className="cursor-pointer"
+              onClick={() => setIsBlackedOut(false)}
+            >
+              Close
+            </Button>
+          </div>
+        )}
 
         <div className="flex h-full flex-col">
           <SheetHeader className="flex flex-row items-center border-b px-4 py-3 bg-background">
