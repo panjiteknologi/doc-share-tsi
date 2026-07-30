@@ -7,7 +7,7 @@ interface AntiScreenshotOverlayProps {
 export default function AntiScreenshotOverlay({
   watermarkText = "Confidential",
 }: AntiScreenshotOverlayProps) {
-  const tileCount = 80;
+  const tileCount = 32;
 
   return (
     <div
@@ -29,7 +29,7 @@ export default function AntiScreenshotOverlay({
           width: "200%",
           height: "200%",
           display: "grid",
-          gridTemplateColumns: "repeat(8, 1fr)",
+          gridTemplateColumns: "repeat(4, 1fr)",
           alignContent: "space-evenly",
           justifyItems: "center",
           transform: "rotate(-30deg)",
@@ -40,15 +40,35 @@ export default function AntiScreenshotOverlay({
             key={i}
             style={{
               whiteSpace: "nowrap",
-              fontSize: "0.65rem",
+              fontSize: "1.1rem",
               fontWeight: 600,
               color: "red",
-              opacity: 0.12,
+              opacity: 0.15,
             }}
           >
             {watermarkText}
           </div>
         ))}
+      </div>
+
+      {/* An even row/column count in the tiled grid above always lands a
+          gap dead center — pin one bigger mark exactly there so there's
+          always a clearly visible watermark where the eye naturally
+          focuses, regardless of grid math. */}
+      <div
+        style={{
+          position: "absolute",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%) rotate(-30deg)",
+          whiteSpace: "nowrap",
+          fontSize: "1.75rem",
+          fontWeight: 700,
+          color: "red",
+          opacity: 0.18,
+        }}
+      >
+        {watermarkText}
       </div>
     </div>
   );

@@ -1,9 +1,11 @@
 "use client";
 
-import React, { useState, useEffect, useLayoutEffect, useRef } from "react";
+import React, { useState, useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import { Shield } from "lucide-react";
+import { useSession } from "next-auth/react";
 import { getDocumentViewUrl } from "@/action/s3-document";
 import { Document } from "@/hooks/use-documents";
+import AntiScreenshotOverlay from "./AntiScreenshotOverlay";
 import {
   Sheet,
   SheetContent,
@@ -55,6 +57,17 @@ export default function DocumentDrawerViewer({
   const [showProtectionAlert, setShowProtectionAlert] = useState(false);
   const [isMobileBlocked, setIsMobileBlocked] = useState(false);
   const [isBlackedOut, setIsBlackedOut] = useState(false);
+  const { data: session } = useSession();
+
+  // Stamped with who's viewing and when, so a leaked screenshot can be
+  // traced back — snapshotted once per document open rather than a live
+  // clock, so it doesn't re-render/flicker every second.
+  const watermarkText = useMemo(() => {
+    if (!document) return "Confidential";
+    const viewer = session?.user?.email || session?.user?.name || "Viewer";
+    return `${viewer} • ${new Date().toLocaleString()}`;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [document?.id, session?.user?.email, session?.user?.name]);
 
   // Reset expanded state when drawer closes
   useEffect(() => {
@@ -405,6 +418,9 @@ export default function DocumentDrawerViewer({
             className="relative flex-1 overflow-hidden"
             onContextMenu={handleContextMenu}
           >
+            {!loading && !error && documentUrl && (
+              <AntiScreenshotOverlay watermarkText={watermarkText} />
+            )}
             {loading ? (
               <LoadingState />
             ) : error ? (
