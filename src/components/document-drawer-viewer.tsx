@@ -85,20 +85,10 @@ export default function DocumentDrawerViewer({
   useEffect(() => {
     if (!isOpen) return;
 
-    // Standalone modifier taps (holding Shift to select text, etc.) are
-    // extremely common and never a screenshot trigger by themselves — skip
-    // those so the blackout doesn't fire on every incidental keypress.
-    const modifierOnlyKeys = new Set([
-      "shift",
-      "control",
-      "alt",
-      "meta",
-      "capslock",
-    ]);
-
-    const blockActions = (e: KeyboardEvent) => {
-      const key = e.key.toLowerCase();
-      if (modifierOnlyKeys.has(key)) return;
+    // Every key blacks out, including a lone Shift/Ctrl/Alt/Meta tap —
+    // maximizing coverage takes priority over avoiding false positives on
+    // ordinary typing/selection.
+    const blockActions = () => {
       setIsBlackedOut(true);
     };
 
