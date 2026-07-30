@@ -69,7 +69,7 @@ export async function GET(request: NextRequest) {
             name: true,
             createdById: true,
             userId: true,
-            isSustain: true,
+            retentionDays: true,
           },
         },
         user: {
@@ -130,7 +130,7 @@ export async function GET(request: NextRequest) {
           name: doc.folder.name,
           createdById: doc.folder.createdById,
           userId: doc.folder.userId,
-          isSustain: doc.folder.isSustain,
+          retentionDays: doc.folder.retentionDays,
         },
         uploadedBy: doc.user.name,
         uploadedById: doc.user.id,

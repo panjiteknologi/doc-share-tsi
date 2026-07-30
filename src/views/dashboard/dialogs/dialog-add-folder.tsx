@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useSession } from "next-auth/react";
+import { useSWRConfig } from "swr";
 import { toast } from "sonner";
 import { CalendarIcon } from "lucide-react";
 
@@ -18,13 +19,17 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Combobox } from "@/components/ui/combobox";
 import { createFolder } from "@/action/folder";
 import { useDashboardDialog } from "@/store/store-dashboard-dialog";
 import { IconFolderPlus } from "@tabler/icons-react";
-import { useFolders } from "@/hooks/use-folders";
 import { useClients } from "@/hooks/use-clients";
+import { RetentionDaysToggle } from "@/components/retention-days-toggle";
+import {
+  RETENTION_DAY_OPTIONS,
+  formatRetentionMonths,
+  retentionDateRange,
+} from "@/lib/cron";
 
 // Form validation schema
 const FormSchema = z
@@ -44,7 +49,11 @@ const FormSchema = z
     endDate: z.string().refine((val) => !isNaN(Date.parse(val)), {
       message: "Invalid end date format",
     }),
-    isSustain: z.boolean(),
+    retentionDays: z
+      .number({ required_error: "Please select an auto-delete period" })
+      .refine((val) => (RETENTION_DAY_OPTIONS as readonly number[]).includes(val), {
+        message: "Please select an auto-delete period",
+      }),
   })
   .refine(
     (data) => {
@@ -71,7 +80,7 @@ export function DialogAddFolder({ onSuccess }: AddFolderDialogProps) {
     useDashboardDialog();
   const isDialogOpen = isOpen && dialogType === "folder";
 
-  const { mutate } = useFolders({ page: 1, limit: 10 });
+  const { mutate: mutateSWR } = useSWRConfig();
   const { clients, isLoading: isLoadingClients } = useClients({
     page: 1,
     limit: 1000, // Load more clients to ensure we get all
@@ -96,12 +105,12 @@ export function DialogAddFolder({ onSuccess }: AddFolderDialogProps) {
       clientId: "",
       startDate: today,
       endDate: thirtyDaysLater,
-      isSustain: false,
+      retentionDays: undefined as unknown as number,
     },
   });
 
   const selectedClientId = watch("clientId");
-  const isSustain = watch("isSustain");
+  const retentionDays = watch("retentionDays");
 
   const onSubmit = async (data: FormData) => {
     if (!session?.user?.id) {
@@ -118,7 +127,7 @@ export function DialogAddFolder({ onSuccess }: AddFolderDialogProps) {
         userId: data.clientId, // Use client ID instead of session user ID
         createdById: userId,
         isRoot: false,
-        isSustain: data.isSustain,
+        retentionDays: data.retentionDays,
         startDate: new Date(data.startDate),
         endDate: new Date(data.endDate),
       });
@@ -126,7 +135,13 @@ export function DialogAddFolder({ onSuccess }: AddFolderDialogProps) {
       if (result.success) {
         toast.success("Folder created successfully");
         reset();
-        mutate();
+        // Every folder list on the dashboard/drive hits `/api/folders*` with
+        // different query params (pagination, topLevelOnly, createdByMe...),
+        // so a single hook's `mutate()` only revalidates its own cache key.
+        // Match by prefix to refresh every list regardless of its params.
+        mutateSWR(
+          (key) => typeof key === "string" && key.startsWith("/api/folders")
+        );
         closeDialog();
         if (onSuccess) onSuccess();
       } else {
@@ -215,24 +230,37 @@ export function DialogAddFolder({ onSuccess }: AddFolderDialogProps) {
               )}
             </div>
 
-            <div className="flex items-start gap-2">
-              <Checkbox
-                id="isSustain"
-                checked={isSustain}
-                onCheckedChange={(checked) =>
-                  setValue("isSustain", checked === true)
-                }
+            <div className="grid gap-2">
+              <Label>
+                Auto-delete after <span className="text-destructive">*</span>
+              </Label>
+              <RetentionDaysToggle
+                value={retentionDays}
+                onChange={(days) => {
+                  setValue("retentionDays", days, { shouldValidate: true });
+                  const { startDate, endDate } = retentionDateRange(days);
+                  setValue("startDate", startDate, { shouldValidate: true });
+                  setValue("endDate", endDate, { shouldValidate: true });
+                }}
                 disabled={isLoading}
               />
-              <div className="grid gap-1 leading-none">
-                <Label htmlFor="isSustain" className="cursor-pointer">
-                  Sustain Folder
-                </Label>
-                <p className="text-sm text-muted-foreground">
-                  Files in this folder will be auto-deleted after 180 days.
-                  Regular folders auto-delete after 60 days.
+              {errors.retentionDays ? (
+                <p className="text-sm italic font-medium text-destructive">
+                  {errors.retentionDays.message}
                 </p>
-              </div>
+              ) : !retentionDays ? (
+                <p className="text-sm italic text-destructive">
+                  Please select an auto-delete period.
+                </p>
+              ) : (
+                <p className="text-sm italic text-destructive">
+                  Documents in this folder will be automatically deleted{" "}
+                  {retentionDays} days after upload
+                  {formatRetentionMonths(retentionDays) &&
+                    ` (${formatRetentionMonths(retentionDays)})`}
+                  .
+                </p>
+              )}
             </div>
 
             <div className="grid grid-cols-12 gap-4">

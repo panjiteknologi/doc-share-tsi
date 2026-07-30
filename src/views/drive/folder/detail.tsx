@@ -181,11 +181,13 @@ const FolderDetailView: React.FC<FolderDetailViewProps> = ({ folderId, onMutate 
                 Root
               </Badge>
             )}
-            {folder.isSustain && (
-              <Badge variant="success" className="ml-2">
-                Sustain
-              </Badge>
-            )}
+            <Badge
+              variant="success"
+              className="ml-2"
+              title={`Auto-deletes ${folder.retentionDays} days after upload`}
+            >
+              {folder.retentionDays}d
+            </Badge>
             {folder.project && <Badge className="ml-2">Project</Badge>}
           </div>
         </div>
@@ -393,7 +395,7 @@ const FolderDetailView: React.FC<FolderDetailViewProps> = ({ folderId, onMutate 
                   document={document}
                   onViewDocument={handleViewDocument}
                   onSuccess={handleRevalidateSuccess}
-                  folderIsSustain={folder.isSustain}
+                  folderRetentionDays={folder.retentionDays}
                 />
               ))}
             </div>

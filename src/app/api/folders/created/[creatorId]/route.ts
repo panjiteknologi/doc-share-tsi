@@ -54,7 +54,7 @@ export async function GET(
       id: folder.id,
       name: folder.name,
       isRoot: folder.isRoot,
-      isSustain: folder.isSustain,
+      retentionDays: folder.retentionDays,
       startDate: folder.startDate,
       endDate: folder.endDate,
       createdAt: folder.createdAt,

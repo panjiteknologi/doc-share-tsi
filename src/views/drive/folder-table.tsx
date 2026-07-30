@@ -16,7 +16,7 @@ function driveFolderToTreeFolder(folder: any): TreeFolder {
     id: folder.id,
     name: folder.name,
     isRoot: folder.isRoot,
-    isSustain: folder.isSustain,
+    retentionDays: folder.retentionDays,
     hasProject: folder.hasProject ?? folder.project != null,
     documentCount: Array.isArray(folder.documents)
       ? folder.documents.length

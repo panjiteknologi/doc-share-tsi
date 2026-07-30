@@ -16,7 +16,7 @@ export interface Document {
     name: string;
     createdById: string;
     userId: string;
-    isSustain?: boolean;
+    retentionDays?: number;
   };
   uploadedBy?: string;
   uploadedById?: string;

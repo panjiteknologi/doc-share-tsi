@@ -4,6 +4,7 @@ import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
+import { RETENTION_DAY_OPTIONS, DEFAULT_RETENTION_DAYS } from "@/lib/cron";
 
 const FolderSchema = z
   .object({
@@ -18,7 +19,12 @@ const FolderSchema = z
     userId: z.string().min(1, "User ID is required"),
     createdById: z.string().min(1, "Created By ID is required"),
     isRoot: z.boolean().default(false),
-    isSustain: z.boolean().default(false),
+    retentionDays: z
+      .number()
+      .refine((val) => (RETENTION_DAY_OPTIONS as readonly number[]).includes(val), {
+        message: "Invalid retention period",
+      })
+      .default(DEFAULT_RETENTION_DAYS),
     parentId: z.string().optional(),
     startDate: z.date(),
     endDate: z.date(),
@@ -40,6 +46,12 @@ const UpdateFolderSchema = z.object({
     })
     .optional(),
   isRoot: z.boolean().optional(),
+  retentionDays: z
+    .number()
+    .refine((val) => (RETENTION_DAY_OPTIONS as readonly number[]).includes(val), {
+      message: "Invalid retention period",
+    })
+    .optional(),
   startDate: z.date().optional(),
   endDate: z.date().optional(),
 });
@@ -135,12 +147,14 @@ export async function updateFolder(formData: FormData) {
     const id = formData.get("id") as string;
     const name = formData.get("name") as string;
     const isRootStr = formData.get("isRoot") as string;
+    const retentionDaysStr = formData.get("retentionDays") as string;
     const startDateStr = formData.get("startDate") as string;
     const endDateStr = formData.get("endDate") as string;
 
     const updateData: any = { id };
     if (name) updateData.name = name;
     if (isRootStr) updateData.isRoot = isRootStr === "true";
+    if (retentionDaysStr) updateData.retentionDays = Number(retentionDaysStr);
     if (startDateStr) updateData.startDate = new Date(startDateStr);
     if (endDateStr) updateData.endDate = new Date(endDateStr);
 

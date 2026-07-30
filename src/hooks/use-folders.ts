@@ -21,7 +21,7 @@ export interface Folder {
   id: string;
   name: string;
   isRoot: boolean;
-  isSustain: boolean;
+  retentionDays: number;
   childrenCount?: number;
   parentId?: string | null;
   startDate: string;
@@ -41,7 +41,7 @@ export interface SubfolderSummary {
   id: string;
   name: string;
   isRoot: boolean;
-  isSustain: boolean;
+  retentionDays: number;
   hasProject: boolean;
   childrenCount?: number;
   startDate: string;

@@ -21,6 +21,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Folder } from "@/hooks/use-folders";
 import { updateFolder } from "@/action/folder";
+import { RetentionDaysToggle } from "@/components/retention-days-toggle";
+import {
+  RETENTION_DAY_OPTIONS,
+  formatRetentionMonths,
+  retentionDateRange,
+} from "@/lib/cron";
 
 // Form validation schema
 const formSchema = z
@@ -33,6 +39,11 @@ const formSchema = z
       .refine((val) => /^[a-zA-Z0-9\s\-_]+$/.test(val), {
         message:
           "Folder name can only contain letters, numbers, spaces, hyphens, and underscores",
+      }),
+    retentionDays: z
+      .number({ required_error: "Please select an auto-delete period" })
+      .refine((val) => (RETENTION_DAY_OPTIONS as readonly number[]).includes(val), {
+        message: "Please select an auto-delete period",
       }),
     startDate: z.string().refine((val) => !isNaN(Date.parse(val)), {
       message: "Invalid start date format",
@@ -74,6 +85,8 @@ export default function DialogEditFolder({
     register,
     handleSubmit,
     reset,
+    setValue,
+    watch,
     formState: { errors },
   } = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -81,11 +94,14 @@ export default function DialogEditFolder({
       ? {
           id: folder.id,
           name: folder.name,
+          retentionDays: folder.retentionDays,
           startDate: new Date(folder.startDate).toISOString().split("T")[0],
           endDate: new Date(folder.endDate).toISOString().split("T")[0],
         }
       : undefined,
   });
+
+  const retentionDays = watch("retentionDays");
 
   // Reset form when folder changes
   useEffect(() => {
@@ -93,6 +109,7 @@ export default function DialogEditFolder({
       reset({
         id: folder.id,
         name: folder.name,
+        retentionDays: folder.retentionDays,
         startDate: new Date(folder.startDate).toISOString().split("T")[0],
         endDate: new Date(folder.endDate).toISOString().split("T")[0],
       });
@@ -106,6 +123,7 @@ export default function DialogEditFolder({
       const formData = new FormData();
       formData.append("id", data.id);
       formData.append("name", data.name);
+      formData.append("retentionDays", data.retentionDays.toString());
       formData.append("startDate", data.startDate);
       formData.append("endDate", data.endDate);
 
@@ -171,6 +189,40 @@ export default function DialogEditFolder({
                 </p>
               )}
             </div>
+
+            <div className="grid gap-2">
+              <Label>
+                Auto-delete after <span className="text-destructive">*</span>
+              </Label>
+              <RetentionDaysToggle
+                value={retentionDays}
+                onChange={(days) => {
+                  setValue("retentionDays", days, { shouldValidate: true });
+                  const { startDate, endDate } = retentionDateRange(days);
+                  setValue("startDate", startDate, { shouldValidate: true });
+                  setValue("endDate", endDate, { shouldValidate: true });
+                }}
+                disabled={isLoading}
+              />
+              {errors.retentionDays ? (
+                <p className="text-sm italic font-medium text-destructive">
+                  {errors.retentionDays.message}
+                </p>
+              ) : !retentionDays ? (
+                <p className="text-sm italic text-destructive">
+                  Please select an auto-delete period.
+                </p>
+              ) : (
+                <p className="text-sm italic text-destructive">
+                  Documents in this folder will be automatically deleted{" "}
+                  {retentionDays} days after upload
+                  {formatRetentionMonths(retentionDays) &&
+                    ` (${formatRetentionMonths(retentionDays)})`}
+                  .
+                </p>
+              )}
+            </div>
+
             <div className="grid grid-cols-12 gap-4">
               <div className="col-span-6 grid gap-2">
                 <Label htmlFor="startDate">

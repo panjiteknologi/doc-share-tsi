@@ -26,7 +26,13 @@ import { useSession } from "next-auth/react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -56,6 +62,9 @@ import {
   calculateExpiryDate,
   formatTimeRemaining,
   getExpiryStatusColor,
+  RETENTION_DAY_OPTIONS,
+  formatRetentionMonths,
+  retentionDateRange,
 } from "@/lib/cron";
 
 export type FolderTreeRole = "surveyor" | "client" | "auditor";
@@ -73,7 +82,7 @@ export interface TreeFolder {
   id: string;
   name: string;
   isRoot: boolean;
-  isSustain: boolean;
+  retentionDays: number;
   hasProject: boolean;
   documentCount: number;
   childrenCount: number;
@@ -96,7 +105,7 @@ function subfolderToTreeFolder(
     id: folder.id,
     name: folder.name,
     isRoot: folder.isRoot,
-    isSustain: folder.isSustain,
+    retentionDays: folder.retentionDays,
     hasProject: folder.hasProject,
     documentCount: folder.documents.length,
     childrenCount: folder.childrenCount ?? 0,
@@ -157,7 +166,11 @@ const SubfolderRowSchema = z
       .refine((val) => /^[a-zA-Z0-9\s\-_]+$/.test(val), {
         message: "Letters, numbers, spaces, hyphens, underscores only",
       }),
-    isSustain: z.boolean(),
+    retentionDays: z
+      .number({ required_error: "Select an auto-delete period" })
+      .refine((val) => (RETENTION_DAY_OPTIONS as readonly number[]).includes(val), {
+        message: "Select an auto-delete period",
+      }),
     startDate: z.string().refine((val) => !isNaN(Date.parse(val)), {
       message: "Invalid date",
     }),
@@ -181,7 +194,12 @@ function makeEmptySubfolderRow() {
   const thirtyDaysLater = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
     .toISOString()
     .split("T")[0];
-  return { name: "", isSustain: false, startDate: today, endDate: thirtyDaysLater };
+  return {
+    name: "",
+    retentionDays: undefined as unknown as number,
+    startDate: today,
+    endDate: thirtyDaysLater,
+  };
 }
 
 export type SubfolderParent = Pick<TreeFolder, "id" | "name" | "userId">;
@@ -235,7 +253,7 @@ export function DialogAddSubfolder({
             userId: parentFolder.userId,
             createdById: userId,
             isRoot: false,
-            isSustain: row.isSustain,
+            retentionDays: row.retentionDays,
             parentId: parentFolder.id,
             startDate: new Date(row.startDate),
             endDate: new Date(row.endDate),
@@ -304,7 +322,9 @@ export function DialogAddSubfolder({
               <div className="w-[140px] shrink-0">
                 End Date <span className="text-red-300">*</span>
               </div>
-              <div className="w-[110px] shrink-0">Sustain</div>
+              <div className="w-[110px] shrink-0">
+                Retention <span className="text-red-300">*</span>
+              </div>
               <div className="w-9 shrink-0" />
             </div>
 
@@ -355,22 +375,42 @@ export function DialogAddSubfolder({
                     )}
                   </div>
 
-                  <div className="flex h-9 w-[110px] shrink-0 items-center gap-2 rounded-md border bg-background px-3">
-                    <Checkbox
-                      id={`rows.${index}.isSustain`}
-                      className="h-5 w-5 cursor-pointer"
-                      checked={watch(`rows.${index}.isSustain`)}
-                      onCheckedChange={(checked) =>
-                        setValue(`rows.${index}.isSustain`, checked === true)
-                      }
+                  <div className="w-[110px] shrink-0 grid gap-1">
+                    <Select
+                      value={watch(`rows.${index}.retentionDays`)?.toString() ?? ""}
+                      onValueChange={(value) => {
+                        const days = Number(value);
+                        setValue(`rows.${index}.retentionDays`, days, {
+                          shouldValidate: true,
+                        });
+                        const { startDate, endDate } = retentionDateRange(days);
+                        setValue(`rows.${index}.startDate`, startDate);
+                        setValue(`rows.${index}.endDate`, endDate);
+                      }}
                       disabled={isLoading}
-                    />
-                    <Label
-                      htmlFor={`rows.${index}.isSustain`}
-                      className="cursor-pointer whitespace-nowrap text-xs"
                     >
-                      Sustain
-                    </Label>
+                      <SelectTrigger className="h-9 w-full cursor-pointer">
+                        <SelectValue placeholder="Days" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {RETENTION_DAY_OPTIONS.map((days) => (
+                          <SelectItem
+                            key={days}
+                            value={days.toString()}
+                            className="cursor-pointer"
+                          >
+                            {days} days
+                            {formatRetentionMonths(days) &&
+                              ` (${formatRetentionMonths(days)})`}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {errors.rows?.[index]?.retentionDays && (
+                      <p className="text-xs font-medium text-destructive">
+                        {errors.rows[index]?.retentionDays?.message}
+                      </p>
+                    )}
                   </div>
 
                   <div className="flex h-9 w-9 shrink-0 items-center">
@@ -684,11 +724,13 @@ function FolderRow({
         <Badge variant={folder.isRoot ? "default" : "secondary"} className="text-xs">
           {folder.isRoot ? "Root" : folder.hasProject ? "Project" : "Standard"}
         </Badge>
-        {folder.isSustain && (
-          <Badge variant="success" className="text-xs">
-            Sustain
-          </Badge>
-        )}
+        <Badge
+          variant="success"
+          className="text-xs"
+          title={`Auto-deletes ${folder.retentionDays} days after upload`}
+        >
+          {folder.retentionDays}d
+        </Badge>
       </div>
       <div className={`${COL.period} text-sm text-muted-foreground`}>
         <Calendar className="h-3.5 w-3.5 shrink-0" />
@@ -768,7 +810,7 @@ function FolderRow({
 function FileRow({
   document,
   depth,
-  isSustain,
+  retentionDays,
   canDownload,
   canDelete,
   showActionsColumn,
@@ -778,7 +820,7 @@ function FileRow({
 }: {
   document: DocumentType;
   depth: number;
-  isSustain: boolean;
+  retentionDays: number;
   canDownload: boolean;
   canDelete: boolean;
   showActionsColumn: boolean;
@@ -786,7 +828,7 @@ function FileRow({
   onDownload: () => void;
   onDelete: () => void;
 }) {
-  const expiryDate = calculateExpiryDate(document.createdAt, isSustain);
+  const expiryDate = calculateExpiryDate(document.createdAt, retentionDays);
   const timeRemaining = formatTimeRemaining(expiryDate);
   const expiryStatusClass = getExpiryStatusColor(expiryDate);
 
@@ -1072,7 +1114,7 @@ function FolderNodeChildren({
           key={doc.id}
           document={doc}
           depth={depth}
-          isSustain={folder.isSustain}
+          retentionDays={folder.retentionDays}
           canDownload={canManageDocument(role, doc, userId)}
           canDelete={canManageDocument(role, doc, userId)}
           showActionsColumn={role !== "auditor"}

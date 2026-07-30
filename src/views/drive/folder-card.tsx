@@ -91,26 +91,23 @@ const FolderCard: React.FC<FolderCardProps> = ({ folder, onMutate }) => {
               />
             </div>
 
-            {(folder.isRoot || folder.isSustain) && (
-              <div className="absolute right-2 top-6 flex flex-col items-end gap-1">
-                {folder.isRoot && (
-                  <Badge
-                    variant="outline"
-                    className="border-white/40 bg-white/15 text-[10px] text-white backdrop-blur-sm"
-                  >
-                    Root
-                  </Badge>
-                )}
-                {folder.isSustain && (
-                  <Badge
-                    variant="success"
-                    className="text-[10px] shadow-sm"
-                  >
-                    Sustain
-                  </Badge>
-                )}
-              </div>
-            )}
+            <div className="absolute right-2 top-6 flex flex-col items-end gap-1">
+              {folder.isRoot && (
+                <Badge
+                  variant="outline"
+                  className="border-white/40 bg-white/15 text-[10px] text-white backdrop-blur-sm"
+                >
+                  Root
+                </Badge>
+              )}
+              <Badge
+                variant="success"
+                className="text-[10px] shadow-sm"
+                title={`Auto-deletes ${folder.retentionDays} days after upload`}
+              >
+                {folder.retentionDays}d
+              </Badge>
+            </div>
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

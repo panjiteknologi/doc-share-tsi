@@ -20,10 +20,15 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Combobox } from "@/components/ui/combobox";
 import { createFolder } from "@/action/folder";
 import { useClients } from "@/hooks/use-clients";
+import { RetentionDaysToggle } from "@/components/retention-days-toggle";
+import {
+  RETENTION_DAY_OPTIONS,
+  formatRetentionMonths,
+  retentionDateRange,
+} from "@/lib/cron";
 
 // Define base schema for validation (shared between roles)
 const baseSchemaFields = {
@@ -41,7 +46,11 @@ const baseSchemaFields = {
   endDate: z.string().refine((val) => !isNaN(Date.parse(val)), {
     message: "Invalid end date format",
   }),
-  isSustain: z.boolean(),
+  retentionDays: z
+    .number({ required_error: "Please select an auto-delete period" })
+    .refine((val) => (RETENTION_DAY_OPTIONS as readonly number[]).includes(val), {
+      message: "Please select an auto-delete period",
+    }),
 };
 
 // Define schema refinement (shared between schemas)
@@ -123,12 +132,12 @@ export default function DialogCreateFolder({
       userId: userRole === "client" ? userId || "" : "",
       startDate: today,
       endDate: thirtyDaysLater,
-      isSustain: false,
+      retentionDays: undefined as unknown as number,
     },
   });
 
   const selectedClientId = watch("userId");
-  const isSustain = watch("isSustain");
+  const retentionDays = watch("retentionDays");
 
   const onSubmit = async (data: FormData) => {
     if (!session?.user?.id) {
@@ -153,7 +162,7 @@ export default function DialogCreateFolder({
         userId: finalUserId,
         createdById: userId,
         isRoot: false,
-        isSustain: data.isSustain,
+        retentionDays: data.retentionDays,
         startDate: new Date(data.startDate),
         endDate: new Date(data.endDate),
       });
@@ -249,24 +258,37 @@ export default function DialogCreateFolder({
               </div>
             )}
 
-            <div className="flex items-start gap-2">
-              <Checkbox
-                id="isSustain"
-                checked={isSustain}
-                onCheckedChange={(checked) =>
-                  setValue("isSustain", checked === true)
-                }
+            <div className="grid gap-2">
+              <Label>
+                Auto-delete after <span className="text-destructive">*</span>
+              </Label>
+              <RetentionDaysToggle
+                value={retentionDays}
+                onChange={(days) => {
+                  setValue("retentionDays", days, { shouldValidate: true });
+                  const { startDate, endDate } = retentionDateRange(days);
+                  setValue("startDate", startDate, { shouldValidate: true });
+                  setValue("endDate", endDate, { shouldValidate: true });
+                }}
                 disabled={isLoading}
               />
-              <div className="grid gap-1 leading-none">
-                <Label htmlFor="isSustain" className="cursor-pointer">
-                  Sustain Folder
-                </Label>
-                <p className="text-sm text-muted-foreground">
-                  Files in this folder will be auto-deleted after 180 days.
-                  Regular folders auto-delete after 60 days.
+              {errors.retentionDays ? (
+                <p className="text-sm italic font-medium text-destructive">
+                  {errors.retentionDays.message}
                 </p>
-              </div>
+              ) : !retentionDays ? (
+                <p className="text-sm italic text-destructive">
+                  Please select an auto-delete period.
+                </p>
+              ) : (
+                <p className="text-sm italic text-destructive">
+                  Documents in this folder will be automatically deleted{" "}
+                  {retentionDays} days after upload
+                  {formatRetentionMonths(retentionDays) &&
+                    ` (${formatRetentionMonths(retentionDays)})`}
+                  .
+                </p>
+              )}
             </div>
 
             <div className="grid grid-cols-12 gap-4">

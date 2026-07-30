@@ -266,7 +266,7 @@ export function TableDocuments({
                     {(() => {
                       const expiryDate = calculateExpiryDate(
                         document.createdAt,
-                        document.folder?.isSustain ?? false
+                        document.folder?.retentionDays ?? 60
                       );
                       const timeRemaining = formatTimeRemaining(expiryDate);
                       const expiryStatusClass = getExpiryStatusColor(expiryDate);

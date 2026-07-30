@@ -16,28 +16,15 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Regular folders: 60 days retention. Sustain folders: 180 days retention.
-    const sixtyDaysAgo = new Date();
-    sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
-
-    const oneEightyDaysAgo = new Date();
-    oneEightyDaysAgo.setDate(oneEightyDaysAgo.getDate() - 180);
-
-    // Find documents past their folder's retention period
-    const expiredDocuments = await prisma.document.findMany({
-      where: {
-        OR: [
-          {
-            createdAt: { lt: sixtyDaysAgo },
-            folder: { isSustain: false },
-          },
-          {
-            createdAt: { lt: oneEightyDaysAgo },
-            folder: { isSustain: true },
-          },
-        ],
-      },
-    });
+    // Each folder now has its own retention period (Folder.retentionDays),
+    // so the cutoff varies per document and can't be expressed as a plain
+    // Prisma `where` filter — a raw query compares it directly in MySQL.
+    const expiredDocuments = await prisma.$queryRaw<{ id: string; url: string }[]>`
+      SELECT d.id, d.url
+      FROM Document d
+      JOIN Folder f ON f.id = d.folderId
+      WHERE DATE_ADD(d.createdAt, INTERVAL f.retentionDays DAY) < NOW()
+    `;
 
     // Log for debugging
     // console.log(`Found ${expiredDocuments.length} expired documents`);

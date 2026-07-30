@@ -42,16 +42,16 @@ interface DocumentCardProps {
   document: Document;
   onViewDocument?: (document: Document) => void;
   onSuccess: () => void;
-  /** Overrides document.folder?.isSustain when the caller already knows
+  /** Overrides document.folder?.retentionDays when the caller already knows
    *  the containing folder (e.g. a folder detail page). */
-  folderIsSustain?: boolean;
+  folderRetentionDays?: number;
 }
 
 const DocumentCard: React.FC<DocumentCardProps> = ({
   document,
   onViewDocument,
   onSuccess,
-  folderIsSustain,
+  folderRetentionDays,
 }) => {
   const [isViewLoading, setIsViewLoading] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -66,8 +66,8 @@ const DocumentCard: React.FC<DocumentCardProps> = ({
   const createdTimeAgo = formatDistanceToNow(createdAt, { addSuffix: true });
 
   // Calculate expiration date and countdown
-  const isSustain = folderIsSustain ?? document.folder?.isSustain ?? false;
-  const expiryDate = calculateExpiryDate(document.createdAt, isSustain);
+  const retentionDays = folderRetentionDays ?? document.folder?.retentionDays ?? 60;
+  const expiryDate = calculateExpiryDate(document.createdAt, retentionDays);
   const timeRemaining = formatTimeRemaining(expiryDate);
   const expiryStatusClass = getExpiryStatusColor(expiryDate);
 

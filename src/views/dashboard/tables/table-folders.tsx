@@ -35,7 +35,7 @@ export function TableFolders() {
     id: folder.id,
     name: folder.name,
     isRoot: folder.isRoot,
-    isSustain: folder.isSustain,
+    retentionDays: folder.retentionDays,
     hasProject: folder.hasProject,
     documentCount: folder.documentCount,
     childrenCount: folder.childrenCount ?? 0,
