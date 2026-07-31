@@ -95,10 +95,16 @@ const DriveView = () => {
     uniqueFoldersMap.set(folder.id, folder); // folder.id akan overwrite duplikat
   });
 
-  // Ubah kembali ke array & filter berdasarkan pencarian
-  const filteredFolders = Array.from(uniqueFoldersMap.values()).filter((folder) =>
-    folder.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Ubah kembali ke array & filter berdasarkan pencarian, urutkan dari yang
+  // terbaru — perlu di-sort ulang di sini karena hasil gabungan tiga sumber
+  // folder di atas tidak menjamin urutan createdAt yang konsisten.
+  const filteredFolders = Array.from(uniqueFoldersMap.values())
+    .filter((folder) =>
+      folder.name.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+    .sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
 
   const handleOpenCreateFolder = () => {
     setIsCreateFolderDialogOpen(true);
