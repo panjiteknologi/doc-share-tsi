@@ -184,8 +184,14 @@ const DriveView = () => {
             </button>
           </div>
           {userRole !== "auditor" && userRole !== "client" && (
-            <Button onClick={handleOpenCreateFolder}>
-              <FolderPlus className="h-4 w-4 mr-2" />
+            <Button
+              onClick={handleOpenCreateFolder}
+              className={cn(
+                "h-10 gap-1.5 rounded-full bg-gradient-to-r from-[#0a1f44] to-blue-600 px-5 text-white shadow-md",
+                "transition-all duration-300 hover:cursor-pointer hover:shadow-lg hover:shadow-blue-600/25 hover:brightness-110 active:scale-95"
+              )}
+            >
+              <FolderPlus className="h-4 w-4" />
               Create Folder
             </Button>
           )}
