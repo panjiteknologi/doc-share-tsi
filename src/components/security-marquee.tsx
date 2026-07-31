@@ -1,4 +1,4 @@
-import { ShieldCheck, Ban, Timer, Lock } from "lucide-react";
+import { ShieldCheck, Ban, Timer, Lock, FileWarning } from "lucide-react";
 
 const SECURITY_NOTES = [
   { icon: ShieldCheck, text: "Setiap dokumen dilindungi watermark unik yang dapat dilacak ke pengguna yang mengaksesnya!!" },
@@ -6,6 +6,7 @@ const SECURITY_NOTES = [
   { icon: Timer, text: "Dokumen di dalam folder terhapus otomatis berdasarkan periode waktu yang dipilih ketika membuat folder atau sub-folder" },
   { icon: Lock, text: "Akses folder & dokumen dibatasi sesuai peran pengguna" },
   { icon: Lock, text: "Auditor hanya diberikan akses untuk melihat dokumen ( tidak bisa mengunduhnya )" },
+  { icon: FileWarning, text: "Hanya file PDF, JPG, dan PNG yang bisa diupload — Word & Excel diblokir demi keamanan karena berisiko membawa macro berbahaya dan gampang dimanipulasi tanpa jejak" },
 ];
 
 function MarqueeContent({ ariaHidden }: { ariaHidden?: boolean }) {

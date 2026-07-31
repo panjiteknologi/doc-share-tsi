@@ -74,7 +74,7 @@ const FolderCard: React.FC<FolderCardProps> = ({ folder, onMutate }) => {
   return (
     <>
       <Card
-        className="group relative overflow-hidden gap-0 p-0 cursor-pointer border-border/60 transition-all hover:-translate-y-1 hover:shadow-lg hover:border-primary/40"
+        className="group relative overflow-hidden gap-0 p-0 cursor-pointer border-slate-200 shadow-md transition-all hover:-translate-y-1 hover:border-primary/40 hover:shadow-xl dark:border-slate-700"
         onClick={() => (window.location.href = `/drive/${folder.id}`)}
       >
         {/* Folder icon visual */}
