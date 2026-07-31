@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   ChevronLeft,
   ChevronRight,
@@ -29,6 +29,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ url }) => {
   const [error, setError] = useState<string | null>(null);
   const [scale, setScale] = useState(1.2);
   const [rotation, setRotation] = useState(0);
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
 
   const options = useMemo(
     () => ({
@@ -77,10 +78,42 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ url }) => {
     setScale(1.2);
   };
 
-  // Rotation control
+  // Rotation control — cycles 0 -> 90 -> 180 -> 270 -> 0
   const toggleRotation = () => {
-    setRotation((prevRotation) => (prevRotation === 0 ? 90 : 0));
+    setRotation((prevRotation) => (prevRotation + 90) % 360);
   };
+
+  // Up/Down pans the current page vertically; Left/Right changes page —
+  // mirrors how most PDF readers treat the arrow keys. Global (not scoped to
+  // the container), since the container isn't focusable and users won't
+  // click into it first.
+  useEffect(() => {
+    const PAN_STEP = 80;
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      switch (e.key) {
+        case "ArrowUp":
+          scrollContainerRef.current?.scrollBy({ top: -PAN_STEP });
+          break;
+        case "ArrowDown":
+          scrollContainerRef.current?.scrollBy({ top: PAN_STEP });
+          break;
+        case "ArrowLeft":
+          goToPreviousPage();
+          break;
+        case "ArrowRight":
+          goToNextPage();
+          break;
+        default:
+          return;
+      }
+
+      e.preventDefault();
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [numPages]);
 
   if (error) {
     return (
@@ -169,6 +202,7 @@ const PDFViewer: React.FC<PDFViewerProps> = ({ url }) => {
 
       {/* PDF viewer */}
       <div
+        ref={scrollContainerRef}
         className="flex-1 overflow-auto flex justify-center"
         style={{
           maxHeight: "calc(100% - 40px)",

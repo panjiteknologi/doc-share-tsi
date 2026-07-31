@@ -100,8 +100,16 @@ export default function DocumentDrawerViewer({
 
     // Every key blacks out, including a lone Shift/Ctrl/Alt/Meta tap —
     // maximizing coverage takes priority over avoiding false positives on
-    // ordinary typing/selection.
-    const blockActions = () => {
+    // ordinary typing/selection. Arrow keys are exempted so they can be used
+    // to pan/scroll the document viewer instead of blacking it out.
+    const ARROW_KEYS = new Set([
+      "ArrowUp",
+      "ArrowDown",
+      "ArrowLeft",
+      "ArrowRight",
+    ]);
+    const blockActions = (e: KeyboardEvent) => {
+      if (ARROW_KEYS.has(e.key)) return;
       setIsBlackedOut(true);
     };
 
