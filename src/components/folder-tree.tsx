@@ -683,7 +683,8 @@ function DialogUploadToFolder({
               <DialogTitle>Upload Files</DialogTitle>
               <DialogDescription>
                 Upload one or more files into &quot;
-                {folder?.name || "this folder"}&quot;.
+                {folder?.name || "this folder"}&quot;. Format yang didukung:
+                PDF, JPG, PNG.
               </DialogDescription>
             </div>
           </div>
@@ -693,7 +694,11 @@ function DialogUploadToFolder({
           <FileUpload
             onChange={handleFileChange}
             value={files}
-            accept={{ "application/pdf": [".pdf"] }}
+            accept={{
+              "application/pdf": [".pdf"],
+              "image/jpeg": [".jpg", ".jpeg"],
+              "image/png": [".png"],
+            }}
             multiple
             disabled={isUploading}
             progress={isUploading ? progress : null}
@@ -1005,18 +1010,18 @@ function FileRow({
           {document.fileName}
         </span>
       </div>
-      <div className={COL.type}>
+      <div className={`${COL.type} justify-center`}>
         <FileTypeChip type={document.fileType} />
       </div>
-      <div className={`${COL.period} font-[family-name:var(--font-geist-mono)] text-[12px] text-white/60`}>
+      <div className={`${COL.period} justify-center text-center font-[family-name:var(--font-geist-mono)] text-[12px] text-white/60`}>
         {formatDate(document.createdAt)}
       </div>
-      <div className={`${COL.client} items-center`} title={document.uploadedBy}>
-        <span className="min-w-0 truncate text-[12.5px] text-white/60">
+      <div className={`${COL.client} items-center justify-center`} title={document.uploadedBy}>
+        <span className="min-w-0 truncate text-center text-[12.5px] text-white/60">
           {document.uploadedBy}
         </span>
       </div>
-      <div className={COL.createdBy}>
+      <div className={`${COL.createdBy} justify-center`}>
         <StatusDot tone={severity} title="Time remaining until auto-delete">
           {timeRemaining}
         </StatusDot>
@@ -1119,7 +1124,7 @@ function FolderNode({
 }: FolderNodeProps) {
   const isExpanded = expandedIds.has(folder.id);
   const isOwnCreation = folder.createdById === userId;
-  const canEdit = role === "surveyor" && isOwnCreation;
+  const canEdit = (role === "surveyor" || role === "client") && isOwnCreation;
   const canDelete = (role === "surveyor" || role === "client") && isOwnCreation;
   // Root nodes (depth 0) don't sit inside any gutter, so their children
   // start a fresh chain rather than inheriting a slot for the root itself.

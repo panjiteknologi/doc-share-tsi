@@ -58,6 +58,17 @@ export function FileUpload({
 
   const errorMessage = getErrorMessage();
 
+  const acceptLabel = React.useMemo(() => {
+    if (!accept) return "PDF";
+    const extensions = Object.values(accept)
+      .flat()
+      .map((ext) => {
+        const clean = ext.replace(".", "").toUpperCase();
+        return clean === "JPEG" ? "JPG" : clean;
+      });
+    return Array.from(new Set(extensions)).join(", ");
+  }, [accept]);
+
   return (
     <div className="grid gap-2">
       <div
@@ -95,7 +106,7 @@ export function FileUpload({
             </div>
             <div className="flex flex-col space-y-1 text-center">
               <span className="text-sm font-medium">Drag and drop files here or click to browse</span>
-              <span className="text-xs text-muted-foreground">PDF (Max {maxSize / 1024 / 1024}MB)</span>
+              <span className="text-xs text-muted-foreground">{acceptLabel} (Max {maxSize / 1024 / 1024}MB)</span>
             </div>
           </div>
         )}

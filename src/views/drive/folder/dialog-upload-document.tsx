@@ -162,7 +162,8 @@ export default function DialogUploadDocument({
           <DialogHeader>
             <DialogTitle>Upload Documents</DialogTitle>
             <DialogDescription>
-              Upload one or more documents to the current folder. Supported formats: PDF (max 50MB each).
+              Upload one or more documents to the current folder. Format yang
+              didukung: PDF, JPG, PNG (maks. 50MB per file).
             </DialogDescription>
           </DialogHeader>
 

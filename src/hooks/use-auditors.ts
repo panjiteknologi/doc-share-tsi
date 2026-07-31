@@ -1,4 +1,4 @@
-import useSWR from "swr";
+import useSWR, { useSWRConfig } from "swr";
 import axios from "axios";
 
 const fetcher = async (url: string) => {
@@ -65,13 +65,23 @@ export function useAuditors({
   searchParams.append("limit", limit.toString());
   if (search) searchParams.append("search", search);
 
-  const { data, error, isLoading, mutate } = useSWR<AuditorsResponse>(
+  const { data, error, isLoading } = useSWR<AuditorsResponse>(
     `/api/auditors?${searchParams.toString()}`,
     fetcher,
     {
       revalidateOnFocus: false,
     }
   );
+
+  const { mutate: globalMutate } = useSWRConfig();
+
+  // Revalidate every /api/auditors cache entry, not just this hook's own
+  // page/limit/search key, so auditor lists elsewhere (e.g. a different page
+  // or search filter) update without a full page refresh.
+  const mutate = () =>
+    globalMutate(
+      (key) => typeof key === "string" && key.startsWith("/api/auditors")
+    );
 
   return {
     auditors: data?.auditors || [],

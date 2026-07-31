@@ -185,3 +185,16 @@
     @apply bg-background text-foreground;
   }
 }
+
+@keyframes marquee-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee-scroll {
+  animation: marquee-scroll 65s linear infinite;
+}

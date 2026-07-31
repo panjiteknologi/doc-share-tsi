@@ -31,7 +31,7 @@ import { DataPagination } from "../dashboard/tables/data-pagination";
 const FOLDERS_PER_PAGE = 12;
 
 const DriveView = () => {
-  const { data: session } = useSession();
+  const { data: session, status: sessionStatus } = useSession();
   const [viewMode, setViewMode] = useState<"grid" | "list">("list");
   const [searchQuery, setSearchQuery] = useState(""); // State untuk pencarian folder
   const [isCreateFolderDialogOpen, setIsCreateFolderDialogOpen] = useState(false);
@@ -62,7 +62,11 @@ const DriveView = () => {
   } = useFoldersByUserId(userId, userRole);
 
   // Fetch folders Auditor
-  const { folders: foldersProjects, mutate: revalidateFoldersProject } = useFoldersProjects(userRole);
+  const {
+    folders: foldersProjects,
+    isLoading: isFoldersProjectsLoading,
+    mutate: revalidateFoldersProject,
+  } = useFoldersProjects(userRole);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value); // Update search query state
@@ -110,7 +114,14 @@ const DriveView = () => {
     setIsCreateFolderDialogOpen(true);
   };
 
-  const loadingFolders = isFoldersLoading || isFoldersByIdLoading;
+  // While the session is still resolving, userId/userRole are blank and the
+  // fetch hooks skip their request entirely (isLoading stays false) — without
+  // this check "No folders found" flashes before the real fetch even starts.
+  const loadingFolders =
+    sessionStatus === "loading" ||
+    isFoldersLoading ||
+    isFoldersByIdLoading ||
+    isFoldersProjectsLoading;
 
   // Client-side pagination for the grid view
   const totalPages = Math.max(
