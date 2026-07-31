@@ -123,6 +123,19 @@ function formatDate(value: string) {
   });
 }
 
+// Includes the time of day (in the viewer's own local timezone, via the
+// browser's default toLocaleString behavior) so the exact auto-delete
+// moment is unambiguous — not just the date.
+function formatDateTime(value: string | Date) {
+  return new Date(value).toLocaleString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 function getInitial(name: string) {
   return (name || "").trim().charAt(0).toUpperCase() || "?";
 }
@@ -867,7 +880,7 @@ function FolderRow({
       <div className={COL.type}>
         <StatusDot
           tone={folderSeverity}
-          title={`Auto-deletes on ${formatDate(folder.endDate)}`}
+          title={`Akan terhapus otomatis pada ${formatDateTime(folderExpiry)}`}
         >
           {folderTimeRemaining}
         </StatusDot>
@@ -1021,10 +1034,13 @@ function FileRow({
           {document.uploadedBy}
         </span>
       </div>
-      <div className={`${COL.createdBy} justify-center`}>
+      <div className={`${COL.createdBy} flex-col items-center justify-center gap-0.5`}>
         <StatusDot tone={severity} title="Time remaining until auto-delete">
           {timeRemaining}
         </StatusDot>
+        <span className="text-[10px] text-white/40">
+          {formatDateTime(expiryDate)}
+        </span>
       </div>
       {showActionsColumn && (
         <div className={`${COL.actions} items-center`} onClick={(e) => e.stopPropagation()}>
